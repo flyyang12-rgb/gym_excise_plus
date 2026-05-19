@@ -515,6 +515,81 @@ select {
   line-height: 1.7;
 }
 
+.motivation-panel {
+  overflow: hidden;
+}
+
+.motivation-marquee {
+  display: grid;
+  gap: 10px;
+}
+
+.marquee-line {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fffdf9, #fff7f1);
+  box-shadow: 0 6px 16px rgba(23, 32, 51, 0.06);
+}
+
+.marquee-track {
+  display: flex;
+  width: max-content;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 0;
+  white-space: nowrap;
+}
+
+.marquee-track span {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid rgba(239, 106, 46, 0.28);
+  color: #2a354a;
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+.marquee-line .marquee-track span:nth-child(3n + 1) {
+  background: linear-gradient(180deg, #fff4de, #ffe8be);
+  border-color: rgba(239, 106, 46, 0.36);
+  color: #2a2413;
+}
+
+.marquee-line-a .marquee-track {
+  animation: marquee-left 18s linear infinite;
+}
+
+.marquee-line-b .marquee-track {
+  animation: marquee-right 22s linear infinite;
+}
+
+.marquee-line-c .marquee-track {
+  animation: marquee-left 26s linear infinite;
+}
+
+@keyframes marquee-left {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes marquee-right {
+  from {
+    transform: translateX(-50%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
 .back-to-workout {
   position: fixed;
   right: 22px;
