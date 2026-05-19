@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#ef6a2e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>健身小助手</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="hero">
+      <div class="hero-main">
+        <p class="eyebrow">晚间训练 · 小白模式 · 本地可用</p>
+        <h1>今晚照着练就行</h1>
+        <p class="hero-text">
+          你不用自己想动作顺序，也不用记器械名字。先选今天练哪天，再按卡片一项项往下做。
+        </p>
+      </div>
+      <div class="hero-side">
+        <div class="hero-metric">
+          <span>默认节奏</span>
+          <strong id="heroFrequency">每周 4 练</strong>
+          <small id="heroDuration">单次 50-70 分钟</small>
+        </div>
+        <button id="resetButton" class="ghost-button" type="button">恢复默认</button>
+      </div>
+    </header>
+
+    <main class="main-stack">
+      <section class="panel profile-panel">
+        <div class="panel-head">
+          <div>
+            <p class="panel-tag">基础资料</p>
+            <h2>先确认你的信息</h2>
+          </div>
+        </div>
+
+        <div class="profile-grid">
+          <label>
+            <span>身高（cm）</span>
+            <input id="heightCm" type="number" min="100" max="250" step="1">
+          </label>
+          <label>
+            <span>体重（kg）</span>
+            <input id="weightKg" type="number" min="30" max="200" step="0.1">
+          </label>
+          <label>
+            <span>上班时间</span>
+            <input id="workStartTime" type="time">
+          </label>
+          <label>
+            <span>下班时间</span>
+            <input id="workEndTime" type="time">
+          </label>
+          <label>
+            <span>训练目标</span>
+            <select id="goal">
+              <option value="muscleGain">增肌</option>
+              <option value="fatLoss">减脂塑形</option>
+              <option value="fitness">提升体能</option>
+            </select>
+          </label>
+          <label>
+            <span>训练水平</span>
+            <select id="experienceLevel">
+              <option value="beginner">新手入门</option>
+              <option value="intermediate">有些基础</option>
+              <option value="advanced">进阶训练者</option>
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <section class="panel status-panel">
+        <div class="panel-head">
+          <div>
+            <p class="panel-tag">今日状态</p>
+            <h2>你现在适合怎么练</h2>
+          </div>
+        </div>
+
+        <div class="status-grid">
+          <article class="metric-card">
+            <span>BMI</span>
+            <strong id="bmiValue">--</strong>
+            <small id="bmiLabel">等待输入</small>
+          </article>
+          <article class="metric-card">
+            <span>建议频次</span>
+            <strong id="recommendedFrequency">每周 4 练</strong>
+            <small id="recommendedReason">当前默认以增肌新手节奏安排</small>
+          </article>
+          <article class="metric-card">
+            <span>建议开练</span>
+            <strong id="recommendedStart">18:30-20:00</strong>
+            <small id="recommendedDuration">50-70 分钟</small>
+          </article>
+        </div>
+
+        <div class="status-note">
+          <strong id="goalSummary">先稳住频率，再逐步加重量</strong>
+          <p id="overviewHint">你现在更适合先把训练节奏固定下来，再慢慢加重量和动作熟练度。</p>
+        </div>
+      </section>
+
+      <section class="panel plan-panel">
+        <div class="panel-head">
+          <div>
+            <p class="panel-tag">本周安排</p>
+            <h2>今天练哪天，点一下就行</h2>
+          </div>
+        </div>
+
+        <div class="frequency-tabs" id="frequencyTabs">
+          <button type="button" data-frequency="3">3 练</button>
+          <button type="button" data-frequency="4" class="is-active">4 练</button>
+          <button type="button" data-frequency="5">5 练</button>
+        </div>
+
+        <div id="weeklyPlan" class="weekly-plan"></div>
+      </section>
+
+      <section class="panel workout-panel">
+        <div class="panel-head panel-head-split">
+          <div>
+            <p class="panel-tag">今晚训练</p>
+            <h2 id="tonightTitle">先点上面的训练日</h2>
+          </div>
+          <div class="checkin-box">
+            <span id="todayProgress">今日完成 0/0</span>
+            <button id="checkinButton" class="primary-button" type="button">今日完成打卡</button>
+          </div>
+        </div>
+
+        <div class="tonight-meta" id="tonightMeta"></div>
+        <div class="warmup-card">
+          <div class="warmup-copy">
+            <strong id="warmupTitle">热身先做：跑步机快走 8-10 分钟</strong>
+            <p id="warmupText">先把身体热起来，再去上力量器械。完全不会时，热身就优先选跑步机。</p>
+          </div>
+          <div class="warmup-actions">
+            <button type="button" class="soft-button" data-equipment-target="treadmill">看跑步机</button>
+            <button type="button" class="soft-button" data-equipment-target="elliptical">看椭圆机</button>
+            <button type="button" class="soft-button" data-equipment-target="bike">看单车</button>
+          </div>
+        </div>
+
+        <div id="exerciseList" class="exercise-list"></div>
+
+        <div class="coach-note">
+          <strong>新手提醒</strong>
+          <p id="coachTip">重量以最后 2 次较吃力，但动作不乱、不借力为准。第一周宁可轻一点，也不要上来就逞强。</p>
+        </div>
+      </section>
+
+      <section class="panel equipment-panel">
+        <div class="panel-head">
+          <div>
+            <p class="panel-tag">器械说明</p>
+            <h2>不懂这个动作用什么，就点“看器械”</h2>
+          </div>
+        </div>
+        <div id="equipmentGrid" class="equipment-grid"></div>
+      </section>
+
+      <section class="panel recovery-panel">
+        <div class="panel-head">
+          <div>
+            <p class="panel-tag">恢复提醒</p>
+            <h2>收尾要做什么</h2>
+          </div>
+        </div>
+        <div class="recovery-grid">
+          <article class="mini-card">
+            <h3>拉伸</h3>
+            <p id="stretchText">训练后拉伸 5-10 分钟，今天练了哪块就多放松哪块。</p>
+          </article>
+          <article class="mini-card">
+            <h3>恢复</h3>
+            <p id="recoveryText">至少留 2-3 天给肌肉恢复。休息不是偷懒，是为了下一次还能练稳。</p>
+          </article>
+          <article class="mini-card">
+            <h3>饮食</h3>
+            <p id="nutritionText">晚训后 1 小时内补一顿正常饭或加餐，主食和蛋白质都要有。</p>
+          </article>
+          <article class="mini-card">
+            <h3>不会怎么办</h3>
+            <p>先做轻重量，先把路线走通。不会时优先用更稳的器械版本。</p>
+          </article>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <button id="backToWorkoutButton" class="back-to-workout" type="button" aria-label="返回上方训练区">
+    ↑ 返回训练区
+  </button>
+  <button id="backToTopButton" class="back-to-top" type="button" aria-label="返回顶部">
+    ↑ 返回顶部
+  </button>
+
+  <script src="script.js"></script>
+</body>
+</html>
