@@ -693,4 +693,13 @@ select {
     padding: 9px 12px;
     font-size: 0.92rem;
   }
+
+  .marquee-track {
+    gap: 10px;
+  }
+
+  .marquee-track span {
+    font-size: 0.86rem;
+    padding: 5px 10px;
+  }
 }
