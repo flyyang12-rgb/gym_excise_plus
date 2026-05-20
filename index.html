@@ -58,8 +58,7 @@
             <span>训练目标</span>
             <select id="goal">
               <option value="muscleGain">增肌</option>
-              <option value="fatLoss">减脂塑形</option>
-              <option value="fitness">提升体能</option>
+              <option value="fatLoss">减脂</option>
             </select>
           </label>
           <label>
@@ -140,11 +139,7 @@
             <strong id="warmupTitle">热身先做：跑步机快走 8-10 分钟</strong>
             <p id="warmupText">先把身体热起来，再去上力量器械。完全不会时，热身就优先选跑步机。</p>
           </div>
-          <div class="warmup-actions">
-            <button type="button" class="soft-button" data-equipment-target="treadmill">看跑步机</button>
-            <button type="button" class="soft-button" data-equipment-target="elliptical">看椭圆机</button>
-            <button type="button" class="soft-button" data-equipment-target="bike">看单车</button>
-          </div>
+          <div class="warmup-actions" id="warmupActions"></div>
         </div>
 
         <div id="exerciseList" class="exercise-list"></div>

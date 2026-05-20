@@ -21,22 +21,13 @@ const goalConfig = {
     nutrition: "晚训后 1 小时内补一顿正常饭或加餐，主食和蛋白质都要有。",
   },
   fatLoss: {
-    label: "减脂塑形",
-    reason: "以力量保肌肉，再配合中等强度有氧",
-    durationText: "45-65 分钟",
-    coachTip: "减脂不是把自己练废。先把动作做标准，再靠稳定训练和饮食去拉开差距。",
-    stretch: "训练后拉伸 5-8 分钟，重点放在胸、背、髋和腿后侧。",
-    recovery: "减脂也要留恢复日。连续几天很累时，先减量，不要硬顶。",
-    nutrition: "不要极端节食。蛋白质不能太低，主食别一下砍太狠。",
-  },
-  fitness: {
-    label: "提升体能",
-    reason: "以全身循环、心肺和基础力量为主",
-    durationText: "40-60 分钟",
-    coachTip: "体能提升最看重持续输出，不需要每次都练到趴下。",
-    stretch: "结束后做全身放松，拉伸时间不求长，重点是呼吸放慢。",
-    recovery: "如果心率持续高、腿很沉，就把下一次改成轻松恢复。",
-    nutrition: "体能训练前后都要补水，别空腹硬扛完整节训练。",
+    label: "减脂",
+    reason: "轻器械少，按瑜伽垫自重课来排更容易坚持",
+    durationText: "30-45 分钟",
+    coachTip: "减脂课就按瑜伽垫做，不用器械，不用跳视频链接。动作慢一点、标准一点，比拼狠更重要。",
+    stretch: "每次收尾都做 5-8 分钟拉伸，重点放在髋、腿后侧、胸和背。",
+    recovery: "减脂也要留恢复日。累的时候就做轻一点的版本，不要硬顶。",
+    nutrition: "别极端节食，保证蛋白质和正常进食，课后补水就行。",
   },
 };
 
@@ -90,6 +81,13 @@ const equipmentLibrary = {
     simple: "不会选重量，就拿你能稳稳做 10 次的轻重量。",
     standard: "慢慢举、慢慢放，比乱甩效果更好。",
   },
+  mat: {
+    name: "瑜伽垫",
+    image: "images/yoga-mat.svg",
+    useFor: ["垫上训练", "核心练习", "拉伸放松"],
+    simple: "一张防滑瑜伽垫就够了，所有减脂动作都在垫上完成。",
+    standard: "铺平、踩稳、不打滑，就是合适。",
+  },
 };
 
 const tutorialLinks = {
@@ -137,6 +135,115 @@ const planTemplates = {
     { day: "周六", type: "train", key: "fullbody" },
     { day: "周日", type: "recovery", key: "recovery" },
   ],
+};
+
+const fatLossPlanTemplates = {
+  3: [
+    { day: "周一", type: "train", key: "matFlow1" },
+    { day: "周三", type: "train", key: "matFlow2" },
+    { day: "周五", type: "train", key: "matFlow3" },
+    { day: "周日", type: "recovery", key: "matRecovery" },
+  ],
+  4: [
+    { day: "周一", type: "train", key: "matFlow1" },
+    { day: "周二", type: "train", key: "matFlow2" },
+    { day: "周四", type: "train", key: "matFlow3" },
+    { day: "周六", type: "train", key: "matFlow4" },
+    { day: "周日", type: "recovery", key: "matRecovery" },
+  ],
+  5: [
+    { day: "周一", type: "train", key: "matFlow1" },
+    { day: "周二", type: "train", key: "matFlow2" },
+    { day: "周三", type: "train", key: "matFlow3" },
+    { day: "周五", type: "train", key: "matFlow4" },
+    { day: "周六", type: "train", key: "matFlow5" },
+    { day: "周日", type: "recovery", key: "matRecovery" },
+  ],
+};
+
+const fatLossWorkouts = {
+  matFlow1: {
+    title: "垫上燃脂 1",
+    focus: "全身激活、基础心肺、核心",
+    duration: "约 35-40 分钟",
+    warmupTitle: "热身先做：原地走 + 开合步 5 分钟",
+    warmupText: "全程只用瑜伽垫。先把身体热开，再进入动作循环。",
+    tags: ["瑜伽垫", "自重"],
+    exercises: [
+      { name: "原地高抬腿", sets: "3轮 x 40秒", note: "节奏稳一点，别一上来就冲。", stance: "站在垫子前半段，抬头挺胸。", grip: "双手自然摆动即可。", firstMove: "先慢抬腿，再逐渐提到舒服速度。" },
+      { name: "深蹲到伸展", sets: "3轮 x 12次", note: "蹲下去，站起来后顺手把身体伸直。", stance: "双脚踩在垫子上，脚跟别翘。", grip: "双手自然放在胸前或向上伸。", firstMove: "先坐髋，再站起并把手臂举高。" },
+      { name: "登山跑", sets: "3轮 x 30秒", note: "核心收紧，动作别散。", stance: "双手撑垫，肩膀在手腕正上方。", grip: "不用器械，手掌撑稳地面。", firstMove: "先把一条腿向前提，再左右交替。" },
+      { name: "平板支撑", sets: "3组 x 30-45秒", note: "腰别塌，肚子收住。", stance: "前臂撑垫，身体一条直线。", grip: "不用器械。", firstMove: "先收紧腹部，再保持稳定呼吸。" },
+    ],
+  },
+  matFlow2: {
+    title: "垫上燃脂 2",
+    focus: "下肢、臀腿、核心",
+    duration: "约 35-45 分钟",
+    warmupTitle: "热身先做：开合步 + 髋部活动 5 分钟",
+    warmupText: "还是只用瑜伽垫，今天重点放在腿和臀。",
+    tags: ["瑜伽垫", "自重"],
+    exercises: [
+      { name: "弓步蹲", sets: "3组 x 10次/侧", note: "身体直着下去，别往前扑。", stance: "前后站开在垫子上。", grip: "双手可叉腰或抱胸。", firstMove: "前腿踩稳，再慢慢下蹲。" },
+      { name: "臀桥", sets: "3组 x 15次", note: "顶到臀部发力，不是腰在顶。", stance: "仰躺在垫子上，屈膝踩地。", grip: "手臂放身体两侧。", firstMove: "先收紧臀部，再把髋抬起。" },
+      { name: "侧卧抬腿", sets: "3组 x 12次/侧", note: "动作慢一点，别甩腿。", stance: "侧躺在垫子上，身体拉直。", grip: "不用器械。", firstMove: "先抬上侧腿，再慢慢放下。" },
+      { name: "死虫", sets: "3组 x 10次/侧", note: "核心稳住，腰别拱。", stance: "仰躺，双腿抬起。", grip: "双手伸向天花板。", firstMove: "对侧手脚慢慢伸出去，再收回。" },
+    ],
+  },
+  matFlow3: {
+    title: "垫上燃脂 3",
+    focus: "上半身激活、核心耐力",
+    duration: "约 30-40 分钟",
+    warmupTitle: "热身先做：猫牛式 + 站姿绕肩 5 分钟",
+    warmupText: "动作都在垫上或垫边完成，不需要器械。",
+    tags: ["瑜伽垫", "自重"],
+    exercises: [
+      { name: "跪姿俯卧撑", sets: "3组 x 8-12次", note: "先把动作做标准，再谈次数。", stance: "双膝跪在垫子上，身体保持直线。", grip: "双手撑地，略宽于肩。", firstMove: "先稳住躯干，再往下压。", },
+      { name: "超人式", sets: "3组 x 12次", note: "背部和臀部一起发力。", stance: "俯卧在垫子上，双臂前伸。", grip: "不用器械。", firstMove: "四肢和胸口轻轻抬起，再放下。" },
+      { name: "俄罗斯转体", sets: "3组 x 20次", note: "转腰，不是甩手。", stance: "坐在垫子上，膝盖弯起。", grip: "双手在胸前合拢。", firstMove: "身体微微后仰后左右转动。" },
+      { name: "平板支撑交替抬手", sets: "3组 x 20次", note: "肩膀别晃太多。", stance: "高位平板撑在垫子上。", grip: "手掌撑地。", firstMove: "一只手慢慢抬起，再换边。" },
+    ],
+  },
+  matFlow4: {
+    title: "垫上燃脂 4",
+    focus: "全身循环、出汗节奏",
+    duration: "约 35-45 分钟",
+    warmupTitle: "热身先做：快走原地踏步 5 分钟",
+    warmupText: "今天还是只靠瑜伽垫完成整节课。",
+    tags: ["瑜伽垫", "自重"],
+    exercises: [
+      { name: "开合跳低冲击版", sets: "4轮 x 40秒", note: "不想跳就改成左右踏步。", stance: "站在垫子中央。", grip: "双手自然甩动。", firstMove: "先从慢节奏开始，再加快。" },
+      { name: "深蹲脉冲", sets: "3组 x 20次", note: "蹲在半程上下小幅发力。", stance: "脚踩稳垫子。", grip: "双手抱胸。", firstMove: "先下蹲到半程，再小幅起伏。" },
+      { name: "山地爬行", sets: "3组 x 30秒", note: "核心收紧，呼吸别乱。", stance: "双手撑地，身体拉平。", grip: "手掌压稳地面。", firstMove: "左右腿交替向前提。" },
+      { name: "仰卧卷腹", sets: "3组 x 15次", note: "收腹发力，不是脖子发力。", stance: "仰躺在垫上，屈膝。", grip: "双手轻放耳侧。", firstMove: "先呼气，再把肩膀带起来。" },
+    ],
+  },
+  matFlow5: {
+    title: "垫上燃脂 5",
+    focus: "拉伸、核心收尾、轻出汗",
+    duration: "约 30-35 分钟",
+    warmupTitle: "热身先做：关节活动 5 分钟",
+    warmupText: "这一练更轻，还是只需要瑜伽垫。",
+    tags: ["瑜伽垫", "自重"],
+    exercises: [
+      { name: "鸟狗式", sets: "3组 x 10次/侧", note: "慢一点，稳住身体。", stance: "四点跪姿撑在垫上。", grip: "手掌压稳地面。", firstMove: "对侧手脚同时伸出去，再收回。" },
+      { name: "臀腿拉伸", sets: "3组 x 30秒/侧", note: "今天把腿后侧放松一点。", stance: "坐姿或仰姿都可以。", grip: "不需要器械。", firstMove: "拉到有感觉就停住。" },
+      { name: "平板支撑", sets: "3组 x 20-30秒", note: "保持稳定，不追时长。", stance: "前臂撑地。", grip: "不用器械。", firstMove: "先收腹，再保持直线。" },
+      { name: "呼吸放松", sets: "2组 x 1分钟", note: "收尾降下来，别急着结束。", stance: "仰躺在垫上。", grip: "双手自然放松。", firstMove: "慢吸气、慢呼气。" },
+    ],
+  },
+  matRecovery: {
+    title: "恢复日",
+    focus: "轻拉伸、放松",
+    duration: "约 20-30 分钟",
+    warmupTitle: "恢复日也只用瑜伽垫",
+    warmupText: "不加器械，不加跳跃，轻轻松松就行。",
+    tags: ["瑜伽垫"],
+    exercises: [
+      { name: "全身拉伸", sets: "8-10 分钟", note: "胸、背、髋、腿后侧都松一松。", stance: "站姿或坐姿都行。", grip: "不需要器械。", firstMove: "每个部位停留到有拉开感。" },
+      { name: "猫牛式", sets: "2组 x 8次", note: "放松背部和脊柱。", stance: "四点跪姿。", grip: "手掌撑稳。", firstMove: "一弓一塌，慢慢呼吸。" },
+    ],
+  },
 };
 
 const workoutLibrary = {
@@ -458,6 +565,7 @@ const elements = {
   stretchText: document.querySelector("#stretchText"),
   recoveryText: document.querySelector("#recoveryText"),
   nutritionText: document.querySelector("#nutritionText"),
+  warmupActions: document.querySelector("#warmupActions"),
   backToWorkoutButton: document.querySelector("#backToWorkoutButton"),
   backToTopButton: document.querySelector("#backToTopButton"),
 };
@@ -506,7 +614,6 @@ function getBmiInfo(heightCm, weightKg) {
 }
 
 function getRecommendedFrequency(goal, experienceLevel) {
-  if (goal === "fitness") return experienceLevel === "advanced" ? 4 : 3;
   if (goal === "fatLoss") return experienceLevel === "beginner" ? 4 : 5;
   if (experienceLevel === "advanced") return 5;
   return 4;
@@ -518,8 +625,7 @@ function getGoalSummary(goal, experienceLevel) {
     if (experienceLevel === "intermediate") return "动作稳定后，再逐步增加训练量";
     return "控制训练量和恢复，重点突破薄弱部位";
   }
-  if (goal === "fatLoss") return "力量训练打底，再配合有氧拉开消耗";
-  return "优先提升心肺和全身协调，让训练更容易坚持";
+  return goal === "fatLoss" ? "按瑜伽垫自重课来排，节奏清楚更容易坚持" : "先把训练节奏固定下来，再慢慢加重量和动作熟练度";
 }
 
 function getOverviewHint(goal, bmiInfo) {
@@ -527,10 +633,7 @@ function getOverviewHint(goal, bmiInfo) {
     return "你现在更适合走稳一点的增肌路线：先把一周节奏固定，再把吃饭和睡眠跟上。";
   }
   if (goal === "fatLoss") {
-    return "减脂阶段别急着天天猛练，先把力量训练和有氧搭配稳定。";
-  }
-  if (goal === "fitness") {
-    return "体能提升最怕忽高忽低，保持中等强度、连续执行，会更有效。";
+    return "减脂阶段就走简单路线：瑜伽垫、自重、规律频次，别把课表搞复杂。";
   }
   return "你现在更适合先把训练节奏固定下来，再慢慢加重量和动作熟练度。";
 }
@@ -547,31 +650,18 @@ function getStartWindow(workEndTime) {
 }
 
 function cloneWorkout(key, goal) {
-  const workout = JSON.parse(JSON.stringify(workoutLibrary[key]));
-
-  if (goal === "fatLoss" && key !== "recovery") {
-    workout.duration = "约 55-65 分钟";
-    workout.exercises.push({
-      name: "收尾有氧",
-      sets: "8-12 分钟",
-      note: "跑步机坡走、椭圆机或单车都行。",
-      equipment: "treadmill",
-      extraEquipment: "elliptical",
-      stance: "站稳或坐稳，身体放松。",
-      grip: "轻扶把手就行。",
-      firstMove: "先慢一点开始，再进入匀速状态。",
-    });
+  if (goal === "fatLoss") {
+    const workout = JSON.parse(JSON.stringify(fatLossWorkouts[key]));
+    workout.goal = goal;
+    return workout;
   }
 
-  if (goal === "fitness" && key !== "recovery") {
-    workout.duration = "约 45-60 分钟";
-  }
-
-  return workout;
+  return JSON.parse(JSON.stringify(workoutLibrary[key]));
 }
 
 function getPlanByFrequency(frequency, goal) {
-  return planTemplates[frequency].map((item, index) => {
+  const sourceTemplates = goal === "fatLoss" ? fatLossPlanTemplates : planTemplates;
+  return sourceTemplates[frequency].map((item, index) => {
     const workout = cloneWorkout(item.key, goal);
     return {
       id: `${item.day}-${item.key}-${index}`,
@@ -653,6 +743,24 @@ function renderOverview() {
   elements.nutritionText.textContent = goalInfo.nutrition;
 }
 
+function renderWarmupActions() {
+  if (!elements.warmupActions) return;
+  const buttons = state.goal === "fatLoss"
+    ? [
+        { target: "mat", label: "看瑜伽垫" },
+      ]
+    : [
+        { target: "treadmill", label: "看跑步机" },
+        { target: "elliptical", label: "看椭圆机" },
+        { target: "bike", label: "看单车" },
+      ];
+
+  elements.warmupActions.innerHTML = buttons
+    .map(({ target, label }) => `<button type="button" class="soft-button" data-equipment-target="${target}">${label}</button>`)
+    .join("");
+  bindEquipmentJumpButtons(elements.warmupActions);
+}
+
 function renderFrequencyTabs() {
   elements.frequencyTabs.querySelectorAll("button").forEach((button) => {
     button.classList.toggle("is-active", Number(button.dataset.frequency) === state.trainDaysPerWeek);
@@ -719,15 +827,7 @@ function renderWorkout() {
   const checkedMap = getExerciseProgressMap(workout);
   elements.exerciseList.innerHTML = workout.exercises.map((exercise, index) => {
     const complete = !!checkedMap[exercise.name];
-    const tutorialUrl = tutorialLinks[exercise.name];
-    const actionButtons = [];
-    if (exercise.equipment) {
-      actionButtons.push(`<button type="button" class="guide-button" data-equipment-target="${exercise.equipment}">看器械：${equipmentLibrary[exercise.equipment].name}</button>`);
-    }
-    if (exercise.extraEquipment) {
-      actionButtons.push(`<button type="button" class="guide-button" data-equipment-target="${exercise.extraEquipment}">补充器械：${equipmentLibrary[exercise.extraEquipment].name}</button>`);
-    }
-
+    const tutorialUrl = state.goal === "muscleGain" ? tutorialLinks[exercise.name] : "";
     return `
       <article class="exercise-card ${complete ? "is-complete" : ""}">
         <div class="exercise-head">
@@ -736,7 +836,7 @@ function renderWorkout() {
             <strong>${exercise.name}</strong>
             <div class="exercise-top-meta">
               <span>${exercise.sets}</span>
-              ${exercise.equipment ? `<span>优先器械：${equipmentLibrary[exercise.equipment].name}</span>` : `<span>徒手动作</span>`}
+              ${state.goal === "fatLoss" ? `<span>只需瑜伽垫</span>` : (exercise.equipment ? `<span>优先器械：${equipmentLibrary[exercise.equipment].name}</span>` : `<span>徒手动作</span>`)}
             </div>
           </div>
           <div class="exercise-head-actions">
@@ -762,7 +862,7 @@ function renderWorkout() {
             <strong>${exercise.firstMove || "先做慢一点，先把路线做对。"}</strong>
           </div>
         </div>
-        ${actionButtons.length ? `<div class="exercise-actions">${actionButtons.join("")}</div>` : ""}
+        ${state.goal === "fatLoss" ? `<div class="exercise-actions"><span class="pill">只需瑜伽垫</span></div>` : ""}
       </article>
     `;
   }).join("");
@@ -783,7 +883,9 @@ function bindWorkoutInteractions() {
 }
 
 function renderEquipmentGuide() {
-  const order = ["treadmill", "elliptical", "bike", "cable", "smith", "bench", "dumbbell"];
+  const order = state.goal === "fatLoss"
+    ? ["mat"]
+    : ["treadmill", "elliptical", "bike", "cable", "smith", "bench", "dumbbell"];
   elements.equipmentGrid.innerHTML = order.map((key) => {
     const item = equipmentLibrary[key];
     return `
@@ -814,20 +916,16 @@ function renderEquipmentGuide() {
 function bindEquipmentJumpButtons(scope = document) {
   scope.querySelectorAll("[data-equipment-target]").forEach((button) => {
     button.addEventListener("click", () => {
-      jumpToEquipment(button.dataset.equipmentTarget);
+      const target = document.querySelector(`#equipment-${button.dataset.equipmentTarget}`);
+      if (!target) return;
+      returnScrollY = window.scrollY;
+      updateBackToWorkoutButton();
+      document.querySelectorAll(".equipment-card").forEach((card) => card.classList.remove("is-highlighted"));
+      target.classList.add("is-highlighted");
+      target.scrollIntoView({ behavior: "smooth", block: "center" });
+      setTimeout(() => target.classList.remove("is-highlighted"), 2200);
     });
   });
-}
-
-function jumpToEquipment(key) {
-  const target = document.querySelector(`#equipment-${key}`);
-  if (!target) return;
-  returnScrollY = window.scrollY;
-  updateBackToWorkoutButton();
-  document.querySelectorAll(".equipment-card").forEach((card) => card.classList.remove("is-highlighted"));
-  target.classList.add("is-highlighted");
-  target.scrollIntoView({ behavior: "smooth", block: "center" });
-  setTimeout(() => target.classList.remove("is-highlighted"), 2200);
 }
 
 function updateBackToWorkoutButton() {
@@ -854,6 +952,7 @@ function rerenderAll() {
     state.trainDaysPerWeek = getRecommendedFrequency(state.goal, state.experienceLevel);
   }
   renderOverview();
+  renderWarmupActions();
   renderFrequencyTabs();
   renderWeeklyPlan();
   renderWorkout();
@@ -924,6 +1023,9 @@ function attachEvents() {
 }
 
 function init() {
+  if (!["muscleGain", "fatLoss"].includes(state.goal)) {
+    state.goal = "muscleGain";
+  }
   populateInputs();
   syncStateFromInputs();
   attachEvents();
