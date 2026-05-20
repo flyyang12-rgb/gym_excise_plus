@@ -92,6 +92,29 @@ const equipmentLibrary = {
   },
 };
 
+const tutorialLinks = {
+  "平板卧推": "https://www.xiaohongshu.com/explore/684fd5020000000023013244?xsec_token=ABBEifVAJBlkEWQOYth_9ue8penPYDxvIlGg9UYbLfJWQ=&xsec_source=pc_search&source=web_explore_feed",
+  "哑铃卧推": "https://www.xiaohongshu.com/discovery/item/679202130000000029036ca1?source=webshare&xhsshare=pc_web&xsec_token=ABaInPD7dtAZJgqAwYDCkbVzqY6QIs1VZuYM36KETGo_k=&xsec_source=pc_share",
+  "夹胸 / 飞鸟": "https://www.xiaohongshu.com/discovery/item/692278de000000001e039e0c?source=webshare&xhsshare=pc_web&xsec_token=ABLoBIR9UJvu_29AY0XkgTC-ABzorA63v67AnaKPd4eVc=&xsec_source=pc_share",
+  "绳索下压": "https://www.xiaohongshu.com/discovery/item/6946a2c1000000001d03d823?source=webshare&xhsshare=pc_web&xsec_token=ABVIBRKeSeeFgmGjFfPIV8EeyfzlacCzXKlNajs4etG8E=&xsec_source=pc_share",
+  "核心收尾": "https://www.xiaohongshu.com/discovery/item/6868fc5b0000000011003d77?source=webshare&xhsshare=pc_web&xsec_token=AB-jxwVW5NMjX44jVM8oSnWHpIS29GV3CyNjpQ74XbQAM=&xsec_source=pc_share",
+  "高位下拉": "https://www.xiaohongshu.com/discovery/item/694f169b000000001e023f3a?source=webshare&xhsshare=pc_web&xsec_token=ABVdf03TJ0VOyFfwsXUyLuLjE2Du8hQjoyV2XXl4ciNWw=&xsec_source=pc_share",
+  "坐姿划船": "https://www.xiaohongshu.com/discovery/item/6a044f6c000000000803ff53?source=webshare&xhsshare=pc_web&xsec_token=ABup58vH0GjzQgVPV9WKq3qLvzZBEzzq0gt8HsHjyKW_o=&xsec_source=pc_share",
+  "单臂哑铃划船": "https://www.xiaohongshu.com/discovery/item/68dd273d0000000007039e65?source=webshare&xhsshare=pc_web&xsec_token=ABDahkb7-hS6y-N-tSJdG-Q3LgQs7HX3Hoyc-Hlx1U4vM=&xsec_source=pc_share",
+  "哑铃弯举": "https://www.xiaohongshu.com/discovery/item/68b05bf6000000001d00a317?source=webshare&xhsshare=pc_web&xsec_token=AByE-pqPmbHxJqEYe9ikDyWdlmWgRXYCK1Eu2SywEY0RM=&xsec_source=pc_share",
+  "史密斯深蹲": "https://www.xiaohongshu.com/discovery/item/69b7fd9e0000000023015451?source=webshare&xhsshare=pc_web&xsec_token=ABNFQ8AtpwMw5M0RDVNjgmd8okp4kmVG1fxyfhrLltS7c=&xsec_source=pc_share",
+  "罗马尼亚硬拉": "https://www.xiaohongshu.com/discovery/item/68ff6461000000000700e4b4?source=webshare&xhsshare=pc_web&xsec_token=ABnv2ymzwIkKlibNru8ESguuKfb6sec0201ZOU2VTlYSI=&xsec_source=pc_share",
+  "箭步蹲": "https://www.xiaohongshu.com/discovery/item/687cf1100000000010011f86?source=webshare&xhsshare=pc_web&xsec_token=ABgZnxcMEx0Up474FafHoDZak9FfMRGHE-jIMF1CC0ns4=&xsec_source=pc_share",
+  "卷腹 / 平板支撑": "https://www.xiaohongshu.com/discovery/item/698007e0000000000903966f?source=webshare&xhsshare=pc_web&xsec_token=ABVURntpEOPrbFJWAaBNFU9UIPjehUeSPBvyLgqlsDqgg=&xsec_source=pc_share",
+  "哑铃推肩": "https://www.xiaohongshu.com/discovery/item/67680d9f00000000130187b1?source=webshare&xhsshare=pc_web&xsec_token=ABB602x13GKfW3HyzVsTxZPvVgRlPPYyZYuJsFh5nasb8=&xsec_source=pc_share",
+  "侧平举": "https://www.xiaohongshu.com/discovery/item/6982c06c000000000b011d0a?source=webshare&xhsshare=pc_web&xsec_token=ABuJV8nbc9R2NKYf0dK-s9_F01eN4Cj9ijvTdwYcIGJAY=&xsec_source=pc_share",
+  "俯身飞鸟": "https://www.xiaohongshu.com/discovery/item/697831b5000000002103c7d8?source=webshare&xhsshare=pc_web&xsec_token=ABQFHAX7O0_H-ldx3YRpHP6Ipxg7YE998IMhyf8AfAUkk=&xsec_source=pc_share",
+  "二头或三头补强": "https://www.xiaohongshu.com/discovery/item/69d36e5100000000230043e8?source=webshare&xhsshare=pc_web&xsec_token=ABMbvFRFQjX6AImgfXH8wXgTJuMzut1trj8SFBNqGVrxM=&xsec_source=pc_share",
+  "哑铃杯式深蹲": "https://www.xiaohongshu.com/discovery/item/684ecd9a000000002301ef1a?source=webshare&xhsshare=pc_web&xsec_token=ABmbalpfjo24GQCfIeZPmhHrs1AaAExfTegqP4OffhUYg=&xsec_source=pc_share",
+  "俯卧撑或器械推胸": "https://www.xiaohongshu.com/discovery/item/67aacd16000000001701fc59?source=webshare&xhsshare=pc_web&xsec_token=ABSldK9m1C5aHXIpbChHOlhJwvLrOmSa-7vYsxfaZPGsI=&xsec_source=pc_share",
+  "单车冲刺": "https://www.xiaohongshu.com/discovery/item/6945fec9000000001e0306e0?source=webshare&xhsshare=pc_web&xsec_token=ABj9-m5O9RFUfCz673bU-5YRJorJhWOsO8To0HPhPbtmc=&xsec_source=pc_share",
+};
+
 const planTemplates = {
   3: [
     { day: "周一", type: "train", key: "push" },
@@ -696,6 +719,7 @@ function renderWorkout() {
   const checkedMap = getExerciseProgressMap(workout);
   elements.exerciseList.innerHTML = workout.exercises.map((exercise, index) => {
     const complete = !!checkedMap[exercise.name];
+    const tutorialUrl = tutorialLinks[exercise.name];
     const actionButtons = [];
     if (exercise.equipment) {
       actionButtons.push(`<button type="button" class="guide-button" data-equipment-target="${exercise.equipment}">看器械：${equipmentLibrary[exercise.equipment].name}</button>`);
@@ -715,10 +739,13 @@ function renderWorkout() {
               ${exercise.equipment ? `<span>优先器械：${equipmentLibrary[exercise.equipment].name}</span>` : `<span>徒手动作</span>`}
             </div>
           </div>
-          <label class="exercise-check">
-            <input type="checkbox" data-workout-id="${workout.id}" data-exercise-name="${exercise.name}" ${complete ? "checked" : ""}>
-            完成
-          </label>
+          <div class="exercise-head-actions">
+            ${tutorialUrl ? `<a class="tutorial-link" href="${tutorialUrl}" target="_blank" rel="noopener noreferrer">教学详情</a>` : ""}
+            <label class="exercise-check">
+              <input type="checkbox" data-workout-id="${workout.id}" data-exercise-name="${exercise.name}" ${complete ? "checked" : ""}>
+              完成
+            </label>
+          </div>
         </div>
         <p class="exercise-note">${exercise.note || ""}</p>
         <div class="guide-grid">
