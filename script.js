@@ -928,6 +928,16 @@ function bindEquipmentJumpButtons(scope = document) {
   });
 }
 
+function bindScrollTargetButtons(scope = document) {
+  scope.querySelectorAll("[data-scroll-target]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const target = document.querySelector(button.dataset.scrollTarget);
+      if (!target) return;
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  });
+}
+
 function updateBackToWorkoutButton() {
   if (!elements.backToWorkoutButton) return;
   elements.backToWorkoutButton.classList.toggle("is-visible", returnScrollY !== null);
@@ -994,6 +1004,7 @@ function attachEvents() {
   });
 
   bindEquipmentJumpButtons(document);
+  bindScrollTargetButtons(document);
 
   elements.checkinButton.addEventListener("click", () => {
     const workout = getActiveWorkout();

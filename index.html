@@ -6,31 +6,108 @@
   <meta name="theme-color" content="#ef6a2e">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>健身小助手</title>
-  <link rel="stylesheet" href="style.css?v=20260519-1">
+  <link rel="stylesheet" href="style.css?v=20260521-1">
 </head>
 <body>
   <div class="app-shell">
     <header class="hero">
       <div class="hero-main">
-        <p class="eyebrow">晚间训练 · 小白模式 · 本地可用</p>
+        <p class="eyebrow">晚间训练 / 小白模式 / 本地可用</p>
         <h1>今晚照着练就行</h1>
         <p class="hero-text">
-          你不用自己想动作顺序，也不用记器械名字。先选今天练哪天，再按卡片一项项往下做。
+          先确认身体状态和节奏，再选今天训练日。页面会把动作、器械和收尾提醒排好，减少你临场犹豫的时间。
         </p>
+        <div class="hero-insight">
+          <strong id="goalSummary">先稳住频率，再逐步加重量</strong>
+          <p id="overviewHint">你现在更适合先把训练节奏固定下来，再慢慢加重量和动作熟练度。</p>
+        </div>
       </div>
-      <div class="hero-side">
+
+      <aside class="hero-side" aria-label="当前训练概览">
         <div class="hero-metric">
-          <span>默认节奏</span>
+          <span>当前节奏</span>
           <strong id="heroFrequency">每周 4 练</strong>
           <small id="heroDuration">单次 50-70 分钟</small>
         </div>
+        <div class="hero-metric hero-metric-light">
+          <span>建议开始</span>
+          <strong id="recommendedStart">18:30-20:00</strong>
+          <small id="recommendedDuration">50-70 分钟</small>
+        </div>
         <button id="resetButton" class="ghost-button" type="button">恢复默认</button>
-      </div>
+      </aside>
     </header>
 
-    <main class="main-stack">
-      <section class="panel profile-panel">
-        <div class="panel-head">
+    <main class="dashboard-layout">
+      <section class="system-panel" aria-label="系统判断">
+        <div class="section-head">
+          <div>
+            <p class="panel-tag">今日状态</p>
+            <h2>系统判断</h2>
+          </div>
+        </div>
+
+        <div class="status-grid">
+          <article class="metric-card">
+            <span>BMI</span>
+            <strong id="bmiValue">--</strong>
+            <small id="bmiLabel">等待输入</small>
+          </article>
+          <article class="metric-card">
+            <span>建议频次</span>
+            <strong id="recommendedFrequency">每周 4 练</strong>
+            <small id="recommendedReason">当前默认以增肌新手节奏安排</small>
+          </article>
+        </div>
+      </section>
+
+      <section class="plan-panel" aria-label="本周安排">
+        <div class="section-head section-head-split">
+          <div>
+            <p class="panel-tag">本周安排</p>
+            <h2>今天练哪天，点一下就行</h2>
+          </div>
+          <div class="frequency-tabs" id="frequencyTabs">
+            <button type="button" data-frequency="3">3 练</button>
+            <button type="button" data-frequency="4" class="is-active">4 练</button>
+            <button type="button" data-frequency="5">5 练</button>
+          </div>
+        </div>
+
+        <div id="weeklyPlan" class="weekly-plan"></div>
+      </section>
+
+      <section class="workout-panel" aria-label="今晚训练">
+        <div class="section-head section-head-split">
+          <div>
+            <p class="panel-tag">今晚训练</p>
+            <h2 id="tonightTitle">先点上面的训练日</h2>
+          </div>
+          <div class="checkin-box">
+            <span id="todayProgress">今日完成 0/0</span>
+            <button id="checkinButton" class="primary-button" type="button">今日完成打卡</button>
+          </div>
+        </div>
+
+        <div class="tonight-meta" id="tonightMeta"></div>
+        <div class="warmup-card">
+          <div class="warmup-copy">
+            <strong id="warmupTitle">热身先做：跑步机快走 8-10 分钟</strong>
+            <p id="warmupText">先把身体热起来，再去上力量器械。完全不会时，热身就优先选跑步机。</p>
+          </div>
+          <div class="warmup-actions" id="warmupActions"></div>
+        </div>
+
+        <div id="exerciseList" class="exercise-list"></div>
+
+        <div class="coach-note">
+          <strong>新手提醒</strong>
+          <p id="coachTip">重量以最后 2 次较吃力，但动作不乱、不借力为准。第一周宁可轻一点，也不要上来就逞强。</p>
+        </div>
+      </section>
+
+      <section class="profile-panel secondary-section">
+        <div class="section-head">
           <div>
             <p class="panel-tag">基础资料</p>
             <h2>先确认你的信息</h2>
@@ -72,96 +149,8 @@
         </div>
       </section>
 
-      <section class="panel status-panel">
-        <div class="panel-head">
-          <div>
-            <p class="panel-tag">今日状态</p>
-            <h2>你现在适合怎么练</h2>
-          </div>
-        </div>
-
-        <div class="status-grid">
-          <article class="metric-card">
-            <span>BMI</span>
-            <strong id="bmiValue">--</strong>
-            <small id="bmiLabel">等待输入</small>
-          </article>
-          <article class="metric-card">
-            <span>建议频次</span>
-            <strong id="recommendedFrequency">每周 4 练</strong>
-            <small id="recommendedReason">当前默认以增肌新手节奏安排</small>
-          </article>
-          <article class="metric-card">
-            <span>建议开练</span>
-            <strong id="recommendedStart">18:30-20:00</strong>
-            <small id="recommendedDuration">50-70 分钟</small>
-          </article>
-        </div>
-
-        <div class="status-note">
-          <strong id="goalSummary">先稳住频率，再逐步加重量</strong>
-          <p id="overviewHint">你现在更适合先把训练节奏固定下来，再慢慢加重量和动作熟练度。</p>
-        </div>
-      </section>
-
-      <section class="panel plan-panel">
-        <div class="panel-head">
-          <div>
-            <p class="panel-tag">本周安排</p>
-            <h2>今天练哪天，点一下就行</h2>
-          </div>
-        </div>
-
-        <div class="frequency-tabs" id="frequencyTabs">
-          <button type="button" data-frequency="3">3 练</button>
-          <button type="button" data-frequency="4" class="is-active">4 练</button>
-          <button type="button" data-frequency="5">5 练</button>
-        </div>
-
-        <div id="weeklyPlan" class="weekly-plan"></div>
-      </section>
-
-      <section class="panel workout-panel">
-        <div class="panel-head panel-head-split">
-          <div>
-            <p class="panel-tag">今晚训练</p>
-            <h2 id="tonightTitle">先点上面的训练日</h2>
-          </div>
-          <div class="checkin-box">
-            <span id="todayProgress">今日完成 0/0</span>
-            <button id="checkinButton" class="primary-button" type="button">今日完成打卡</button>
-          </div>
-        </div>
-
-        <div class="tonight-meta" id="tonightMeta"></div>
-        <div class="warmup-card">
-          <div class="warmup-copy">
-            <strong id="warmupTitle">热身先做：跑步机快走 8-10 分钟</strong>
-            <p id="warmupText">先把身体热起来，再去上力量器械。完全不会时，热身就优先选跑步机。</p>
-          </div>
-          <div class="warmup-actions" id="warmupActions"></div>
-        </div>
-
-        <div id="exerciseList" class="exercise-list"></div>
-
-        <div class="coach-note">
-          <strong>新手提醒</strong>
-          <p id="coachTip">重量以最后 2 次较吃力，但动作不乱、不借力为准。第一周宁可轻一点，也不要上来就逞强。</p>
-        </div>
-      </section>
-
-      <section class="panel equipment-panel">
-        <div class="panel-head">
-          <div>
-            <p class="panel-tag">器械说明</p>
-            <h2>不懂这个动作用什么，就点“看器械”</h2>
-          </div>
-        </div>
-        <div id="equipmentGrid" class="equipment-grid"></div>
-      </section>
-
-      <section class="panel recovery-panel">
-        <div class="panel-head">
+      <section class="recovery-panel secondary-section">
+        <div class="section-head">
           <div>
             <p class="panel-tag">恢复提醒</p>
             <h2>收尾要做什么</h2>
@@ -187,11 +176,21 @@
         </div>
       </section>
 
-      <section class="panel motivation-panel">
-        <div class="panel-head">
+      <section class="equipment-panel secondary-section">
+        <div class="section-head">
+          <div>
+            <p class="panel-tag">器械说明</p>
+            <h2>不懂这个动作要用什么，就点“看器械”</h2>
+          </div>
+        </div>
+        <div id="equipmentGrid" class="equipment-grid"></div>
+      </section>
+
+      <section class="motivation-panel secondary-section">
+        <div class="section-head">
           <div>
             <p class="panel-tag">激励弹幕</p>
-            <h2>温柔?那是弱者的遮羞布</h2>
+            <h2>温柔？那是弱者的遮羞布</h2>
           </div>
         </div>
         <div class="motivation-marquee">
@@ -207,10 +206,10 @@
           </div>
           <div class="marquee-line marquee-line-b">
             <div class="marquee-track">
-              <span>一个向上的灵魂 怎么能有一个下坠的躯体</span>
+              <span>一个向上的灵魂 怎么能有一个下坠的身体</span>
               <span>嘴上说自律，动作做到一半就想撤退。</span>
               <span>连这组都不敢扛，你凭什么要更好的自己。</span>
-              <span>一个向上的灵魂 怎么能有一个下坠的躯体</span>
+              <span>一个向上的灵魂 怎么能有一个下坠的身体</span>
               <span>嘴上说自律，动作做到一半就想撤退。</span>
               <span>连这组都不敢扛，你凭什么要更好的自己。</span>
             </div>
@@ -230,13 +229,12 @@
     </main>
   </div>
 
-  <button id="backToWorkoutButton" class="back-to-workout" type="button" aria-label="返回上方训练区">
-    ↑ 返回训练区
-  </button>
-  <button id="backToTopButton" class="back-to-top" type="button" aria-label="返回顶部">
-    ↑ 返回顶部
-  </button>
+  <div class="action-dock" aria-label="快捷操作">
+    <button id="backToTopButton" class="dock-button dock-button-quiet" type="button">返回顶部</button>
+    <button id="backToWorkoutButton" class="dock-button dock-button-quiet" type="button">返回训练区</button>
+    <button class="dock-button dock-button-dark" type="button" data-scroll-target=".system-panel">AI 系统观察</button>
+  </div>
 
-  <script src="script.js?v=20260519-1"></script>
+  <script src="script.js?v=20260521-1"></script>
 </body>
 </html>
