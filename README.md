@@ -6,7 +6,7 @@
 
 ## 在线使用
 
-部署后的地址:`https://whoyt-ux.github.io/gym_excise_plus`
+部署后的地址:https://flyyang12-rgb.github.io/gym_excise_plus/
 
 ## 本地预览
 
