@@ -198,9 +198,43 @@
   <div class="action-dock" aria-label="快捷操作">
     <button id="backToTopButton" class="dock-button dock-button-quiet" type="button">返回顶部</button>
     <button id="backToWorkoutButton" class="dock-button dock-button-quiet" type="button">返回训练区</button>
-    <button class="dock-button dock-button-soft" type="button" data-scroll-target=".system-panel">AI 系统观察</button>
+    <button id="aiObserveButton" class="dock-button dock-button-soft" type="button">AI 系统观察</button>
   </div>
 
-  <script src="script.js?v=20260521-1"></script>
+  <div id="bmiModal" class="bmi-modal" aria-hidden="true" hidden>
+    <div id="bmiModalBackdrop" class="bmi-modal-backdrop"></div>
+    <section class="bmi-modal-panel" role="dialog" aria-modal="true" aria-labelledby="bmiModalTitle">
+      <div class="bmi-modal-head">
+        <div>
+          <p class="panel-tag">AI 系统观察</p>
+          <h2 id="bmiModalTitle">先算一下 BMI</h2>
+        </div>
+        <button id="bmiModalClose" class="bmi-modal-close" type="button" aria-label="关闭">关闭</button>
+      </div>
+
+      <div class="bmi-modal-grid">
+        <label>
+          <span>身高（cm）</span>
+          <input id="bmiHeightInput" type="number" min="100" max="250" step="1">
+        </label>
+        <label>
+          <span>体重（kg）</span>
+          <input id="bmiWeightInput" type="number" min="30" max="200" step="0.1">
+        </label>
+      </div>
+
+      <div class="bmi-result-card">
+        <span>BMI</span>
+        <strong id="bmiModalValue">--</strong>
+        <small id="bmiModalLabel">输入身高和体重后自动计算</small>
+      </div>
+
+      <div class="bmi-modal-actions">
+        <button id="bmiModalApply" class="primary-button" type="button">应用到当前页面</button>
+      </div>
+    </section>
+  </div>
+
+  <script src="script.js?v=20260524-9"></script>
 </body>
 </html>

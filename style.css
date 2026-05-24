@@ -761,7 +761,7 @@ p {
 
 .profile-calendar-badge small {
   font-size: 0.68rem;
-  font-weight: 700;
+  font-weight: 1400;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -1085,6 +1085,116 @@ p {
   color: var(--text);
 }
 
+.bmi-modal[hidden] {
+  display: none;
+}
+
+.bmi-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+
+.bmi-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(7, 18, 37, 0.38);
+  backdrop-filter: blur(6px);
+}
+
+.bmi-modal-panel {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 420px);
+  padding: 22px;
+  border: 1px solid rgba(207, 213, 223, 0.92);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: var(--shadow-lift);
+}
+
+.bmi-modal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.bmi-modal-head h2 {
+  margin: 0;
+  color: var(--navy);
+  font-size: 1.18rem;
+}
+
+.bmi-modal-close {
+  min-height: 34px;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--muted);
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.bmi-modal-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.bmi-modal-grid label {
+  display: grid;
+  gap: 6px;
+}
+
+.bmi-modal-grid span {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.bmi-modal-grid input {
+  width: 100%;
+  min-height: 42px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--text);
+}
+
+.bmi-result-card {
+  display: grid;
+  gap: 6px;
+  margin-top: 18px;
+  padding: 16px;
+  border: 1px solid rgba(207, 213, 223, 0.72);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(255, 248, 242, 0.9), rgba(255, 255, 255, 1));
+}
+
+.bmi-result-card span,
+.bmi-result-card small {
+  color: var(--muted);
+}
+
+.bmi-result-card strong {
+  color: var(--navy);
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.bmi-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 18px;
+}
+
 @media (min-width: 900px) {
   .hero {
     grid-template-columns: minmax(0, 1fr) 280px;
@@ -1223,6 +1333,15 @@ p {
     min-height: 40px;
     padding: 9px 11px;
     font-size: 0.88rem;
+  }
+
+  .bmi-modal-panel {
+    padding: 18px;
+    border-radius: 18px;
+  }
+
+  .bmi-modal-grid {
+    grid-template-columns: 1fr;
   }
 
   .marquee-track {

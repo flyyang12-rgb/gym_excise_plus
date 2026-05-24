@@ -569,6 +569,15 @@ const elements = {
   warmupActions: document.querySelector("#warmupActions"),
   backToWorkoutButton: document.querySelector("#backToWorkoutButton"),
   backToTopButton: document.querySelector("#backToTopButton"),
+  aiObserveButton: document.querySelector("#aiObserveButton"),
+  bmiModal: document.querySelector("#bmiModal"),
+  bmiModalBackdrop: document.querySelector("#bmiModalBackdrop"),
+  bmiModalClose: document.querySelector("#bmiModalClose"),
+  bmiModalApply: document.querySelector("#bmiModalApply"),
+  bmiHeightInput: document.querySelector("#bmiHeightInput"),
+  bmiWeightInput: document.querySelector("#bmiWeightInput"),
+  bmiModalValue: document.querySelector("#bmiModalValue"),
+  bmiModalLabel: document.querySelector("#bmiModalLabel"),
 };
 
 function todayKey() {
@@ -748,6 +757,31 @@ function populateInputs() {
   elements.workStartTime.value = state.workStartTime;
   elements.workEndTime.value = state.workEndTime;
   elements.goal.value = state.goal;
+}
+
+function renderBmiModalPreview() {
+  if (!elements.bmiModalValue || !elements.bmiModalLabel) return;
+  const bmiInfo = getBmiInfo(
+    Number(elements.bmiHeightInput?.value || 0),
+    Number(elements.bmiWeightInput?.value || 0),
+  );
+  elements.bmiModalValue.textContent = bmiInfo.bmi;
+  elements.bmiModalLabel.textContent = bmiInfo.label;
+}
+
+function openBmiModal() {
+  if (!elements.bmiModal) return;
+  elements.bmiHeightInput.value = state.heightCm ?? "";
+  elements.bmiWeightInput.value = state.weightKg ?? "";
+  renderBmiModalPreview();
+  elements.bmiModal.hidden = false;
+  elements.bmiModal.setAttribute("aria-hidden", "false");
+}
+
+function closeBmiModal() {
+  if (!elements.bmiModal) return;
+  elements.bmiModal.hidden = true;
+  elements.bmiModal.setAttribute("aria-hidden", "true");
 }
 
 function renderOverview() {
@@ -1116,6 +1150,39 @@ function attachEvents() {
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
   }
+
+  if (elements.aiObserveButton) {
+    elements.aiObserveButton.addEventListener("click", openBmiModal);
+  }
+
+  if (elements.bmiModalBackdrop) {
+    elements.bmiModalBackdrop.addEventListener("click", closeBmiModal);
+  }
+
+  if (elements.bmiModalClose) {
+    elements.bmiModalClose.addEventListener("click", closeBmiModal);
+  }
+
+  [elements.bmiHeightInput, elements.bmiWeightInput].forEach((input) => {
+    if (!input) return;
+    input.addEventListener("input", renderBmiModalPreview);
+  });
+
+  if (elements.bmiModalApply) {
+    elements.bmiModalApply.addEventListener("click", () => {
+      state.heightCm = elements.bmiHeightInput.value ? Number(elements.bmiHeightInput.value) : null;
+      state.weightKg = elements.bmiWeightInput.value ? Number(elements.bmiWeightInput.value) : null;
+      populateInputs();
+      rerenderAll();
+      closeBmiModal();
+    });
+  }
+
+  window.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closeBmiModal();
+    }
+  });
 
   window.addEventListener("scroll", updateBackToTopButton, { passive: true });
 }
