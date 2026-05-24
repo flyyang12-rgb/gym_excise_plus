@@ -6,66 +6,70 @@
   <meta name="theme-color" content="#ef6a2e">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>健身小助手</title>
-  <link rel="stylesheet" href="style.css?v=20260521-1">
+  <link rel="stylesheet" href="style.css?v=20260524-8">
 </head>
 <body>
   <div class="app-shell">
     <header class="hero">
       <div class="hero-main">
-        <p class="eyebrow">晚间训练</p>
-        <h1>今晚照着练就行</h1>
-        <p class="hero-text">
-          先确认身体状态和节奏，再选今天训练日。页面会把动作、器械和收尾提醒排好，减少你临场犹豫的时间。
-        </p>
-        <div class="hero-insight">
-          <strong id="goalSummary">先稳住频率，再逐步加重量</strong>
-          <p id="overviewHint">你现在更适合先把训练节奏固定下来，再慢慢加重量和动作熟练度。</p>
-        </div>
+        <p class="eyebrow">训练节奏</p>
+        <h1>按计划行事</h1>
       </div>
 
       <aside class="hero-side" aria-label="当前训练概览">
         <div class="hero-overview">
-          <div class="hero-metric">
-            <span>当前节奏</span>
-            <strong id="heroFrequency">每周 4 练</strong>
-            <small id="heroDuration">单次 50-70 分钟</small>
-          </div>
-          <div class="hero-metric hero-metric-light">
-            <span>建议开始</span>
-            <strong id="recommendedStart">18:30-20:00</strong>
-            <small id="recommendedDuration">50-70 分钟</small>
-          </div>
+          <aside class="profile-calendar profile-calendar-hero" aria-label="训练周历">
+            <div class="profile-calendar-head">
+              <div>
+                <h3>本周小日历</h3>
+              </div>
+              <span class="profile-calendar-badge">
+                <small>每周</small>
+                <strong id="calendarFrequency">4练</strong>
+              </span>
+            </div>
+            <div class="calendar-strip" id="calendarStrip"></div>
+          </aside>
           <div class="hero-art">
             <img src="images/激励图.png" alt="训练激励图" class="hero-art-image">
           </div>
         </div>
-        <button id="resetButton" class="ghost-button" type="button">恢复默认</button>
+        <div class="profile-controls-hidden" hidden aria-hidden="true">
+          <div class="profile-bmi">
+            <span>BMI</span>
+            <strong id="bmiValue">--</strong>
+            <small id="bmiLabel">等待输入</small>
+          </div>
+          <div class="profile-grid">
+            <label>
+              <span>身高（cm）</span>
+              <input id="heightCm" type="number" min="100" max="250" step="1">
+            </label>
+            <label>
+              <span>体重（kg）</span>
+              <input id="weightKg" type="number" min="30" max="200" step="0.1">
+            </label>
+            <label>
+              <span>训练目标</span>
+              <select id="goal">
+                <option value="muscleGain">增肌</option>
+                <option value="fatLoss">减脂</option>
+              </select>
+            </label>
+            <label>
+              <span>上班时间</span>
+              <input id="workStartTime" type="time">
+            </label>
+            <label>
+              <span>下班时间</span>
+              <input id="workEndTime" type="time">
+            </label>
+          </div>
+        </div>
       </aside>
     </header>
 
     <main class="dashboard-layout">
-      <section class="system-panel" aria-label="系统判断">
-        <div class="section-head">
-          <div>
-            <p class="panel-tag">今日状态</p>
-            <h2>系统判断</h2>
-          </div>
-        </div>
-
-        <div class="status-grid">
-          <article class="metric-card">
-            <span>BMI</span>
-            <strong id="bmiValue">--</strong>
-            <small id="bmiLabel">等待输入</small>
-          </article>
-          <article class="metric-card">
-            <span>建议频次</span>
-            <strong id="recommendedFrequency">每周 4 练</strong>
-            <small id="recommendedReason">当前默认以增肌新手节奏安排</small>
-          </article>
-        </div>
-      </section>
-
       <section class="plan-panel" aria-label="本周安排">
         <div class="section-head section-head-split">
           <div>
@@ -108,49 +112,6 @@
         <div class="coach-note">
           <strong>新手提醒</strong>
           <p id="coachTip">重量以最后 2 次较吃力，但动作不乱、不借力为准。第一周宁可轻一点，也不要上来就逞强。</p>
-        </div>
-      </section>
-
-      <section class="profile-panel secondary-section">
-        <div class="section-head">
-          <div>
-            <p class="panel-tag">基础资料</p>
-            <h2>先确认你的信息</h2>
-          </div>
-        </div>
-
-        <div class="profile-grid">
-          <label>
-            <span>身高（cm）</span>
-            <input id="heightCm" type="number" min="100" max="250" step="1">
-          </label>
-          <label>
-            <span>体重（kg）</span>
-            <input id="weightKg" type="number" min="30" max="200" step="0.1">
-          </label>
-          <label>
-            <span>上班时间</span>
-            <input id="workStartTime" type="time">
-          </label>
-          <label>
-            <span>下班时间</span>
-            <input id="workEndTime" type="time">
-          </label>
-          <label>
-            <span>训练目标</span>
-            <select id="goal">
-              <option value="muscleGain">增肌</option>
-              <option value="fatLoss">减脂</option>
-            </select>
-          </label>
-          <label>
-            <span>训练水平</span>
-            <select id="experienceLevel">
-              <option value="beginner">新手入门</option>
-              <option value="intermediate">有些基础</option>
-              <option value="advanced">进阶训练者</option>
-            </select>
-          </label>
         </div>
       </section>
 

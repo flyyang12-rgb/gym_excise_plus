@@ -6,7 +6,6 @@ const defaultState = {
   workStartTime: "08:30",
   workEndTime: "17:30",
   goal: "muscleGain",
-  experienceLevel: "beginner",
   trainDaysPerWeek: 4,
 };
 
@@ -539,7 +538,6 @@ const elements = {
   workStartTime: document.querySelector("#workStartTime"),
   workEndTime: document.querySelector("#workEndTime"),
   goal: document.querySelector("#goal"),
-  experienceLevel: document.querySelector("#experienceLevel"),
   weeklyPlan: document.querySelector("#weeklyPlan"),
   frequencyTabs: document.querySelector("#frequencyTabs"),
   resetButton: document.querySelector("#resetButton"),
@@ -547,12 +545,15 @@ const elements = {
   heroDuration: document.querySelector("#heroDuration"),
   bmiValue: document.querySelector("#bmiValue"),
   bmiLabel: document.querySelector("#bmiLabel"),
-  recommendedFrequency: document.querySelector("#recommendedFrequency"),
-  recommendedReason: document.querySelector("#recommendedReason"),
   recommendedStart: document.querySelector("#recommendedStart"),
   recommendedDuration: document.querySelector("#recommendedDuration"),
   goalSummary: document.querySelector("#goalSummary"),
   overviewHint: document.querySelector("#overviewHint"),
+  calendarFrequency: document.querySelector("#calendarFrequency"),
+  calendarStrip: document.querySelector("#calendarStrip"),
+  calendarWorkStart: document.querySelector("#calendarWorkStart"),
+  calendarWorkEnd: document.querySelector("#calendarWorkEnd"),
+  calendarStartWindow: document.querySelector("#calendarStartWindow"),
   tonightTitle: document.querySelector("#tonightTitle"),
   tonightMeta: document.querySelector("#tonightMeta"),
   warmupTitle: document.querySelector("#warmupTitle"),
@@ -613,19 +614,15 @@ function getBmiInfo(heightCm, weightKg) {
   return { bmi: bmi.toFixed(1), label, status };
 }
 
-function getRecommendedFrequency(goal, experienceLevel) {
-  if (goal === "fatLoss") return experienceLevel === "beginner" ? 4 : 5;
-  if (experienceLevel === "advanced") return 5;
-  return 4;
+function getRecommendedFrequency(goal) {
+  return goal === "fatLoss" ? 4 : 4;
 }
 
-function getGoalSummary(goal, experienceLevel) {
+function getGoalSummary(goal) {
   if (goal === "muscleGain") {
-    if (experienceLevel === "beginner") return "先稳住频率，再逐步加重量";
-    if (experienceLevel === "intermediate") return "动作稳定后，再逐步增加训练量";
-    return "控制训练量和恢复，重点突破薄弱部位";
+    return "先稳住频率，再逐步加重量";
   }
-  return goal === "fatLoss" ? "按瑜伽垫自重课来排，节奏清楚更容易坚持" : "先把训练节奏固定下来，再慢慢加重量和动作熟练度";
+  return "按瑜伽垫自重课来排，节奏清楚更容易坚持";
 }
 
 function getOverviewHint(goal, bmiInfo) {
@@ -677,9 +674,41 @@ function getCurrentPlan() {
   return getPlanByFrequency(state.trainDaysPerWeek, state.goal);
 }
 
+function getWeekdayIndex(dayLabel) {
+  const weekdayMap = {
+    "周日": 0,
+    "周一": 1,
+    "周二": 2,
+    "周三": 3,
+    "周四": 4,
+    "周五": 5,
+    "周六": 6,
+  };
+
+  return weekdayMap[dayLabel] ?? 0;
+}
+
+function getNearestPlanId(plan) {
+  if (!plan.length) return "";
+
+  const today = new Date().getDay();
+  let nearestItem = plan[0];
+  let nearestGap = 7;
+
+  plan.forEach((item) => {
+    const gap = (getWeekdayIndex(item.day) - today + 7) % 7;
+    if (gap < nearestGap) {
+      nearestGap = gap;
+      nearestItem = item;
+    }
+  });
+
+  return nearestItem?.id || "";
+}
+
 function getActiveWorkout() {
   const plan = getCurrentPlan();
-  return plan.find((item) => item.id === activeDayId) || plan[0];
+  return plan.find((item) => item.id === activeDayId) || plan.find((item) => item.id === getNearestPlanId(plan)) || plan[0];
 }
 
 function getExerciseProgressMap(workout) {
@@ -719,28 +748,81 @@ function populateInputs() {
   elements.workStartTime.value = state.workStartTime;
   elements.workEndTime.value = state.workEndTime;
   elements.goal.value = state.goal;
-  elements.experienceLevel.value = state.experienceLevel;
 }
 
 function renderOverview() {
   const goalInfo = goalConfig[state.goal];
   const bmiInfo = getBmiInfo(Number(state.heightCm), Number(state.weightKg));
-  const recommendedFrequency = getRecommendedFrequency(state.goal, state.experienceLevel);
+  const recommendedFrequency = getRecommendedFrequency(state.goal);
 
   elements.bmiValue.textContent = bmiInfo.bmi;
   elements.bmiLabel.textContent = bmiInfo.label;
-  elements.recommendedFrequency.textContent = `每周 ${recommendedFrequency} 练`;
-  elements.recommendedReason.textContent = goalInfo.reason;
-  elements.recommendedStart.textContent = getStartWindow(state.workEndTime);
-  elements.recommendedDuration.textContent = goalInfo.durationText;
-  elements.goalSummary.textContent = getGoalSummary(state.goal, state.experienceLevel);
-  elements.overviewHint.textContent = getOverviewHint(state.goal, bmiInfo);
-  elements.heroFrequency.textContent = `每周 ${state.trainDaysPerWeek} 练`;
-  elements.heroDuration.textContent = `单次 ${goalInfo.durationText}`;
+  if (elements.recommendedStart) {
+    elements.recommendedStart.textContent = getStartWindow(state.workEndTime);
+  }
+  if (elements.recommendedDuration) {
+    elements.recommendedDuration.textContent = goalInfo.durationText;
+  }
+  if (elements.goalSummary) {
+    elements.goalSummary.textContent = getGoalSummary(state.goal);
+  }
+  if (elements.overviewHint) {
+    elements.overviewHint.textContent = getOverviewHint(state.goal, bmiInfo);
+  }
+  if (elements.heroFrequency) {
+    elements.heroFrequency.textContent = `每周 ${state.trainDaysPerWeek} 练`;
+  }
+  if (elements.heroDuration) {
+    elements.heroDuration.textContent = `单次 ${goalInfo.durationText}`;
+  }
+  if (elements.calendarFrequency) {
+    elements.calendarFrequency.textContent = `${state.trainDaysPerWeek}练`;
+  }
+  if (elements.calendarWorkStart) {
+    elements.calendarWorkStart.textContent = state.workStartTime || "--:--";
+  }
+  if (elements.calendarWorkEnd) {
+    elements.calendarWorkEnd.textContent = state.workEndTime || "--:--";
+  }
+  if (elements.calendarStartWindow) {
+    elements.calendarStartWindow.textContent = getStartWindow(state.workEndTime);
+  }
   elements.coachTip.textContent = goalInfo.coachTip;
   elements.stretchText.textContent = goalInfo.stretch;
   elements.recoveryText.textContent = goalInfo.recovery;
   elements.nutritionText.textContent = goalInfo.nutrition;
+}
+
+function renderProfileCalendar() {
+  if (!elements.calendarStrip) return;
+  const plan = getCurrentPlan();
+  const current = getActiveWorkout();
+
+  elements.calendarStrip.innerHTML = plan.map((item, index) => {
+    const isCurrent = current && item.id === current.id;
+    const classes = [
+      "calendar-day",
+      item.type === "recovery" ? "is-recovery" : "is-train",
+      isCurrent ? "is-current" : "",
+    ].filter(Boolean).join(" ");
+
+    return `
+      <button type="button" class="${classes}" data-calendar-day-id="${item.id}">
+        <span class="calendar-day-label">${item.day.replace("周", "")}</span>
+        <span class="calendar-day-dot">${index + 1}</span>
+      </button>
+    `;
+  }).join("");
+
+  elements.calendarStrip.querySelectorAll("[data-calendar-day-id]").forEach((button) => {
+    button.addEventListener("click", () => {
+      activeDayId = button.dataset.calendarDayId;
+      renderProfileCalendar();
+      renderWeeklyPlan();
+      renderWorkout();
+      document.querySelector(`[data-day-id="${activeDayId}"]`)?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    });
+  });
 }
 
 function renderWarmupActions() {
@@ -770,7 +852,7 @@ function renderFrequencyTabs() {
 function renderWeeklyPlan() {
   const plan = getCurrentPlan();
   if (!plan.find((item) => item.id === activeDayId)) {
-    activeDayId = plan[0]?.id || "";
+    activeDayId = getNearestPlanId(plan);
   }
 
   elements.weeklyPlan.innerHTML = plan.map((item) => {
@@ -798,8 +880,10 @@ function renderWeeklyPlan() {
   elements.weeklyPlan.querySelectorAll("[data-day-id]").forEach((button) => {
     button.addEventListener("click", () => {
       activeDayId = button.dataset.dayId;
+      renderProfileCalendar();
       renderWeeklyPlan();
       renderWorkout();
+      button.scrollIntoView({ behavior: "smooth", block: "nearest" });
     });
   });
 }
@@ -956,14 +1040,14 @@ function syncStateFromInputs() {
   state.workStartTime = elements.workStartTime.value;
   state.workEndTime = elements.workEndTime.value;
   state.goal = elements.goal.value;
-  state.experienceLevel = elements.experienceLevel.value;
 }
 
 function rerenderAll() {
   if (![3, 4, 5].includes(state.trainDaysPerWeek)) {
-    state.trainDaysPerWeek = getRecommendedFrequency(state.goal, state.experienceLevel);
+    state.trainDaysPerWeek = getRecommendedFrequency(state.goal);
   }
   renderOverview();
+  renderProfileCalendar();
   renderWarmupActions();
   renderFrequencyTabs();
   renderWeeklyPlan();
@@ -978,7 +1062,6 @@ function attachEvents() {
     elements.workStartTime,
     elements.workEndTime,
     elements.goal,
-    elements.experienceLevel,
   ].forEach((element) => {
     element.addEventListener("input", () => {
       syncStateFromInputs();
@@ -998,12 +1081,14 @@ function attachEvents() {
     });
   });
 
-  elements.resetButton.addEventListener("click", () => {
-    state = { ...defaultState };
-    activeDayId = "";
-    populateInputs();
-    rerenderAll();
-  });
+  if (elements.resetButton) {
+    elements.resetButton.addEventListener("click", () => {
+      state = { ...defaultState };
+      activeDayId = "";
+      populateInputs();
+      rerenderAll();
+    });
+  }
 
   bindEquipmentJumpButtons(document);
   bindScrollTargetButtons(document);
