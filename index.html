@@ -24,18 +24,20 @@
       </div>
 
       <aside class="hero-side" aria-label="当前训练概览">
-        <div class="hero-metric">
-          <span>当前节奏</span>
-          <strong id="heroFrequency">每周 4 练</strong>
-          <small id="heroDuration">单次 50-70 分钟</small>
-        </div>
-        <div class="hero-metric hero-metric-light">
-          <span>建议开始</span>
-          <strong id="recommendedStart">18:30-20:00</strong>
-          <small id="recommendedDuration">50-70 分钟</small>
-        </div>
-        <div class="hero-art">
-          <img src="images/激励图.png" alt="训练激励图" class="hero-art-image">
+        <div class="hero-overview">
+          <div class="hero-metric">
+            <span>当前节奏</span>
+            <strong id="heroFrequency">每周 4 练</strong>
+            <small id="heroDuration">单次 50-70 分钟</small>
+          </div>
+          <div class="hero-metric hero-metric-light">
+            <span>建议开始</span>
+            <strong id="recommendedStart">18:30-20:00</strong>
+            <small id="recommendedDuration">50-70 分钟</small>
+          </div>
+          <div class="hero-art">
+            <img src="images/激励图.png" alt="训练激励图" class="hero-art-image">
+          </div>
         </div>
         <button id="resetButton" class="ghost-button" type="button">恢复默认</button>
       </aside>
@@ -235,7 +237,7 @@
   <div class="action-dock" aria-label="快捷操作">
     <button id="backToTopButton" class="dock-button dock-button-quiet" type="button">返回顶部</button>
     <button id="backToWorkoutButton" class="dock-button dock-button-quiet" type="button">返回训练区</button>
-    <button class="dock-button dock-button-dark" type="button" data-scroll-target=".system-panel">AI 系统观察</button>
+    <button class="dock-button dock-button-soft" type="button" data-scroll-target=".system-panel">AI 系统观察</button>
   </div>
 
   <script src="script.js?v=20260521-1"></script>

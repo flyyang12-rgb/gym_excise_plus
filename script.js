@@ -779,15 +779,17 @@ function renderWeeklyPlan() {
     const count = countCompletedExercises(item);
     return `
       <button type="button" class="day-card ${active ? "is-active" : ""} ${complete ? "is-complete" : ""}" data-day-id="${item.id}">
-        <div class="day-top">
-          <div>
-            <strong>${item.day} · ${item.title}</strong>
-            <p>${item.focus} · ${item.duration}</p>
+        <div class="day-card-shell">
+          <div class="day-top">
+            <div>
+              <strong>${item.day} · ${item.title}</strong>
+              <p>${item.focus} · ${item.duration}</p>
+            </div>
+            <span class="pill ${complete ? "done" : ""}">${complete ? "已练完" : `${count.completed}/${count.total}`}</span>
           </div>
-          <span class="pill ${complete ? "done" : ""}">${complete ? "已练完" : `${count.completed}/${count.total}`}</span>
-        </div>
-        <div class="pill-row">
-          ${item.tags.map((tag) => `<span class="pill">${tag}</span>`).join("")}
+          <div class="pill-row">
+            ${item.tags.map((tag) => `<span class="pill">${tag}</span>`).join("")}
+          </div>
         </div>
       </button>
     `;

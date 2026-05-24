@@ -132,19 +132,29 @@ p {
   align-content: start;
 }
 
+.hero-overview {
+  display: grid;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: calc(var(--radius-md) + 2px);
+  background: rgba(255, 255, 255, 0.82);
+}
+
 .hero-metric {
   display: grid;
   gap: 8px;
-  min-height: 118px;
-  padding: 18px;
+  min-height: 102px;
+  padding: 16px;
   border-radius: var(--radius-md);
   background: var(--navy);
   color: #f8fafc;
 }
 
 .hero-metric-light {
-  border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.72);
+  min-height: 0;
+  border: 1px solid rgba(207, 213, 223, 0.92);
+  background: #fff;
   color: var(--text);
 }
 
@@ -166,17 +176,16 @@ p {
 
 .hero-art {
   overflow: hidden;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-  background: #fff;
-  box-shadow: 0 10px 22px rgba(16, 24, 39, 0.06);
+  padding: 8px 10px 0;
+  border-radius: calc(var(--radius-md) - 2px);
+  background: linear-gradient(180deg, rgba(255, 247, 241, 0.92), rgba(255, 255, 255, 0.96));
 }
 
 .hero-art-image {
   display: block;
   width: 100%;
   aspect-ratio: 599 / 200;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .dashboard-layout {
@@ -353,34 +362,81 @@ p {
 
 .weekly-plan {
   grid-template-columns: 1fr;
+  position: relative;
 }
 
 .day-card {
+  position: relative;
   width: 100%;
   text-align: left;
-  padding: 16px 0;
+  padding: 0 0 0 44px;
   border: 0;
-  border-top: 1px solid var(--line);
   background: transparent;
   cursor: pointer;
 }
 
-.day-card:first-child {
-  border-top: 0;
-  padding-top: 0;
+.day-card::before {
+  content: "";
+  position: absolute;
+  left: 15px;
+  top: 12px;
+  bottom: -12px;
+  width: 1px;
+  background: linear-gradient(180deg, rgba(207, 213, 223, 0.8), rgba(207, 213, 223, 0.24));
+}
+
+.day-card:last-child::before {
+  bottom: 24px;
+}
+
+.day-card::after {
+  content: "";
+  position: absolute;
+  left: 8px;
+  top: 14px;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(7, 18, 37, 0.18);
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.96);
 }
 
 .day-card.is-active {
-  margin: 0 -14px;
-  padding: 16px 14px;
-  border: 1px solid rgba(7, 18, 37, 0.12);
-  border-radius: var(--radius-md);
-  background: #fff;
-  box-shadow: 0 12px 28px rgba(16, 24, 39, 0.08);
+  padding-left: 44px;
+}
+
+.day-card.is-active::after {
+  border-color: rgba(239, 106, 46, 0.26);
+  background: var(--navy);
+  box-shadow: 0 0 0 5px rgba(239, 106, 46, 0.12);
 }
 
 .day-card.is-complete:not(.is-active) {
   color: var(--green);
+}
+
+.day-card.is-complete::after {
+  border-color: rgba(47, 143, 99, 0.3);
+  background: var(--green);
+}
+
+.day-card-shell {
+  padding: 16px 0 18px;
+  border-top: 1px solid var(--line);
+}
+
+.day-card:first-child .day-card-shell {
+  border-top: 0;
+  padding-top: 2px;
+}
+
+.day-card.is-active .day-card-shell {
+  margin-left: -8px;
+  padding: 16px 16px 18px;
+  border: 1px solid rgba(7, 18, 37, 0.08);
+  border-radius: var(--radius-md);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(250, 251, 252, 0.96));
 }
 
 .day-top {
@@ -853,15 +909,25 @@ p {
   align-items: center;
 }
 
-.dock-button-dark {
-  background: var(--navy);
-  color: #fff;
+.dock-button-soft {
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--text);
 }
 
 @media (min-width: 900px) {
   .hero {
     grid-template-columns: minmax(0, 1fr) 280px;
     align-items: stretch;
+  }
+
+  .hero-overview {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  .hero-art {
+    grid-column: 1 / -1;
   }
 }
 
@@ -917,8 +983,13 @@ p {
     gap: 10px;
   }
 
+  .hero-overview {
+    padding: 8px;
+  }
+
   .hero-art {
     max-width: 100%;
+    padding: 8px 8px 0;
   }
 
   .section-head,
@@ -940,6 +1011,18 @@ p {
   .guide-grid,
   .equipment-grid {
     grid-template-columns: 1fr;
+  }
+
+  .day-card {
+    padding-left: 36px;
+  }
+
+  .day-card::before {
+    left: 11px;
+  }
+
+  .day-card::after {
+    left: 4px;
   }
 
   .warmup-actions,
@@ -1001,7 +1084,7 @@ p {
     flex-direction: column;
   }
 
-  .dock-button-dark {
+  .dock-button-soft {
     flex: 1 0 auto;
   }
 }
