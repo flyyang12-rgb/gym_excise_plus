@@ -538,6 +538,7 @@ const elements = {
   workStartTime: document.querySelector("#workStartTime"),
   workEndTime: document.querySelector("#workEndTime"),
   goal: document.querySelector("#goal"),
+  goalTabs: document.querySelector("#goalTabs"),
   weeklyPlan: document.querySelector("#weeklyPlan"),
   frequencyTabs: document.querySelector("#frequencyTabs"),
   resetButton: document.querySelector("#resetButton"),
@@ -791,6 +792,9 @@ function renderOverview() {
 
   elements.bmiValue.textContent = bmiInfo.bmi;
   elements.bmiLabel.textContent = bmiInfo.label;
+  if (elements.goal) {
+    elements.goal.value = state.goal;
+  }
   if (elements.recommendedStart) {
     elements.recommendedStart.textContent = getStartWindow(state.workEndTime);
   }
@@ -821,6 +825,7 @@ function renderOverview() {
   if (elements.calendarStartWindow) {
     elements.calendarStartWindow.textContent = getStartWindow(state.workEndTime);
   }
+  renderGoalTabs();
   elements.coachTip.textContent = goalInfo.coachTip;
   elements.stretchText.textContent = goalInfo.stretch;
   elements.recoveryText.textContent = goalInfo.recovery;
@@ -856,6 +861,13 @@ function renderProfileCalendar() {
       renderWorkout();
       document.querySelector(`[data-day-id="${activeDayId}"]`)?.scrollIntoView({ behavior: "smooth", block: "nearest" });
     });
+  });
+}
+
+function renderGoalTabs() {
+  if (!elements.goalTabs) return;
+  elements.goalTabs.querySelectorAll("[data-goal]").forEach((button) => {
+    button.classList.toggle("is-active", button.dataset.goal === state.goal);
   });
 }
 
@@ -948,6 +960,10 @@ function renderWorkout() {
   elements.exerciseList.innerHTML = workout.exercises.map((exercise, index) => {
     const complete = !!checkedMap[exercise.name];
     const tutorialUrl = state.goal === "muscleGain" ? tutorialLinks[exercise.name] : "";
+    const equipmentTarget = state.goal === "fatLoss" ? "mat" : (exercise.equipment || "");
+    const equipmentJumpLabel = state.goal === "fatLoss"
+      ? "看瑜伽垫"
+      : (exercise.equipment ? `看${equipmentLibrary[exercise.equipment].name}` : "");
     return `
       <article class="exercise-card ${complete ? "is-complete" : ""}">
         <div class="exercise-head">
@@ -956,7 +972,11 @@ function renderWorkout() {
             <strong>${exercise.name}</strong>
             <div class="exercise-top-meta">
               <span>${exercise.sets}</span>
-              ${state.goal === "fatLoss" ? `<span>只需瑜伽垫</span>` : (exercise.equipment ? `<span>优先器械：${equipmentLibrary[exercise.equipment].name}</span>` : `<span>徒手动作</span>`)}
+              ${state.goal === "fatLoss"
+                ? `<span>只需瑜伽垫</span><button type="button" class="tutorial-link tutorial-jump" data-equipment-target="mat">${equipmentJumpLabel}</button>`
+                : (exercise.equipment
+                  ? `<span>优先器械：${equipmentLibrary[exercise.equipment].name}</span><button type="button" class="tutorial-link tutorial-jump" data-equipment-target="${equipmentTarget}">${equipmentJumpLabel}</button>`
+                  : `<span>徒手动作</span>`)}
             </div>
           </div>
           <div class="exercise-head-actions">
@@ -1114,6 +1134,16 @@ function attachEvents() {
       rerenderAll();
     });
   });
+
+  if (elements.goalTabs) {
+    elements.goalTabs.querySelectorAll("[data-goal]").forEach((button) => {
+      button.addEventListener("click", () => {
+        state.goal = button.dataset.goal;
+        activeDayId = "";
+        rerenderAll();
+      });
+    });
+  }
 
   if (elements.resetButton) {
     elements.resetButton.addEventListener("click", () => {

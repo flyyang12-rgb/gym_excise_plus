@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#ef6a2e">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>健身小助手</title>
-  <link rel="stylesheet" href="style.css?v=20260524-8">
+  <link rel="stylesheet" href="style.css?v=20260524-12">
 </head>
 <body>
   <div class="app-shell">
@@ -27,6 +27,10 @@
                 <small>每周</small>
                 <strong id="calendarFrequency">4练</strong>
               </span>
+            </div>
+            <div class="goal-tabs" id="goalTabs" role="tablist" aria-label="训练目标">
+              <button type="button" data-goal="muscleGain">增肌</button>
+              <button type="button" data-goal="fatLoss">减脂</button>
             </div>
             <div class="calendar-strip" id="calendarStrip"></div>
           </aside>
@@ -197,7 +201,7 @@
 
   <div class="action-dock" aria-label="快捷操作">
     <button id="backToTopButton" class="dock-button dock-button-quiet" type="button">返回顶部</button>
-    <button id="backToWorkoutButton" class="dock-button dock-button-quiet" type="button">返回训练区</button>
+    <button id="backToWorkoutButton" class="dock-button dock-button-quiet" type="button">返回动作</button>
     <button id="aiObserveButton" class="dock-button dock-button-soft" type="button">AI 系统观察</button>
   </div>
 
@@ -235,6 +239,6 @@
     </section>
   </div>
 
-  <script src="script.js?v=20260524-9"></script>
+  <script src="script.js?v=20260524-12"></script>
 </body>
 </html>
