@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-theme="blaze" data-layout="classic">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -203,6 +203,23 @@
     <button id="backToTopButton" class="dock-button dock-button-quiet" type="button">返回顶部</button>
     <button id="backToWorkoutButton" class="dock-button dock-button-quiet" type="button">返回动作</button>
     <button id="aiObserveButton" class="dock-button dock-button-soft" type="button">AI 系统观察</button>
+  </div>
+
+  <!-- Style Switcher -->
+  <button id="styleFab" class="style-fab" type="button" title="切换风格" aria-label="切换风格">🎨</button>
+  <div id="stylePanel" class="style-panel" hidden>
+    <div class="style-panel-head">
+      <strong>风格切换</strong>
+      <button id="stylePanelClose" class="style-panel-close" type="button" aria-label="关闭">✕</button>
+    </div>
+    <div class="style-section">
+      <div class="style-section-label">配色</div>
+      <div class="style-options" id="themeOptions"></div>
+    </div>
+    <div class="style-section">
+      <div class="style-section-label">排版</div>
+      <div class="style-options" id="layoutOptions"></div>
+    </div>
   </div>
 
   <div id="bmiModal" class="bmi-modal" aria-hidden="true" hidden>
