@@ -14,7 +14,6 @@ const goalConfig = {
     label: "增肌",
     reason: "当前默认以增肌新手节奏安排",
     durationText: "50-70 分钟",
-    coachTip: "重量以最后 2 次较吃力，但动作不乱、不借力为准。第一周宁可轻一点，也不要上来就逞强。",
     stretch: "训练后拉伸 5-10 分钟，今天练了哪块就多放松哪块。",
     recovery: "至少留 2-3 天给肌肉恢复。休息不是偷懒，是为了下一次还能练稳。",
     nutrition: "晚训后 1 小时内补一顿正常饭或加餐，主食和蛋白质都要有。",
@@ -23,7 +22,6 @@ const goalConfig = {
     label: "减脂",
     reason: "轻器械少，按瑜伽垫自重课来排更容易坚持",
     durationText: "30-45 分钟",
-    coachTip: "减脂课就按瑜伽垫做，不用器械，不用跳视频链接。动作慢一点、标准一点，比拼狠更重要。",
     stretch: "每次收尾都做 5-8 分钟拉伸，重点放在髋、腿后侧、胸和背。",
     recovery: "减脂也要留恢复日。累的时候就做轻一点的版本，不要硬顶。",
     nutrition: "别极端节食，保证蛋白质和正常进食，课后补水就行。",
@@ -532,6 +530,7 @@ let progressStore = loadProgressStore();
 let activeDayId = "";
 let activeExerciseIndex = 0;
 let stepMotion = "forward";
+let activeModule = "training";
 let returnScrollY = null;
 
 const elements = {
@@ -564,12 +563,13 @@ const elements = {
   exerciseList: document.querySelector("#exerciseList"),
   checkinButton: document.querySelector("#checkinButton"),
   todayProgress: document.querySelector("#todayProgress"),
-  coachTip: document.querySelector("#coachTip"),
   equipmentGrid: document.querySelector("#equipmentGrid"),
   stretchText: document.querySelector("#stretchText"),
   recoveryText: document.querySelector("#recoveryText"),
   nutritionText: document.querySelector("#nutritionText"),
   warmupActions: document.querySelector("#warmupActions"),
+  appModules: document.querySelectorAll("[data-module]"),
+  moduleButtons: document.querySelectorAll("[data-module-target]"),
   backToWorkoutButton: document.querySelector("#backToWorkoutButton"),
   backToTopButton: document.querySelector("#backToTopButton"),
   aiObserveButton: document.querySelector("#aiObserveButton"),
@@ -833,7 +833,6 @@ function renderOverview() {
     elements.calendarStartWindow.textContent = getStartWindow(state.workEndTime);
   }
   renderGoalTabs();
-  elements.coachTip.textContent = goalInfo.coachTip;
   elements.stretchText.textContent = goalInfo.stretch;
   elements.recoveryText.textContent = goalInfo.recovery;
   elements.nutritionText.textContent = goalInfo.nutrition;
@@ -1158,13 +1157,47 @@ function bindEquipmentJumpButtons(scope = document) {
       const target = document.querySelector(`#equipment-${button.dataset.equipmentTarget}`);
       if (!target) return;
       returnScrollY = window.scrollY;
+      setActiveModule("equipment", { scrollToTop: false });
       updateBackToWorkoutButton();
       document.querySelectorAll(".equipment-card").forEach((card) => card.classList.remove("is-highlighted"));
       target.classList.add("is-highlighted");
-      target.scrollIntoView({ behavior: "smooth", block: "center" });
+      window.setTimeout(() => {
+        target.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 80);
       setTimeout(() => target.classList.remove("is-highlighted"), 2200);
     });
   });
+}
+
+function setActiveModule(moduleName, options = {}) {
+  if (!moduleName || activeModule === moduleName) {
+    if (options.scrollToTop) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    return;
+  }
+
+  activeModule = moduleName;
+  elements.appModules.forEach((module) => {
+    const isActive = module.dataset.module === moduleName;
+    module.classList.toggle("is-active", isActive);
+    module.hidden = !isActive;
+  });
+
+  elements.moduleButtons.forEach((button) => {
+    const isActive = button.dataset.moduleTarget === moduleName;
+    button.classList.toggle("is-active", isActive);
+    if (isActive) {
+      button.setAttribute("aria-current", "page");
+    } else {
+      button.removeAttribute("aria-current");
+    }
+  });
+
+  updateBackToTopButton();
+  if (options.scrollToTop !== false) {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
 }
 
 function bindScrollTargetButtons(scope = document) {
@@ -1256,6 +1289,14 @@ function attachEvents() {
     });
   }
 
+  elements.moduleButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      returnScrollY = null;
+      setActiveModule(button.dataset.moduleTarget);
+      updateBackToWorkoutButton();
+    });
+  });
+
   bindEquipmentJumpButtons(document);
   bindScrollTargetButtons(document);
 
@@ -1269,11 +1310,14 @@ function attachEvents() {
 
   if (elements.backToWorkoutButton) {
     elements.backToWorkoutButton.addEventListener("click", () => {
-      const fallbackTarget = document.querySelector(".warmup-card");
+      setActiveModule("training", { scrollToTop: false });
+      const fallbackTarget = document.querySelector(".workout-panel") || document.querySelector(".warmup-card");
       const top = returnScrollY ?? (fallbackTarget ? fallbackTarget.offsetTop - 18 : 0);
-      window.scrollTo({ top, behavior: "smooth" });
       returnScrollY = null;
       updateBackToWorkoutButton();
+      window.setTimeout(() => {
+        window.scrollTo({ top, behavior: "smooth" });
+      }, 60);
     });
   }
 

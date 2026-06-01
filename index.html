@@ -10,117 +10,151 @@
 </head>
 <body>
   <div class="app-shell">
-    <header class="hero">
-      <div class="hero-main">
-        <p class="eyebrow">训练节奏</p>
-        <h1>按计划行事</h1>
-      </div>
+    <section class="app-module app-module-training is-active" data-module="training" aria-label="训练模块">
+      <header class="hero">
+        <div class="hero-main">
+          <p class="eyebrow">训练节奏</p>
+          <h1>按计划行事</h1>
+        </div>
 
-      <aside class="hero-side" aria-label="当前训练概览">
-        <div class="hero-overview">
-          <aside class="profile-calendar profile-calendar-hero" aria-label="训练周历">
-            <div class="profile-calendar-head">
-              <div>
-                <h3>本周小日历</h3>
+        <aside class="hero-side" aria-label="当前训练概览">
+          <div class="hero-overview">
+            <aside class="profile-calendar profile-calendar-hero" aria-label="训练周历">
+              <div class="profile-calendar-head">
+                <div>
+                  <h3>本周小日历</h3>
+                </div>
+                <span class="profile-calendar-badge">
+                  <small>每周</small>
+                  <strong id="calendarFrequency">4练</strong>
+                </span>
               </div>
-              <span class="profile-calendar-badge">
-                <small>每周</small>
-                <strong id="calendarFrequency">4练</strong>
-              </span>
+              <div class="goal-tabs" id="goalTabs" role="tablist" aria-label="训练目标">
+                <button type="button" data-goal="muscleGain">增肌</button>
+                <button type="button" data-goal="fatLoss">减脂</button>
+              </div>
+              <div class="calendar-strip" id="calendarStrip"></div>
+            </aside>
+            <div class="hero-art">
+              <img src="images/激励图.png" alt="训练激励图" class="hero-art-image">
             </div>
-            <div class="goal-tabs" id="goalTabs" role="tablist" aria-label="训练目标">
-              <button type="button" data-goal="muscleGain">增肌</button>
-              <button type="button" data-goal="fatLoss">减脂</button>
+          </div>
+          <div class="profile-controls-hidden" hidden aria-hidden="true">
+            <div class="profile-bmi">
+              <span>BMI</span>
+              <strong id="bmiValue">--</strong>
+              <small id="bmiLabel">等待输入</small>
             </div>
-            <div class="calendar-strip" id="calendarStrip"></div>
-          </aside>
-          <div class="hero-art">
-            <img src="images/激励图.png" alt="训练激励图" class="hero-art-image">
+            <div class="profile-grid">
+              <label>
+                <span>身高（cm）</span>
+                <input id="heightCm" type="number" min="100" max="250" step="1">
+              </label>
+              <label>
+                <span>体重（kg）</span>
+                <input id="weightKg" type="number" min="30" max="200" step="0.1">
+              </label>
+              <label>
+                <span>训练目标</span>
+                <select id="goal">
+                  <option value="muscleGain">增肌</option>
+                  <option value="fatLoss">减脂</option>
+                </select>
+              </label>
+              <label>
+                <span>上班时间</span>
+                <input id="workStartTime" type="time">
+              </label>
+              <label>
+                <span>下班时间</span>
+                <input id="workEndTime" type="time">
+              </label>
+            </div>
           </div>
-        </div>
-        <div class="profile-controls-hidden" hidden aria-hidden="true">
-          <div class="profile-bmi">
-            <span>BMI</span>
-            <strong id="bmiValue">--</strong>
-            <small id="bmiLabel">等待输入</small>
-          </div>
-          <div class="profile-grid">
-            <label>
-              <span>身高（cm）</span>
-              <input id="heightCm" type="number" min="100" max="250" step="1">
-            </label>
-            <label>
-              <span>体重（kg）</span>
-              <input id="weightKg" type="number" min="30" max="200" step="0.1">
-            </label>
-            <label>
-              <span>训练目标</span>
-              <select id="goal">
-                <option value="muscleGain">增肌</option>
-                <option value="fatLoss">减脂</option>
-              </select>
-            </label>
-            <label>
-              <span>上班时间</span>
-              <input id="workStartTime" type="time">
-            </label>
-            <label>
-              <span>下班时间</span>
-              <input id="workEndTime" type="time">
-            </label>
-          </div>
-        </div>
-      </aside>
-    </header>
+        </aside>
+      </header>
 
-    <main class="dashboard-layout">
-      <section class="plan-panel" aria-label="本周安排">
-        <div class="section-head section-head-split">
-          <div>
-            <p class="panel-tag">本周安排</p>
-            <h2>今天练哪天，点一下就行</h2>
+      <main class="dashboard-layout">
+        <section class="plan-panel" aria-label="本周安排">
+          <div class="section-head section-head-split">
+            <div>
+              <p class="panel-tag">本周安排</p>
+              <h2>今天练哪天，点一下就行</h2>
+            </div>
+            <div class="frequency-tabs" id="frequencyTabs">
+              <button type="button" data-frequency="3">3 练</button>
+              <button type="button" data-frequency="4" class="is-active">4 练</button>
+              <button type="button" data-frequency="5">5 练</button>
+            </div>
           </div>
-          <div class="frequency-tabs" id="frequencyTabs">
-            <button type="button" data-frequency="3">3 练</button>
-            <button type="button" data-frequency="4" class="is-active">4 练</button>
-            <button type="button" data-frequency="5">5 练</button>
+
+          <div id="weeklyPlan" class="weekly-plan"></div>
+        </section>
+
+        <section class="workout-panel" aria-label="今晚训练">
+          <div class="section-head section-head-split">
+            <div>
+              <p class="panel-tag">今晚训练</p>
+              <h2 id="tonightTitle">先点上面的训练日</h2>
+            </div>
+            <div class="checkin-box">
+              <span id="todayProgress">今日完成 0/0</span>
+              <button id="checkinButton" class="primary-button" type="button">今日完成打卡</button>
+            </div>
           </div>
-        </div>
 
-        <div id="weeklyPlan" class="weekly-plan"></div>
-      </section>
-
-      <section class="workout-panel" aria-label="今晚训练">
-        <div class="section-head section-head-split">
-          <div>
-            <p class="panel-tag">今晚训练</p>
-            <h2 id="tonightTitle">先点上面的训练日</h2>
+          <div class="tonight-meta" id="tonightMeta"></div>
+          <div class="warmup-card">
+            <div class="warmup-copy">
+              <strong id="warmupTitle">热身先做：跑步机快走 8-10 分钟</strong>
+              <p id="warmupText">先把身体热起来，再去上力量器械。完全不会时，热身就优先选跑步机。</p>
+            </div>
+            <div class="warmup-actions" id="warmupActions"></div>
           </div>
-          <div class="checkin-box">
-            <span id="todayProgress">今日完成 0/0</span>
-            <button id="checkinButton" class="primary-button" type="button">今日完成打卡</button>
+
+          <div id="exerciseList" class="exercise-list"></div>
+        </section>
+
+        <section class="motivation-panel motivation-panel-stream" aria-label="激励弹幕">
+          <div class="motivation-marquee">
+            <div class="marquee-line marquee-line-a">
+              <div class="marquee-track">
+                <span>没有争强好胜的性格 所有的温柔和善良都是软弱</span>
+                <span>你说你佛系，镜子只看到你在摆烂。</span>
+                <span>别把“我尽力了”当成没结果的遮羞布。</span>
+                <span>没有争强好胜的性格 所有的温柔和善良都是软弱</span>
+                <span>你说你佛系，镜子只看到你在摆烂。</span>
+                <span>别把“我尽力了”当成没结果的遮羞布。</span>
+              </div>
+            </div>
+            <div class="marquee-line marquee-line-b">
+              <div class="marquee-track">
+                <span>一个向上的灵魂 怎么能有一个下坠的身体</span>
+                <span>嘴上说自律，动作做到一半就想撤退。</span>
+                <span>连这组都不敢扛，你凭什么要更好的自己。</span>
+                <span>一个向上的灵魂 怎么能有一个下坠的身体</span>
+                <span>嘴上说自律，动作做到一半就想撤退。</span>
+                <span>连这组都不敢扛，你凭什么要更好的自己。</span>
+              </div>
+            </div>
+            <div class="marquee-line marquee-line-c">
+              <div class="marquee-track">
+                <span>你羡慕的线条，不会长在偷懒的人身上。</span>
+                <span>怕累就永远普通，怕痛就永远原地。</span>
+                <span>今天放过自己一次，明天就会放过自己一辈子。</span>
+                <span>你羡慕的线条，不会长在偷懒的人身上。</span>
+                <span>怕累就永远普通，怕痛就永远原地。</span>
+                <span>今天放过自己一次，明天就会放过自己一辈子。</span>
+              </div>
+            </div>
           </div>
-        </div>
+        </section>
+      </main>
+    </section>
 
-        <div class="tonight-meta" id="tonightMeta"></div>
-        <div class="warmup-card">
-          <div class="warmup-copy">
-            <strong id="warmupTitle">热身先做：跑步机快走 8-10 分钟</strong>
-            <p id="warmupText">先把身体热起来，再去上力量器械。完全不会时，热身就优先选跑步机。</p>
-          </div>
-          <div class="warmup-actions" id="warmupActions"></div>
-        </div>
-
-        <div id="exerciseList" class="exercise-list"></div>
-
-        <div class="coach-note">
-          <strong>新手提醒</strong>
-          <p id="coachTip">重量以最后 2 次较吃力，但动作不乱、不借力为准。第一周宁可轻一点，也不要上来就逞强。</p>
-        </div>
-      </section>
-
+    <section class="app-module app-module-page" data-module="recovery" aria-label="恢复模块" hidden>
       <section class="recovery-panel secondary-section">
-        <div class="section-head">
+        <div class="section-head module-page-head">
           <div>
             <p class="panel-tag">恢复提醒</p>
             <h2>收尾要做什么</h2>
@@ -145,9 +179,11 @@
           </article>
         </div>
       </section>
+    </section>
 
+    <section class="app-module app-module-page" data-module="equipment" aria-label="器械模块" hidden>
       <section class="equipment-panel secondary-section">
-        <div class="section-head">
+        <div class="section-head module-page-head">
           <div>
             <p class="panel-tag">器械说明</p>
             <h2>不懂这个动作要用什么，就点“看器械”</h2>
@@ -155,49 +191,23 @@
         </div>
         <div id="equipmentGrid" class="equipment-grid"></div>
       </section>
-
-      <section class="motivation-panel secondary-section">
-        <div class="section-head">
-          <div>
-            <p class="panel-tag">激励弹幕</p>
-            <h2>温柔？那是弱者的遮羞布</h2>
-          </div>
-        </div>
-        <div class="motivation-marquee">
-          <div class="marquee-line marquee-line-a">
-            <div class="marquee-track">
-              <span>没有争强好胜的性格 所有的温柔和善良都是软弱</span>
-              <span>你说你佛系，镜子只看到你在摆烂。</span>
-              <span>别把“我尽力了”当成没结果的遮羞布。</span>
-              <span>没有争强好胜的性格 所有的温柔和善良都是软弱</span>
-              <span>你说你佛系，镜子只看到你在摆烂。</span>
-              <span>别把“我尽力了”当成没结果的遮羞布。</span>
-            </div>
-          </div>
-          <div class="marquee-line marquee-line-b">
-            <div class="marquee-track">
-              <span>一个向上的灵魂 怎么能有一个下坠的身体</span>
-              <span>嘴上说自律，动作做到一半就想撤退。</span>
-              <span>连这组都不敢扛，你凭什么要更好的自己。</span>
-              <span>一个向上的灵魂 怎么能有一个下坠的身体</span>
-              <span>嘴上说自律，动作做到一半就想撤退。</span>
-              <span>连这组都不敢扛，你凭什么要更好的自己。</span>
-            </div>
-          </div>
-          <div class="marquee-line marquee-line-c">
-            <div class="marquee-track">
-              <span>你羡慕的线条，不会长在偷懒的人身上。</span>
-              <span>怕累就永远普通，怕痛就永远原地。</span>
-              <span>今天放过自己一次，明天就会放过自己一辈子。</span>
-              <span>你羡慕的线条，不会长在偷懒的人身上。</span>
-              <span>怕累就永远普通，怕痛就永远原地。</span>
-              <span>今天放过自己一次，明天就会放过自己一辈子。</span>
-            </div>
-          </div>
-        </div>
-      </section>
-    </main>
+    </section>
   </div>
+
+  <nav class="app-tabbar" aria-label="模块导航">
+    <button type="button" class="is-active" data-module-target="training" aria-current="page">
+      <span>训</span>
+      训练
+    </button>
+    <button type="button" data-module-target="recovery">
+      <span>复</span>
+      恢复
+    </button>
+    <button type="button" data-module-target="equipment">
+      <span>械</span>
+      器械
+    </button>
+  </nav>
 
   <div class="action-dock" aria-label="快捷操作">
     <button id="backToTopButton" class="dock-button dock-button-quiet" type="button">返回顶部</button>
