@@ -1512,6 +1512,38 @@ p {
   font-size: 1.08rem;
 }
 
+.recovery-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 18px;
+}
+
+.module-action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 11px 16px;
+  border: 1px solid rgba(7, 18, 37, 0.1);
+  border-radius: var(--radius-sm);
+  background: var(--navy);
+  color: #fff;
+  cursor: pointer;
+  font-weight: 900;
+  box-shadow: 0 14px 26px rgba(7, 18, 37, 0.16);
+}
+
+.module-action-button span {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  font-size: 0.78rem;
+}
+
 .equipment-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
@@ -1668,18 +1700,15 @@ p {
 .action-dock {
   position: fixed;
   right: 24px;
+  left: 24px;
   bottom: 92px;
   z-index: 40;
-  display: flex;
+  display: grid;
+  grid-template-columns: 56px 112px;
+  justify-content: space-between;
   align-items: center;
-  gap: 8px;
-  max-width: calc(100vw - 48px);
-  padding: 8px;
-  border: 1px solid rgba(207, 213, 223, 0.92);
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: var(--shadow-lift);
-  backdrop-filter: blur(14px);
+  gap: 12px;
+  pointer-events: none;
 }
 
 .app-tabbar {
@@ -1743,24 +1772,77 @@ p {
   border-radius: var(--radius-sm);
   font-weight: 900;
   white-space: nowrap;
+  pointer-events: auto;
 }
 
 .dock-button-quiet {
-  display: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  visibility: hidden;
+  opacity: 0;
   border: 1px solid var(--line);
   background: #fff;
   color: var(--text);
+  box-shadow: var(--shadow-lift);
+  transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s ease;
 }
 
 .dock-button-quiet.is-visible {
-  display: inline-flex;
-  align-items: center;
+  visibility: visible;
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .dock-button-soft {
   border: 1px solid var(--line);
   background: #fff;
   color: var(--text);
+}
+
+.rocket-button {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  min-height: 52px;
+  padding: 0;
+  border: 1px solid rgba(239, 106, 46, 0.28);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 50% 20%, #fff 0 22%, rgba(255, 241, 234, 0.92) 23% 100%);
+  color: var(--accent-deep);
+  box-shadow: 0 14px 28px rgba(239, 106, 46, 0.16);
+}
+
+.rocket-button::before {
+  content: "";
+  width: 18px;
+  height: 26px;
+  border-radius: 50% 50% 44% 44%;
+  background: var(--navy);
+  clip-path: polygon(50% 0, 86% 42%, 72% 100%, 50% 84%, 28% 100%, 14% 42%);
+}
+
+.rocket-button::after {
+  content: "";
+  position: absolute;
+  bottom: 7px;
+  left: 50%;
+  width: 8px;
+  height: 12px;
+  border-radius: 999px;
+  background: var(--accent);
+  transform: translateX(-50%);
+  box-shadow: 0 8px 14px rgba(239, 106, 46, 0.36);
+}
+
+.rocket-button span {
+  position: absolute;
+  overflow: hidden;
+  width: 1px;
+  height: 1px;
+  clip: rect(0 0 0 0);
 }
 
 .bmi-modal[hidden] {
@@ -2086,13 +2168,20 @@ p {
     border-top: 1px solid rgba(207, 213, 223, 0.78);
   }
 
+  .recovery-actions {
+    justify-content: stretch;
+  }
+
+  .module-action-button {
+    width: 100%;
+  }
+
   .action-dock {
     right: 10px;
     bottom: 82px;
     left: 10px;
-    justify-content: flex-end;
+    grid-template-columns: 52px minmax(96px, 112px);
     max-width: none;
-    overflow-x: auto;
   }
 
   .app-tabbar {
@@ -2105,6 +2194,11 @@ p {
     min-height: 40px;
     padding: 9px 11px;
     font-size: 0.88rem;
+  }
+
+  .rocket-button {
+    width: 50px;
+    min-height: 50px;
   }
 
   .bmi-modal-panel {
@@ -2139,9 +2233,5 @@ p {
 
   .day-top {
     flex-direction: column;
-  }
-
-  .dock-button-soft {
-    flex: 1 0 auto;
   }
 }
