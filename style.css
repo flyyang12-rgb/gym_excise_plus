@@ -27,11 +27,13 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
 }
 
 body {
   margin: 0;
   min-width: 320px;
+  overflow-x: hidden;
   font-family: "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", sans-serif;
   color: var(--text);
   background:
@@ -203,7 +205,9 @@ p {
 .workout-panel {
   grid-column: 1 / -1;
   padding: 30px;
-  background: var(--surface);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(250, 251, 252, 0.96)),
+    var(--surface);
   box-shadow: var(--shadow-soft);
 }
 
@@ -535,9 +539,154 @@ p {
   gap: 14px;
 }
 
+.exercise-stepper {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  gap: 18px;
+  padding: 20px;
+  border: 1px solid rgba(207, 213, 223, 0.78);
+  border-radius: calc(var(--radius-md) + 2px);
+  background:
+    linear-gradient(145deg, rgba(255, 250, 246, 0.98), rgba(255, 255, 255, 0.94) 44%, rgba(238, 248, 242, 0.82)),
+    #fff;
+  box-shadow: 0 18px 44px rgba(16, 24, 39, 0.08);
+}
+
+.exercise-stepper::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  background: linear-gradient(90deg, var(--accent), var(--green));
+}
+
+.stepper-head,
+.stepper-footer {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+}
+
+.stepper-head > div {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+}
+
+.stepper-head strong {
+  color: var(--navy);
+  font-size: clamp(1.45rem, 3vw, 2.05rem);
+  line-height: 1.12;
+}
+
+.stepper-head p {
+  margin: 0;
+  color: var(--muted);
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.stepper-kicker,
+.stepper-count {
+  color: var(--accent-deep);
+  font-size: 0.82rem;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+.stepper-count {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
+  padding: 9px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: inset 0 0 0 1px rgba(207, 213, 223, 0.7);
+  color: var(--muted);
+}
+
+.stepper-count strong {
+  color: var(--navy);
+  font-size: 1.15rem;
+}
+
+.stepper-track {
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  height: 9px;
+  border-radius: 999px;
+  background: rgba(7, 18, 37, 0.07);
+}
+
+.stepper-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent), var(--green));
+  transition: width 0.24s ease;
+}
+
+.stepper-dots {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(42px, 1fr));
+  gap: 8px;
+}
+
+.stepper-dots button {
+  min-width: 42px;
+  min-height: 38px;
+  border: 1px solid rgba(207, 213, 223, 0.9);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.86);
+  color: var(--muted);
+  cursor: pointer;
+  font-weight: 900;
+  transition: transform 0.18s ease, background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.stepper-dots button:hover {
+  transform: translateY(-1px);
+}
+
+.stepper-dots button.is-active {
+  border-color: rgba(7, 18, 37, 0.18);
+  background: var(--navy);
+  color: #fff;
+  box-shadow: 0 10px 20px rgba(7, 18, 37, 0.16);
+}
+
+.stepper-dots button.is-complete:not(.is-active) {
+  border-color: rgba(47, 143, 99, 0.22);
+  background: var(--green-soft);
+  color: var(--green);
+}
+
 .exercise-card {
   padding: 18px 0;
   border-top: 1px solid var(--line);
+}
+
+.exercise-card-focus,
+.exercise-card-focus:first-child {
+  position: relative;
+  z-index: 1;
+  padding: 4px 0 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  animation: stepInForward 0.24s ease both;
+}
+
+.exercise-stepper.is-back .exercise-card-focus {
+  animation-name: stepInBack;
 }
 
 .exercise-card:first-child {
@@ -551,6 +700,13 @@ p {
   border: 1px solid rgba(47, 143, 99, 0.22);
   border-radius: var(--radius-md);
   background: linear-gradient(180deg, #f8fffb, #ffffff);
+}
+
+.exercise-card-focus.is-complete {
+  margin: 0;
+  padding: 4px 0 0;
+  border: 0;
+  background: transparent;
 }
 
 .exercise-head {
@@ -577,7 +733,7 @@ p {
   color: var(--accent-deep);
   font-size: 0.78rem;
   font-weight: 900;
-  letter-spacing: 0.06em;
+  letter-spacing: 0;
 }
 
 .exercise-title strong {
@@ -597,6 +753,22 @@ p {
   gap: 8px;
   color: var(--green);
   font-weight: 800;
+}
+
+.exercise-check-card {
+  min-height: 44px;
+  padding: 10px 13px;
+  border: 1px solid rgba(47, 143, 99, 0.22);
+  border-radius: var(--radius-sm);
+  background: rgba(237, 248, 242, 0.92);
+  color: var(--green);
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+
+.exercise-check-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(47, 143, 99, 0.12);
 }
 
 .exercise-check input {
@@ -634,7 +806,8 @@ p {
 }
 
 .exercise-note {
-  margin: 12px 0 0;
+  max-width: 680px;
+  margin: 14px 0 0;
   color: var(--muted);
   line-height: 1.72;
 }
@@ -642,16 +815,17 @@ p {
 .guide-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  margin-top: 14px;
+  gap: 12px;
+  margin-top: 18px;
 }
 
 .guide-box {
   min-width: 0;
-  padding: 12px;
-  border: 1px solid var(--line);
+  padding: 14px;
+  border: 1px solid rgba(207, 213, 223, 0.78);
   border-radius: var(--radius-sm);
-  background: var(--surface-soft);
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 10px 22px rgba(16, 24, 39, 0.04);
 }
 
 .guide-box span {
@@ -664,11 +838,359 @@ p {
 .guide-box strong {
   display: block;
   font-size: 0.94rem;
-  line-height: 1.58;
+  line-height: 1.62;
 }
 
 .exercise-actions {
   margin-top: 14px;
+}
+
+.stepper-footer {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  padding: 8px;
+  border: 1px solid rgba(207, 213, 223, 0.72);
+  border-radius: calc(var(--radius-sm) + 2px);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.stepper-footer span {
+  min-width: 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.step-nav-button {
+  flex: 0 0 auto;
+  min-height: 44px;
+  min-width: 96px;
+  padding: 10px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: #fff;
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 900;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+
+.step-nav-button:not(:disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(16, 24, 39, 0.09);
+}
+
+.step-nav-button-primary {
+  border-color: transparent;
+  background: var(--navy);
+  color: #fff;
+  box-shadow: 0 12px 24px rgba(7, 18, 37, 0.18);
+}
+
+.step-nav-button:disabled {
+  cursor: default;
+  opacity: 0.48;
+  box-shadow: none;
+}
+
+.stepper-progress-row {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+}
+
+.stepper-progress-row > span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.exercise-stepper {
+  gap: 20px;
+  padding: 22px;
+  border-color: rgba(7, 18, 37, 0.1);
+  background:
+    linear-gradient(135deg, rgba(255, 250, 246, 0.96), rgba(255, 255, 255, 0.98) 40%, rgba(239, 248, 243, 0.86)),
+    repeating-linear-gradient(90deg, rgba(7, 18, 37, 0.025) 0 1px, transparent 1px 22px),
+    #fff;
+  box-shadow: 0 20px 48px rgba(16, 24, 39, 0.1);
+}
+
+.exercise-stepper::before {
+  height: 5px;
+  background: linear-gradient(90deg, var(--navy) 0 28%, var(--accent) 28% 66%, var(--green) 66% 100%);
+}
+
+.stepper-head {
+  padding-top: 4px;
+}
+
+.stepper-count {
+  display: grid;
+  min-width: 92px;
+  justify-items: end;
+  gap: 1px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+}
+
+.stepper-count span,
+.stepper-count small {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.stepper-count strong {
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.stepper-track {
+  height: 7px;
+  background:
+    linear-gradient(90deg, rgba(7, 18, 37, 0.08), rgba(7, 18, 37, 0.04));
+}
+
+.stepper-track span {
+  background: linear-gradient(90deg, var(--navy), var(--accent) 58%, var(--green));
+  transition: width 0.34s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.stepper-dots {
+  grid-template-columns: repeat(auto-fit, minmax(38px, 1fr));
+}
+
+.stepper-dots button {
+  min-height: 36px;
+  border-radius: 999px;
+}
+
+.stepper-dots button.is-active {
+  transform: translateY(-1px);
+}
+
+.exercise-card-focus,
+.exercise-card-focus:first-child,
+.exercise-card-focus.is-complete {
+  padding: 0;
+  animation-duration: 0.3s;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.exercise-stage {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  gap: 18px;
+  align-items: stretch;
+  min-height: 154px;
+  padding: 18px;
+  border: 1px solid rgba(207, 213, 223, 0.78);
+  border-radius: var(--radius-md);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 250, 246, 0.72)),
+    #fff;
+  box-shadow: 0 18px 34px rgba(16, 24, 39, 0.07);
+}
+
+.exercise-stage-number {
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-sm);
+  background:
+    linear-gradient(180deg, rgba(7, 18, 37, 0.98), rgba(22, 34, 54, 0.96));
+  color: #fff;
+}
+
+.exercise-stage-number span {
+  font-size: 1.6rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.exercise-stage-main {
+  display: grid;
+  align-content: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.exercise-card-focus .exercise-head {
+  gap: 18px;
+}
+
+.exercise-card-focus .exercise-title {
+  gap: 8px;
+}
+
+.exercise-card-focus .exercise-title strong {
+  font-size: clamp(1.45rem, 3vw, 2rem);
+  line-height: 1.12;
+}
+
+.exercise-card-focus .exercise-top-meta {
+  gap: 8px;
+}
+
+.exercise-card-focus .exercise-top-meta span,
+.exercise-card-focus .exercise-top-meta button {
+  min-height: 30px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(240, 242, 245, 0.82);
+  color: var(--muted);
+  line-height: 1;
+}
+
+.exercise-card-focus .tutorial-jump {
+  color: var(--accent-deep);
+}
+
+.exercise-card-focus .exercise-head-actions .tutorial-link {
+  min-height: 44px;
+  padding: 10px 13px;
+  border: 1px solid rgba(239, 106, 46, 0.18);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 241, 234, 0.78);
+  color: var(--accent-deep);
+  justify-content: center;
+  text-decoration: none;
+}
+
+.exercise-card-focus .exercise-head-actions .tutorial-link:hover,
+.exercise-card-focus .exercise-head-actions .tutorial-link:focus-visible {
+  background: rgba(255, 241, 234, 1);
+  text-decoration: none;
+}
+
+.exercise-card-focus .exercise-note {
+  max-width: none;
+  margin-top: 0;
+  font-size: 1rem;
+}
+
+.exercise-check-card {
+  border-color: rgba(7, 18, 37, 0.08);
+  background: var(--navy);
+  color: #fff;
+  box-shadow: 0 14px 26px rgba(7, 18, 37, 0.16);
+}
+
+.exercise-check-card input {
+  accent-color: var(--green);
+}
+
+.exercise-card-focus.is-complete .exercise-check-card {
+  background: var(--green);
+  box-shadow: 0 14px 26px rgba(47, 143, 99, 0.18);
+}
+
+.exercise-card-focus.is-complete .exercise-stage {
+  border-color: rgba(47, 143, 99, 0.26);
+  background:
+    linear-gradient(180deg, rgba(248, 255, 251, 0.96), rgba(255, 255, 255, 0.96)),
+    #fff;
+}
+
+.exercise-card-focus.is-complete .exercise-stage-number {
+  background: var(--green);
+}
+
+.guide-grid {
+  gap: 10px;
+  margin-top: 0;
+}
+
+.guide-box {
+  position: relative;
+  overflow: hidden;
+  padding: 14px 14px 14px 16px;
+  border-color: rgba(207, 213, 223, 0.62);
+  background: rgba(255, 255, 255, 0.66);
+  box-shadow: none;
+}
+
+.guide-box::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--accent);
+}
+
+.guide-box:nth-child(2)::before {
+  background: var(--navy);
+}
+
+.guide-box:nth-child(3)::before {
+  background: var(--green);
+}
+
+.guide-box span {
+  margin-bottom: 7px;
+  color: var(--accent-deep);
+  font-weight: 900;
+}
+
+.guide-box strong {
+  color: var(--text);
+}
+
+.stepper-footer {
+  min-height: 62px;
+  padding: 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.8), rgba(250, 251, 252, 0.72));
+  backdrop-filter: blur(8px);
+}
+
+.stepper-footer span {
+  color: var(--navy);
+}
+
+.step-nav-button {
+  min-width: 104px;
+}
+
+.step-nav-button-primary {
+  background: linear-gradient(180deg, var(--navy), #0d1b31);
+}
+
+@keyframes stepInForward {
+  from {
+    opacity: 0;
+    transform: translateX(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes stepInBack {
+  from {
+    opacity: 0;
+    transform: translateX(-14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .exercise-card-focus,
+  .stepper-track span,
+  .stepper-dots button,
+  .step-nav-button,
+  .exercise-check-card {
+    animation: none;
+    transition: none;
+  }
 }
 
 .coach-note {
@@ -1344,6 +1866,82 @@ p {
   .warmup-actions,
   .exercise-head-actions {
     justify-content: flex-start;
+  }
+
+  .exercise-stepper {
+    padding: 14px;
+  }
+
+  .stepper-head,
+  .stepper-footer {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .stepper-head {
+    gap: 12px;
+  }
+
+  .stepper-progress-row {
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+
+  .stepper-dots {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .exercise-stage {
+    grid-template-columns: 1fr;
+    min-height: 0;
+    padding: 14px;
+  }
+
+  .exercise-stage-number {
+    justify-content: start;
+    min-height: 42px;
+    padding: 0 14px;
+  }
+
+  .exercise-stage-number span {
+    font-size: 1.05rem;
+  }
+
+  .exercise-card-focus .exercise-head {
+    gap: 14px;
+  }
+
+  .exercise-card-focus .exercise-head-actions {
+    width: 100%;
+  }
+
+  .stepper-count {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-width: 0;
+    min-height: 48px;
+    justify-items: stretch;
+  }
+
+  .stepper-count strong {
+    margin-left: auto;
+  }
+
+  .exercise-check-card,
+  .exercise-head-actions .tutorial-link {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .stepper-count,
+  .step-nav-button {
+    width: 100%;
+  }
+
+  .stepper-footer span {
+    order: -1;
+    text-align: left;
   }
 
   .checkin-box {

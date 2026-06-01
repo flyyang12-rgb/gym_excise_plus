@@ -530,6 +530,8 @@ const workoutLibrary = {
 let state = { ...defaultState };
 let progressStore = loadProgressStore();
 let activeDayId = "";
+let activeExerciseIndex = 0;
+let stepMotion = "forward";
 let returnScrollY = null;
 
 const elements = {
@@ -721,6 +723,11 @@ function getActiveWorkout() {
   return plan.find((item) => item.id === activeDayId) || plan.find((item) => item.id === getNearestPlanId(plan)) || plan[0];
 }
 
+function resetExerciseStepper() {
+  activeExerciseIndex = 0;
+  stepMotion = "forward";
+}
+
 function getExerciseProgressMap(workout) {
   const dayStore = progressStore[todayKey()] || {};
   return dayStore[workout.id] || {};
@@ -856,6 +863,7 @@ function renderProfileCalendar() {
   elements.calendarStrip.querySelectorAll("[data-calendar-day-id]").forEach((button) => {
     button.addEventListener("click", () => {
       activeDayId = button.dataset.calendarDayId;
+      resetExerciseStepper();
       renderProfileCalendar();
       renderWeeklyPlan();
       renderWorkout();
@@ -926,6 +934,7 @@ function renderWeeklyPlan() {
   elements.weeklyPlan.querySelectorAll("[data-day-id]").forEach((button) => {
     button.addEventListener("click", () => {
       activeDayId = button.dataset.dayId;
+      resetExerciseStepper();
       renderProfileCalendar();
       renderWeeklyPlan();
       renderWorkout();
@@ -957,55 +966,111 @@ function renderWorkout() {
   elements.checkinButton.disabled = isWorkoutComplete(workout);
 
   const checkedMap = getExerciseProgressMap(workout);
-  elements.exerciseList.innerHTML = workout.exercises.map((exercise, index) => {
-    const complete = !!checkedMap[exercise.name];
-    const tutorialUrl = state.goal === "muscleGain" ? tutorialLinks[exercise.name] : "";
-    const equipmentTarget = state.goal === "fatLoss" ? "mat" : (exercise.equipment || "");
-    const equipmentJumpLabel = state.goal === "fatLoss"
-      ? "看瑜伽垫"
-      : (exercise.equipment ? `看${equipmentLibrary[exercise.equipment].name}` : "");
-    return `
-      <article class="exercise-card ${complete ? "is-complete" : ""}">
-        <div class="exercise-head">
-          <div class="exercise-title">
-            <span>动作 ${index + 1}</span>
-            <strong>${exercise.name}</strong>
-            <div class="exercise-top-meta">
-              <span>${exercise.sets}</span>
-              ${state.goal === "fatLoss"
-                ? `<span>只需瑜伽垫</span><button type="button" class="tutorial-link tutorial-jump" data-equipment-target="mat">${equipmentJumpLabel}</button>`
-                : (exercise.equipment
-                  ? `<span>优先器械：${equipmentLibrary[exercise.equipment].name}</span><button type="button" class="tutorial-link tutorial-jump" data-equipment-target="${equipmentTarget}">${equipmentJumpLabel}</button>`
-                  : `<span>徒手动作</span>`)}
-            </div>
+  const totalExercises = workout.exercises.length;
+  activeExerciseIndex = Math.min(Math.max(activeExerciseIndex, 0), Math.max(totalExercises - 1, 0));
+  const exercise = workout.exercises[activeExerciseIndex];
+  const complete = !!checkedMap[exercise.name];
+  const tutorialUrl = state.goal === "muscleGain" ? tutorialLinks[exercise.name] : "";
+  const equipmentTarget = state.goal === "fatLoss" ? "mat" : (exercise.equipment || "");
+  const equipmentJumpLabel = state.goal === "fatLoss"
+    ? "看瑜伽垫"
+    : (exercise.equipment ? `看${equipmentLibrary[exercise.equipment].name}` : "");
+  const equipmentLabel = state.goal === "fatLoss"
+    ? "瑜伽垫"
+    : (exercise.equipment ? equipmentLibrary[exercise.equipment].name : "徒手");
+  const nextExercise = workout.exercises[activeExerciseIndex + 1];
+  const percent = totalExercises ? Math.round(((activeExerciseIndex + 1) / totalExercises) * 100) : 0;
+  const completionPercent = progress.total ? Math.round((progress.completed / progress.total) * 100) : 0;
+
+  elements.exerciseList.innerHTML = `
+    <div class="exercise-stepper is-${stepMotion}" aria-label="动作分步训练" aria-live="polite">
+      <div class="stepper-head">
+        <div>
+          <span class="stepper-kicker">动作 ${activeExerciseIndex + 1}/${totalExercises}</span>
+          <strong>${exercise.name}</strong>
+          <p>${exercise.sets} · ${equipmentLabel}</p>
+        </div>
+        <div class="stepper-count">
+          <span>完成度</span>
+          <strong>${completionPercent}%</strong>
+          <small>${progress.completed}/${progress.total}</small>
+        </div>
+      </div>
+      <div class="stepper-progress-row">
+        <span>当前进度</span>
+        <div class="stepper-track" aria-hidden="true">
+          <span style="width: ${percent}%"></span>
+        </div>
+      </div>
+      <div class="stepper-dots" aria-label="选择动作">
+        ${workout.exercises.map((item, index) => `
+          <button
+            type="button"
+            class="${index === activeExerciseIndex ? "is-active" : ""} ${checkedMap[item.name] ? "is-complete" : ""}"
+            data-step-index="${index}"
+            aria-label="查看动作 ${index + 1}：${item.name}"
+          >
+            ${index + 1}
+          </button>
+        `).join("")}
+      </div>
+
+      <article class="exercise-card exercise-card-focus ${complete ? "is-complete" : ""}">
+        <div class="exercise-stage">
+          <div class="exercise-stage-number">
+            <span>${String(activeExerciseIndex + 1).padStart(2, "0")}</span>
           </div>
-          <div class="exercise-head-actions">
-            ${tutorialUrl ? `<a class="tutorial-link" href="${tutorialUrl}" target="_blank" rel="noopener noreferrer">教学详情</a>` : ""}
-            <label class="exercise-check">
-              <input type="checkbox" data-workout-id="${workout.id}" data-exercise-name="${exercise.name}" ${complete ? "checked" : ""}>
-              完成
-            </label>
+          <div class="exercise-stage-main">
+            <div class="exercise-head">
+              <div class="exercise-title">
+                <span>${complete ? "已完成" : "当前动作"}</span>
+                <strong>${exercise.name}</strong>
+                <div class="exercise-top-meta">
+                  <span>${exercise.sets}</span>
+                  ${state.goal === "fatLoss"
+                    ? `<span>只需瑜伽垫</span><button type="button" class="tutorial-link tutorial-jump" data-equipment-target="mat">${equipmentJumpLabel}</button>`
+                    : (exercise.equipment
+                      ? `<span>优先器械：${equipmentLibrary[exercise.equipment].name}</span><button type="button" class="tutorial-link tutorial-jump" data-equipment-target="${equipmentTarget}">${equipmentJumpLabel}</button>`
+                      : `<span>徒手动作</span>`)}
+                </div>
+              </div>
+              <div class="exercise-head-actions">
+                ${tutorialUrl ? `<a class="tutorial-link" href="${tutorialUrl}" target="_blank" rel="noopener noreferrer">教学详情</a>` : ""}
+                <label class="exercise-check exercise-check-card">
+                  <input type="checkbox" data-workout-id="${workout.id}" data-exercise-name="${exercise.name}" ${complete ? "checked" : ""}>
+                  <span>${complete ? "已完成" : "标记完成"}</span>
+                </label>
+              </div>
+            </div>
+            <p class="exercise-note">${exercise.note || ""}</p>
           </div>
         </div>
-        <p class="exercise-note">${exercise.note || ""}</p>
         <div class="guide-grid">
           <div class="guide-box">
-            <span>我站在哪里</span>
+            <span>站位</span>
             <strong>${exercise.stance || "站稳或坐稳，先把身体摆正。"}</strong>
           </div>
           <div class="guide-box">
-            <span>手怎么放</span>
+            <span>握法</span>
             <strong>${exercise.grip || "双手自然放好，先不要追求重。"}</strong>
           </div>
           <div class="guide-box">
-            <span>第一下怎么开始</span>
+            <span>启动</span>
             <strong>${exercise.firstMove || "先做慢一点，先把路线做对。"}</strong>
           </div>
         </div>
         ${state.goal === "fatLoss" ? `<div class="exercise-actions"><span class="pill">只需瑜伽垫</span></div>` : ""}
       </article>
-    `;
-  }).join("");
+
+      <div class="stepper-footer">
+        <button type="button" class="step-nav-button" data-step-direction="prev" ${activeExerciseIndex === 0 ? "disabled" : ""}>上一条</button>
+        <span>${nextExercise ? `下一条 · ${nextExercise.name}` : "全部动作都看完了，可以收尾恢复"}</span>
+        <button type="button" class="step-nav-button step-nav-button-primary" data-step-direction="next">
+          ${activeExerciseIndex === totalExercises - 1 ? "回到第一条" : "下一条"}
+        </button>
+      </div>
+    </div>
+  `;
 
   bindWorkoutInteractions();
 }
@@ -1015,8 +1080,42 @@ function bindWorkoutInteractions() {
 
   elements.exerciseList.querySelectorAll("input[type='checkbox']").forEach((checkbox) => {
     checkbox.addEventListener("change", () => {
+      const workout = getActiveWorkout();
+      const lastIndex = workout ? workout.exercises.length - 1 : 0;
+      const shouldAdvance = checkbox.checked && activeExerciseIndex < lastIndex;
       setExerciseCompleted(checkbox.dataset.workoutId, checkbox.dataset.exerciseName, checkbox.checked);
       renderWeeklyPlan();
+      if (shouldAdvance) {
+        stepMotion = "forward";
+        activeExerciseIndex += 1;
+        window.setTimeout(renderWorkout, 180);
+      } else {
+        renderWorkout();
+      }
+    });
+  });
+
+  elements.exerciseList.querySelectorAll("[data-step-index]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const nextIndex = Number(button.dataset.stepIndex);
+      stepMotion = nextIndex >= activeExerciseIndex ? "forward" : "back";
+      activeExerciseIndex = nextIndex;
+      renderWorkout();
+    });
+  });
+
+  elements.exerciseList.querySelectorAll("[data-step-direction]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const workout = getActiveWorkout();
+      if (!workout) return;
+      const lastIndex = workout.exercises.length - 1;
+      if (button.dataset.stepDirection === "prev") {
+        stepMotion = "back";
+        activeExerciseIndex = Math.max(0, activeExerciseIndex - 1);
+      } else {
+        stepMotion = activeExerciseIndex >= lastIndex ? "back" : "forward";
+        activeExerciseIndex = activeExerciseIndex >= lastIndex ? 0 : activeExerciseIndex + 1;
+      }
       renderWorkout();
     });
   });
@@ -1131,6 +1230,7 @@ function attachEvents() {
     button.addEventListener("click", () => {
       state.trainDaysPerWeek = Number(button.dataset.frequency);
       activeDayId = "";
+      resetExerciseStepper();
       rerenderAll();
     });
   });
@@ -1140,6 +1240,7 @@ function attachEvents() {
       button.addEventListener("click", () => {
         state.goal = button.dataset.goal;
         activeDayId = "";
+        resetExerciseStepper();
         rerenderAll();
       });
     });
@@ -1149,6 +1250,7 @@ function attachEvents() {
     elements.resetButton.addEventListener("click", () => {
       state = { ...defaultState };
       activeDayId = "";
+      resetExerciseStepper();
       populateInputs();
       rerenderAll();
     });
