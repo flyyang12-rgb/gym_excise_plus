@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#ef6a2e">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>健身小助手</title>
-  <link rel="stylesheet" href="style.css?v=20260524-12">
+  <link rel="stylesheet" href="style.css?v=20260602-ai1">
 </head>
 <body>
   <div class="app-shell">
@@ -179,9 +179,13 @@
           </article>
         </div>
         <div class="recovery-actions">
+          <button id="bmiOpenButton" class="module-action-button module-action-button-light" type="button">
+            <span>BM</span>
+            BMI 身体数据
+          </button>
           <button id="aiObserveButton" class="module-action-button" type="button">
             <span>AI</span>
-            系统观察
+            AI 问答
           </button>
         </div>
       </section>
@@ -227,7 +231,7 @@
     <section class="bmi-modal-panel" role="dialog" aria-modal="true" aria-labelledby="bmiModalTitle">
       <div class="bmi-modal-head">
         <div>
-          <p class="panel-tag">AI 系统观察</p>
+          <p class="panel-tag">身体数据</p>
           <h2 id="bmiModalTitle">先算一下 BMI</h2>
         </div>
         <button id="bmiModalClose" class="bmi-modal-close" type="button" aria-label="关闭">关闭</button>
@@ -256,6 +260,39 @@
     </section>
   </div>
 
-  <script src="script.js?v=20260524-12"></script>
+  <div id="aiModal" class="bmi-modal ai-modal" aria-hidden="true" hidden>
+    <div id="aiModalBackdrop" class="bmi-modal-backdrop"></div>
+    <section class="bmi-modal-panel" role="dialog" aria-modal="true" aria-labelledby="aiModalTitle">
+      <div class="bmi-modal-head">
+        <div>
+          <p class="panel-tag">AI 问答</p>
+          <h2 id="aiModalTitle">训练不舒服，先问一句</h2>
+        </div>
+        <button id="aiModalClose" class="bmi-modal-close" type="button" aria-label="关闭">关闭</button>
+      </div>
+
+      <div class="ai-context-card" id="aiContextCard">
+        基于你当前的训练目标、BMI 和今天动作，先给安全建议。
+      </div>
+
+      <div id="aiChatLog" class="ai-chat-log" aria-live="polite"></div>
+
+      <div class="ai-quick-prompts" aria-label="常见问题">
+        <button type="button" data-ai-prompt="腿不舒服了，今天还要练吗？">腿不舒服</button>
+        <button type="button" data-ai-prompt="膝盖有点疼，深蹲要不要继续？">膝盖疼</button>
+        <button type="button" data-ai-prompt="练完特别酸，明天怎么恢复？">练完很酸</button>
+      </div>
+
+      <form id="aiQuestionForm" class="ai-question-form">
+        <label for="aiQuestionInput">你的问题</label>
+        <textarea id="aiQuestionInput" rows="3" placeholder="比如：腿不舒服了，今天还要练腿吗？"></textarea>
+        <button id="aiAskButton" class="primary-button" type="submit">问 AI</button>
+      </form>
+
+      <p class="ai-safety-note">这个助手只做训练建议，不替代医生。出现刺痛、肿胀、麻木、无法承重时，先停止训练并就医。</p>
+    </section>
+  </div>
+
+  <script src="script.js?v=20260602-ai1"></script>
 </body>
 </html>

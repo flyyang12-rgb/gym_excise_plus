@@ -572,6 +572,7 @@ const elements = {
   moduleButtons: document.querySelectorAll("[data-module-target]"),
   backToWorkoutButton: document.querySelector("#backToWorkoutButton"),
   backToTopButton: document.querySelector("#backToTopButton"),
+  bmiOpenButton: document.querySelector("#bmiOpenButton"),
   aiObserveButton: document.querySelector("#aiObserveButton"),
   bmiModal: document.querySelector("#bmiModal"),
   bmiModalBackdrop: document.querySelector("#bmiModalBackdrop"),
@@ -581,6 +582,14 @@ const elements = {
   bmiWeightInput: document.querySelector("#bmiWeightInput"),
   bmiModalValue: document.querySelector("#bmiModalValue"),
   bmiModalLabel: document.querySelector("#bmiModalLabel"),
+  aiModal: document.querySelector("#aiModal"),
+  aiModalBackdrop: document.querySelector("#aiModalBackdrop"),
+  aiModalClose: document.querySelector("#aiModalClose"),
+  aiContextCard: document.querySelector("#aiContextCard"),
+  aiChatLog: document.querySelector("#aiChatLog"),
+  aiQuestionForm: document.querySelector("#aiQuestionForm"),
+  aiQuestionInput: document.querySelector("#aiQuestionInput"),
+  aiQuickPrompts: document.querySelector(".ai-quick-prompts"),
 };
 
 function todayKey() {
@@ -628,6 +637,15 @@ function getBmiInfo(heightCm, weightKg) {
 
 function getRecommendedFrequency(goal) {
   return goal === "fatLoss" ? 4 : 4;
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 function getGoalSummary(goal) {
@@ -767,6 +785,163 @@ function populateInputs() {
   elements.goal.value = state.goal;
 }
 
+function getAiContextText() {
+  const bmiInfo = getBmiInfo(Number(state.heightCm), Number(state.weightKg));
+  const workout = getActiveWorkout();
+  const goalLabel = goalConfig[state.goal]?.label || "训练";
+  const workoutText = workout ? `今天是「${workout.title}」` : "今天还没选训练日";
+  return `${goalLabel} · BMI ${bmiInfo.bmi}（${bmiInfo.label}） · ${workoutText}`;
+}
+
+function renderAiContext() {
+  if (!elements.aiContextCard) return;
+  elements.aiContextCard.textContent = `${getAiContextText()}。我会优先给保守、安全、适合新手的处理建议。`;
+}
+
+function buildAiCoachAnswer(question) {
+  const text = question.trim();
+  const normalized = text.toLowerCase();
+  const workout = getActiveWorkout();
+  const workoutTitle = workout ? workout.title : "今天的训练";
+  const currentExercise = workout?.exercises?.[activeExerciseIndex]?.name;
+  const hasLegSignal = /腿|膝|髋|脚|踝|小腿|大腿|臀|深蹲|箭步|硬拉|单车/.test(text);
+  const hasKneeSignal = /膝|膝盖|深蹲|箭步/.test(text);
+  const hasBackSignal = /腰|背痛|下背|硬拉/.test(text);
+  const hasShoulderSignal = /肩|手腕|腕|肘|胳膊|手臂/.test(text);
+  const hasSorenessSignal = /酸|酸痛|疲劳|累|恢复|抽筋/.test(text);
+  const hasPainSignal = /疼|痛|不舒服|刺|麻|肿|扭|拉伤/.test(text);
+
+  if (hasLegSignal || hasKneeSignal) {
+    return {
+      title: hasKneeSignal ? "膝盖不舒服时，今天先别硬蹲" : "腿不舒服时，今天先降级训练",
+      lead: `如果你正在做「${currentExercise || workoutTitle}」，先暂停下肢负重动作，别用意志力硬顶过去。`,
+      steps: [
+        "先判断疼痛：只是训练后的酸胀，可以改成 10-20 分钟慢走、拉伸和轻量活动；如果是刺痛、关节痛、麻木或肿胀，今天停止训练。",
+        "今天不要做深蹲、箭步蹲、硬拉、冲刺单车这类下肢高压力动作，改练上肢、核心，或直接做恢复日。",
+        "下次练腿从轻重量开始，动作幅度先变小，膝盖方向跟脚尖一致，速度慢一点。",
+        "如果连续 2-3 天还痛，或者走路、上下楼都不舒服，就别自己判断，去看医生或康复师。",
+      ],
+      warning: "训练原则：肌肉酸可以恢复，关节痛要谨慎。宁愿少练一天，也不要把小问题练成大问题。",
+    };
+  }
+
+  if (hasBackSignal) {
+    return {
+      title: "腰背不舒服时，先停掉髋铰链动作",
+      lead: `今天如果安排了「${currentExercise || workoutTitle}」，先不要继续加重量。`,
+      steps: [
+        "暂停硬拉、划船、深蹲、卷腹这类可能让腰背继续受力的动作。",
+        "改成轻松走路、猫牛式、胸椎活动和温和拉伸，动作里不要追求疼痛感。",
+        "下次训练先检查核心收紧和脊柱中立，不确定动作时优先用器械版本。",
+        "如果出现放射痛、麻木、腿发软，直接停止训练并就医。",
+      ],
+      warning: "腰背不适不要靠拉狠一点解决，先把负重和幅度降下来。",
+    };
+  }
+
+  if (hasShoulderSignal) {
+    return {
+      title: "肩、肘、手腕不舒服时，先保护关节",
+      lead: "上肢训练里，关节不舒服通常比肌肉酸更需要谨慎。",
+      steps: [
+        "今天先停掉推举、卧推、飞鸟、弯举这类让不适部位继续受力的动作。",
+        "改做轻重量热身、肩胛控制、拉伸胸背，保持动作无痛。",
+        "下一次把重量降到能稳定做 12 次的程度，手腕保持中立，肩膀不要耸起来。",
+        "如果疼痛越来越尖锐，或伴随肿胀、卡住、无力，先不要训练该部位。",
+      ],
+      warning: "新手阶段先要动作稳定，不要为了完成计划硬扛关节压力。",
+    };
+  }
+
+  if (hasSorenessSignal || hasPainSignal) {
+    return {
+      title: "先区分酸痛和危险信号",
+      lead: "训练后有酸胀很常见，但尖锐疼痛、肿胀、麻木不是正常训练反馈。",
+      steps: [
+        "普通酸痛：今天做轻量活动、拉伸 5-10 分钟、补水、吃够蛋白质，睡眠跟上。",
+        "明显疼痛：先停掉让它疼的动作，改恢复日或练完全不痛的部位。",
+        "下一次把重量、组数或动作幅度降一级，先观察身体反应。",
+        "疼痛超过 2-3 天没有缓解，或影响走路、抬手、睡觉，就建议找专业人士看一下。",
+      ],
+      warning: "恢复不是偷懒，是让下一次训练还有质量。",
+    };
+  }
+
+  if (/吃|饮食|蛋白|饭|热量|减脂|增肌/.test(text)) {
+    return {
+      title: "饮食先抓三个基础",
+      lead: "不用一开始就算得很复杂，先把训练后的恢复条件补齐。",
+      steps: [
+        "训练后 1 小时内吃一顿正常饭或加餐，主食和蛋白质都要有。",
+        "增肌优先保证吃够，减脂也不要极端节食，否则训练质量会掉。",
+        "蛋白质来源可以选鸡蛋、牛奶、鱼肉、鸡胸、豆制品，按自己能坚持的来。",
+      ],
+      warning: "如果有疾病、特殊饮食禁忌，饮食方案要听医生或营养师的。",
+    };
+  }
+
+  return {
+    title: "先给你一个稳妥版本",
+    lead: "我现在是本地训练助手，会优先按新手安全原则回答。",
+    steps: [
+      "如果动作让你不舒服，先降重量、降次数、缩小幅度，仍然不舒服就停止这个动作。",
+      "不会做的动作优先选器械版本，路线更固定，风险更低。",
+      "今天状态差可以改恢复日：慢走、拉伸、补水、早点睡。",
+      "你可以问得更具体一点，比如“膝盖疼还能深蹲吗”或“练完腿很酸怎么办”。",
+    ],
+    warning: "任何刺痛、肿胀、麻木、无法承重，都不要继续练。",
+  };
+}
+
+function renderAiMessage(role, content) {
+  if (!elements.aiChatLog) return;
+  const isUser = role === "user";
+  const message = document.createElement("article");
+  message.className = `ai-message ${isUser ? "is-user" : "is-assistant"}`;
+
+  if (isUser) {
+    message.innerHTML = `<p>${escapeHtml(content)}</p>`;
+  } else {
+    message.innerHTML = `
+      <span>${escapeHtml(content.title)}</span>
+      <p>${escapeHtml(content.lead)}</p>
+      <ol>
+        ${content.steps.map((step) => `<li>${escapeHtml(step)}</li>`).join("")}
+      </ol>
+      <strong>${escapeHtml(content.warning)}</strong>
+    `;
+  }
+
+  elements.aiChatLog.appendChild(message);
+  elements.aiChatLog.scrollTop = elements.aiChatLog.scrollHeight;
+}
+
+function askAiCoach(question) {
+  const cleanQuestion = question.trim();
+  if (!cleanQuestion) return;
+  renderAiMessage("user", cleanQuestion);
+  renderAiMessage("assistant", buildAiCoachAnswer(cleanQuestion));
+  if (elements.aiQuestionInput) {
+    elements.aiQuestionInput.value = "";
+    elements.aiQuestionInput.focus();
+  }
+}
+
+function resetAiCoachChat() {
+  if (!elements.aiChatLog) return;
+  elements.aiChatLog.innerHTML = "";
+  renderAiMessage("assistant", {
+    title: "你可以直接说身体哪里不舒服",
+    lead: "比如腿不舒服、膝盖疼、练完很酸、腰有点紧，我会先帮你把今天训练降到更安全的版本。",
+    steps: [
+      "说清楚位置：腿、膝盖、腰、肩、手腕。",
+      "说清楚感觉：酸、疼、刺痛、麻、肿、抽筋。",
+      "说清楚场景：正在练、练完后、第二天、上下楼时。",
+    ],
+    warning: "如果已经影响承重或活动，先停止训练。",
+  });
+}
+
 function renderBmiModalPreview() {
   if (!elements.bmiModalValue || !elements.bmiModalLabel) return;
   const bmiInfo = getBmiInfo(
@@ -779,17 +954,37 @@ function renderBmiModalPreview() {
 
 function openBmiModal() {
   if (!elements.bmiModal) return;
-  elements.bmiHeightInput.value = state.heightCm ?? "";
-  elements.bmiWeightInput.value = state.weightKg ?? "";
+  if (elements.bmiHeightInput) {
+    elements.bmiHeightInput.value = state.heightCm ?? "";
+  }
+  if (elements.bmiWeightInput) {
+    elements.bmiWeightInput.value = state.weightKg ?? "";
+  }
   renderBmiModalPreview();
   elements.bmiModal.hidden = false;
   elements.bmiModal.setAttribute("aria-hidden", "false");
+  window.setTimeout(() => elements.bmiHeightInput?.focus(), 80);
 }
 
 function closeBmiModal() {
   if (!elements.bmiModal) return;
   elements.bmiModal.hidden = true;
   elements.bmiModal.setAttribute("aria-hidden", "true");
+}
+
+function openAiModal() {
+  if (!elements.aiModal) return;
+  renderAiContext();
+  resetAiCoachChat();
+  elements.aiModal.hidden = false;
+  elements.aiModal.setAttribute("aria-hidden", "false");
+  window.setTimeout(() => elements.aiQuestionInput?.focus(), 80);
+}
+
+function closeAiModal() {
+  if (!elements.aiModal) return;
+  elements.aiModal.hidden = true;
+  elements.aiModal.setAttribute("aria-hidden", "true");
 }
 
 function renderOverview() {
@@ -1327,8 +1522,27 @@ function attachEvents() {
     });
   }
 
+  if (elements.bmiOpenButton) {
+    elements.bmiOpenButton.addEventListener("click", openBmiModal);
+  }
+
   if (elements.aiObserveButton) {
-    elements.aiObserveButton.addEventListener("click", openBmiModal);
+    elements.aiObserveButton.addEventListener("click", openAiModal);
+  }
+
+  if (elements.aiQuestionForm) {
+    elements.aiQuestionForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      askAiCoach(elements.aiQuestionInput?.value || "");
+    });
+  }
+
+  if (elements.aiQuickPrompts) {
+    elements.aiQuickPrompts.querySelectorAll("[data-ai-prompt]").forEach((button) => {
+      button.addEventListener("click", () => {
+        askAiCoach(button.dataset.aiPrompt || button.textContent || "");
+      });
+    });
   }
 
   if (elements.bmiModalBackdrop) {
@@ -1337,6 +1551,14 @@ function attachEvents() {
 
   if (elements.bmiModalClose) {
     elements.bmiModalClose.addEventListener("click", closeBmiModal);
+  }
+
+  if (elements.aiModalBackdrop) {
+    elements.aiModalBackdrop.addEventListener("click", closeAiModal);
+  }
+
+  if (elements.aiModalClose) {
+    elements.aiModalClose.addEventListener("click", closeAiModal);
   }
 
   [elements.bmiHeightInput, elements.bmiWeightInput].forEach((input) => {
@@ -1357,6 +1579,7 @@ function attachEvents() {
   window.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
       closeBmiModal();
+      closeAiModal();
     }
   });
 
