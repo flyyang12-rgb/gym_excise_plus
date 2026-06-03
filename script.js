@@ -1,4 +1,10 @@
 const STORAGE_KEY = "fitness_helper_progress_v2";
+const AI_COACH_API = (() => {
+  if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
+    return `${location.protocol}//${location.hostname}:5501/api/ai-coach`;
+  }
+  return "/api/ai-coach";
+})();
 
 const defaultState = {
   heightCm: 185,
@@ -589,6 +595,7 @@ const elements = {
   aiChatLog: document.querySelector("#aiChatLog"),
   aiQuestionForm: document.querySelector("#aiQuestionForm"),
   aiQuestionInput: document.querySelector("#aiQuestionInput"),
+  aiAskButton: document.querySelector("#aiAskButton"),
   aiQuickPrompts: document.querySelector(".ai-quick-prompts"),
 };
 
@@ -793,6 +800,36 @@ function getAiContextText() {
   return `${goalLabel} · BMI ${bmiInfo.bmi}（${bmiInfo.label}） · ${workoutText}`;
 }
 
+function getAiCoachContext() {
+  const workout = getActiveWorkout();
+  const bmiInfo = getBmiInfo(Number(state.heightCm), Number(state.weightKg));
+
+  return {
+    summary: getAiContextText(),
+    profile: {
+      heightCm: state.heightCm,
+      weightKg: state.weightKg,
+      bmi: bmiInfo.bmi,
+      bmiLabel: bmiInfo.label,
+      goal: goalConfig[state.goal]?.label || state.goal,
+      trainDaysPerWeek: state.trainDaysPerWeek,
+    },
+    todayWorkout: workout
+      ? {
+          title: workout.title,
+          focus: workout.focus,
+          duration: workout.duration,
+          currentExercise: workout.exercises?.[activeExerciseIndex]?.name || "",
+          exercises: workout.exercises.map((exercise) => ({
+            name: exercise.name,
+            sets: exercise.sets,
+            note: exercise.note,
+          })),
+        }
+      : null,
+  };
+}
+
 function renderAiContext() {
   if (!elements.aiContextCard) return;
   elements.aiContextCard.textContent = `${getAiContextText()}。我会优先给保守、安全、适合新手的处理建议。`;
@@ -810,86 +847,67 @@ function buildAiCoachAnswer(question) {
   const hasShoulderSignal = /肩|手腕|腕|肘|胳膊|手臂/.test(text);
   const hasSorenessSignal = /酸|酸痛|疲劳|累|恢复|抽筋/.test(text);
   const hasPainSignal = /疼|痛|不舒服|刺|麻|肿|扭|拉伤/.test(text);
+  const hasTrainingSignal = /练|训练|动作|组|重量|次数|恢复|拉伸|热身|深蹲|卷腹|卧推|硬拉|划船|推举|跑步|慢走|核心|饮食|蛋白|减脂|增肌|腿|膝|腰|背|肩|腕|肘|酸|疼|痛|麻|肿|抽筋/.test(text);
+
+  if (!hasTrainingSignal) {
+    return {
+      title: "说具体点",
+      lead: "说清楚位置、动作和感觉，比如卷腹腰酸；别让教练隔空算命。",
+      steps: [],
+      warning: "说清问题练得更准",
+    };
+  }
 
   if (hasLegSignal || hasKneeSignal) {
     return {
-      title: hasKneeSignal ? "膝盖不舒服时，今天先别硬蹲" : "腿不舒服时，今天先降级训练",
-      lead: `如果你正在做「${currentExercise || workoutTitle}」，先暂停下肢负重动作，别用意志力硬顶过去。`,
-      steps: [
-        "先判断疼痛：只是训练后的酸胀，可以改成 10-20 分钟慢走、拉伸和轻量活动；如果是刺痛、关节痛、麻木或肿胀，今天停止训练。",
-        "今天不要做深蹲、箭步蹲、硬拉、冲刺单车这类下肢高压力动作，改练上肢、核心，或直接做恢复日。",
-        "下次练腿从轻重量开始，动作幅度先变小，膝盖方向跟脚尖一致，速度慢一点。",
-        "如果连续 2-3 天还痛，或者走路、上下楼都不舒服，就别自己判断，去看医生或康复师。",
-      ],
-      warning: "训练原则：肌肉酸可以恢复，关节痛要谨慎。宁愿少练一天，也不要把小问题练成大问题。",
+      title: hasKneeSignal ? "可以降级" : "腿部降级",
+      lead: `今天可以练，避开「${currentExercise || workoutTitle}」，改慢走、上肢或核心；逞强不算训练。`,
+      steps: [],
+      warning: "稳住节奏继续变强",
     };
   }
 
   if (hasBackSignal) {
     return {
-      title: "腰背不舒服时，先停掉髋铰链动作",
-      lead: `今天如果安排了「${currentExercise || workoutTitle}」，先不要继续加重量。`,
-      steps: [
-        "暂停硬拉、划船、深蹲、卷腹这类可能让腰背继续受力的动作。",
-        "改成轻松走路、猫牛式、胸椎活动和温和拉伸，动作里不要追求疼痛感。",
-        "下次训练先检查核心收紧和脊柱中立，不确定动作时优先用器械版本。",
-        "如果出现放射痛、麻木、腿发软，直接停止训练并就医。",
-      ],
-      warning: "腰背不适不要靠拉狠一点解决，先把负重和幅度降下来。",
+      title: "可以换练",
+      lead: `今天可以练，避开「${currentExercise || workoutTitle}」这类受力动作，改轻走和温和活动；腰不是承重墙。`,
+      steps: [],
+      warning: "稳住节奏继续变强",
     };
   }
 
   if (hasShoulderSignal) {
     return {
-      title: "肩、肘、手腕不舒服时，先保护关节",
-      lead: "上肢训练里，关节不舒服通常比肌肉酸更需要谨慎。",
-      steps: [
-        "今天先停掉推举、卧推、飞鸟、弯举这类让不适部位继续受力的动作。",
-        "改做轻重量热身、肩胛控制、拉伸胸背，保持动作无痛。",
-        "下一次把重量降到能稳定做 12 次的程度，手腕保持中立，肩膀不要耸起来。",
-        "如果疼痛越来越尖锐，或伴随肿胀、卡住、无力，先不要训练该部位。",
-      ],
-      warning: "新手阶段先要动作稳定，不要为了完成计划硬扛关节压力。",
+      title: "上肢降级",
+      lead: "今天可以练，推举卧推先降级，改轻重量活动；关节不负责替你逞能。",
+      steps: [],
+      warning: "稳住节奏继续变强",
     };
   }
 
   if (hasSorenessSignal || hasPainSignal) {
     return {
-      title: "先区分酸痛和危险信号",
-      lead: "训练后有酸胀很常见，但尖锐疼痛、肿胀、麻木不是正常训练反馈。",
-      steps: [
-        "普通酸痛：今天做轻量活动、拉伸 5-10 分钟、补水、吃够蛋白质，睡眠跟上。",
-        "明显疼痛：先停掉让它疼的动作，改恢复日或练完全不痛的部位。",
-        "下一次把重量、组数或动作幅度降一级，先观察身体反应。",
-        "疼痛超过 2-3 天没有缓解，或影响走路、抬手、睡觉，就建议找专业人士看一下。",
-      ],
-      warning: "恢复不是偷懒，是让下一次训练还有质量。",
+      title: "可以轻练",
+      lead: "普通酸就轻活动，刺痛肿麻就绕开疼点；身体报警时别装听不见。",
+      steps: [],
+      warning: "稳住节奏继续变强",
     };
   }
 
   if (/吃|饮食|蛋白|饭|热量|减脂|增肌/.test(text)) {
     return {
-      title: "饮食先抓三个基础",
-      lead: "不用一开始就算得很复杂，先把训练后的恢复条件补齐。",
-      steps: [
-        "训练后 1 小时内吃一顿正常饭或加餐，主食和蛋白质都要有。",
-        "增肌优先保证吃够，减脂也不要极端节食，否则训练质量会掉。",
-        "蛋白质来源可以选鸡蛋、牛奶、鱼肉、鸡胸、豆制品，按自己能坚持的来。",
-      ],
-      warning: "如果有疾病、特殊饮食禁忌，饮食方案要听医生或营养师的。",
+      title: "先补基础",
+      lead: "训练后补蛋白和主食，减脂也别饿傻；饭都不稳还谈线条。",
+      steps: [],
+      warning: "吃练睡稳继续变强",
     };
   }
 
   return {
-    title: "先给你一个稳妥版本",
-    lead: "我现在是本地训练助手，会优先按新手安全原则回答。",
-    steps: [
-      "如果动作让你不舒服，先降重量、降次数、缩小幅度，仍然不舒服就停止这个动作。",
-      "不会做的动作优先选器械版本，路线更固定，风险更低。",
-      "今天状态差可以改恢复日：慢走、拉伸、补水、早点睡。",
-      "你可以问得更具体一点，比如“膝盖疼还能深蹲吗”或“练完腿很酸怎么办”。",
-    ],
-    warning: "任何刺痛、肿胀、麻木、无法承重，都不要继续练。",
+    title: "可以降级",
+    lead: "今天可以练，降重量、减次数或改恢复日；计划不是拿来硬扛的。",
+    steps: [],
+    warning: "稳住节奏继续变强",
   };
 }
 
@@ -902,43 +920,146 @@ function renderAiMessage(role, content) {
   if (isUser) {
     message.innerHTML = `<p>${escapeHtml(content)}</p>`;
   } else {
-    message.innerHTML = `
-      <span>${escapeHtml(content.title)}</span>
-      <p>${escapeHtml(content.lead)}</p>
-      <ol>
-        ${content.steps.map((step) => `<li>${escapeHtml(step)}</li>`).join("")}
-      </ol>
-      <strong>${escapeHtml(content.warning)}</strong>
-    `;
+    message.innerHTML = renderAssistantAnswer(content);
   }
 
   elements.aiChatLog.appendChild(message);
   elements.aiChatLog.scrollTop = elements.aiChatLog.scrollHeight;
+  return message;
 }
 
-function askAiCoach(question) {
+function updateAiMessage(message, content) {
+  if (!message) return;
+  message.innerHTML = renderAssistantAnswer(content);
+  elements.aiChatLog.scrollTop = elements.aiChatLog.scrollHeight;
+}
+
+function cleanAnswerText(value) {
+  return String(value || "").replace(/\s+/g, " ").trim();
+}
+
+function normalizeTrainingPrinciple(value) {
+  const text = String(value || "").replace(/[^\u4e00-\u9fa5]/g, "");
+  if (text.length >= 8 && !/[不停疼痛伤病医麻肿]/.test(text)) return text.slice(0, 8);
+  return "稳住节奏继续变强";
+}
+
+function compactAiAnswer(content) {
+  const firstStep = Array.isArray(content.steps) ? content.steps.find(Boolean) : "";
+  const leadSource = content.lead || firstStep;
+
+  return {
+    title: cleanAnswerText(content.title),
+    lead: cleanAnswerText(leadSource),
+    warning: normalizeTrainingPrinciple(content.warning),
+  };
+}
+
+function renderAssistantAnswer(content) {
+  const answer = compactAiAnswer(content);
+  return `
+    <span>${escapeHtml(answer.title)}</span>
+    <p>${escapeHtml(answer.lead)}</p>
+    <strong>训练原则：${escapeHtml(answer.warning)}</strong>
+  `;
+}
+
+function normalizeAiAnswer(value, fallbackQuestion) {
+  const fallback = buildAiCoachAnswer(fallbackQuestion);
+  if (!value || typeof value !== "object") return fallback;
+
+  return {
+    title: typeof value.title === "string" && value.title.trim() ? value.title.trim() : fallback.title,
+    lead: typeof value.lead === "string" && value.lead.trim() ? value.lead.trim() : fallback.lead,
+    steps: Array.isArray(value.steps) && value.steps.length
+      ? value.steps.slice(0, 1).map((step) => String(step).trim()).filter(Boolean)
+      : fallback.steps,
+    warning: typeof value.warning === "string" && value.warning.trim() ? value.warning.trim() : fallback.warning,
+  };
+}
+
+async function fetchAiCoachAnswer(question) {
+  const response = await fetch(AI_COACH_API, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      question,
+      context: getAiCoachContext(),
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`AI request failed: ${response.status}`);
+  }
+
+  const data = await response.json();
+  return normalizeAiAnswer(data.answer, question);
+}
+
+function setAiQuestionBusy(isBusy) {
+  if (elements.aiAskButton) {
+    elements.aiAskButton.disabled = isBusy;
+    elements.aiAskButton.textContent = isBusy ? "思考中..." : "问 AI";
+  }
+  if (elements.aiQuestionInput) {
+    elements.aiQuestionInput.disabled = isBusy;
+  }
+}
+
+async function askAiCoach(question) {
   const cleanQuestion = question.trim();
   if (!cleanQuestion) return;
+  if (!isUsefulAiQuestion(cleanQuestion)) {
+    renderAiMessage("user", cleanQuestion);
+    renderAiMessage("assistant", buildAiCoachAnswer(cleanQuestion));
+    if (elements.aiQuestionInput) {
+      elements.aiQuestionInput.value = "";
+      elements.aiQuestionInput.focus();
+    }
+    return;
+  }
   renderAiMessage("user", cleanQuestion);
-  renderAiMessage("assistant", buildAiCoachAnswer(cleanQuestion));
+  const pendingMessage = renderAiMessage("assistant", {
+    title: "思考中",
+    lead: "先别急着硬练，我看一下上下文。",
+    steps: [],
+    warning: "稳住节奏继续变强",
+  });
   if (elements.aiQuestionInput) {
     elements.aiQuestionInput.value = "";
-    elements.aiQuestionInput.focus();
   }
+  setAiQuestionBusy(true);
+
+  try {
+    updateAiMessage(pendingMessage, await fetchAiCoachAnswer(cleanQuestion));
+  } catch {
+    const fallback = buildAiCoachAnswer(cleanQuestion);
+    updateAiMessage(pendingMessage, {
+      ...fallback,
+      title: `${fallback.title}（本地安全兜底）`,
+      warning: "稳住节奏继续变强",
+    });
+  } finally {
+    setAiQuestionBusy(false);
+    elements.aiQuestionInput?.focus();
+  }
+}
+
+function isUsefulAiQuestion(question) {
+  const text = question.replace(/\s+/g, "");
+  if (text.length < 3) return false;
+  if (!/[\u4e00-\u9fa5a-zA-Z0-9]/.test(text)) return false;
+  return /练|训练|动作|组|重量|次数|恢复|拉伸|热身|深蹲|卷腹|卧推|硬拉|划船|推举|跑步|慢走|核心|饮食|蛋白|减脂|增肌|腿|膝|腰|背|肩|腕|肘|酸|疼|痛|麻|肿|抽筋/.test(text);
 }
 
 function resetAiCoachChat() {
   if (!elements.aiChatLog) return;
   elements.aiChatLog.innerHTML = "";
   renderAiMessage("assistant", {
-    title: "你可以直接说身体哪里不舒服",
-    lead: "比如腿不舒服、膝盖疼、练完很酸、腰有点紧，我会先帮你把今天训练降到更安全的版本。",
-    steps: [
-      "说清楚位置：腿、膝盖、腰、肩、手腕。",
-      "说清楚感觉：酸、疼、刺痛、麻、肿、抽筋。",
-      "说清楚场景：正在练、练完后、第二天、上下楼时。",
-    ],
-    warning: "如果已经影响承重或活动，先停止训练。",
+    title: "直接说问题",
+    lead: "说位置和感觉，比如膝盖疼、腿酸、腰紧；别让教练猜谜。",
+    steps: [],
+    warning: "稳住节奏继续变强",
   });
 }
 

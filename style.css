@@ -2092,6 +2092,7 @@ p {
   border-radius: var(--radius-md);
   background: #fff;
   color: var(--text);
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
   line-height: 1.55;
 }
 

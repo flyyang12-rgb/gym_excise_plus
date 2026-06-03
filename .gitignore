@@ -2,6 +2,8 @@
 Thumbs.db
 desktop.ini
 *.log
+.env
+.env.*
 .vscode/
 .idea/
 node_modules/
