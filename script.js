@@ -1,4 +1,5 @@
 const STORAGE_KEY = "fitness_helper_progress_v2";
+const AI_REQUEST_TIMEOUT_MS = 18000;
 const AI_COACH_API = (() => {
   if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
     return "https://gym-excise-plus.vercel.app/api/ai-coach";
@@ -982,13 +983,24 @@ function normalizeAiAnswer(value, fallbackQuestion) {
 }
 
 async function fetchAiCoachAnswer(question) {
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), AI_REQUEST_TIMEOUT_MS);
+
   const response = await fetch(AI_COACH_API, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    cache: "no-store",
+    signal: controller.signal,
     body: JSON.stringify({
       question,
       context: getAiCoachContext(),
     }),
+  }).catch((error) => {
+    const networkError = new Error(error.name === "AbortError" ? "ai_request_timeout" : "ai_network_unreachable");
+    networkError.code = networkError.message;
+    throw networkError;
+  }).finally(() => {
+    window.clearTimeout(timeoutId);
   });
 
   if (!response.ok) {
@@ -1041,13 +1053,16 @@ async function askAiCoach(question) {
 
   try {
     updateAiMessage(pendingMessage, await fetchAiCoachAnswer(cleanQuestion));
-  } catch {
+  } catch (error) {
     const apiErrorTitle = "AI暂时忙";
     const fallback = buildAiCoachAnswer(cleanQuestion);
+    const isNetworkError = error?.code === "ai_request_timeout" || error?.code === "ai_network_unreachable";
     updateAiMessage(pendingMessage, {
       ...fallback,
       title: apiErrorTitle,
-      lead: "AI服务暂时没回话，先按本地安全建议降级训练，保护好状态更重要。",
+      lead: isNetworkError
+        ? "手机网络暂时连不上AI服务，先按本地安全建议降级训练，保护好状态更重要。"
+        : "AI服务暂时没回话，先按本地安全建议降级训练，保护好状态更重要。",
       steps: [],
       warning: "稳住节奏继续变强",
     });
