@@ -1014,7 +1014,10 @@ function setAiQuestionBusy(isBusy) {
 
 async function askAiCoach(question) {
   const cleanQuestion = question.trim();
-  if (!cleanQuestion) return;
+  if (!cleanQuestion) {
+    elements.aiQuestionInput?.focus();
+    return;
+  }
   if (!isUsefulAiQuestion(cleanQuestion)) {
     renderAiMessage("user", cleanQuestion);
     renderAiMessage("assistant", buildAiCoachAnswer(cleanQuestion));
@@ -1052,6 +1055,10 @@ async function askAiCoach(question) {
     setAiQuestionBusy(false);
     elements.aiQuestionInput?.focus();
   }
+}
+
+function submitAiCoachQuestion() {
+  askAiCoach(elements.aiQuestionInput?.value || "");
 }
 
 function isUsefulAiQuestion(question) {
@@ -1663,7 +1670,14 @@ function attachEvents() {
   if (elements.aiQuestionForm) {
     elements.aiQuestionForm.addEventListener("submit", (event) => {
       event.preventDefault();
-      askAiCoach(elements.aiQuestionInput?.value || "");
+      submitAiCoachQuestion();
+    });
+  }
+
+  if (elements.aiAskButton) {
+    elements.aiAskButton.addEventListener("click", (event) => {
+      event.preventDefault();
+      submitAiCoachQuestion();
     });
   }
 
