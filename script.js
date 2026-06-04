@@ -1,7 +1,7 @@
 const STORAGE_KEY = "fitness_helper_progress_v2";
 const AI_COACH_API = (() => {
   if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
-    return `${location.protocol}//${location.hostname}:5501/api/ai-coach`;
+    return "https://gym-excise-plus.vercel.app/api/ai-coach";
   }
   if (location.hostname === "flyyang12-rgb.github.io") {
     return "https://gym-excise-plus.vercel.app/api/ai-coach";
