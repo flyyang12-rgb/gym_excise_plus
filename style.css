@@ -1557,6 +1557,158 @@ p {
   color: var(--accent-deep);
 }
 
+.training-notes-panel {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid rgba(207, 213, 223, 0.78);
+  border-radius: var(--radius-md);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(250, 251, 252, 0.92));
+}
+
+.training-notes-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+}
+
+.training-notes-head h3 {
+  margin: 0;
+  color: var(--navy);
+  font-size: 1.02rem;
+}
+
+.note-add-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 9px 15px 9px 10px;
+  border: 1px solid rgba(47, 143, 99, 0.28);
+  border-radius: 14px;
+  background: var(--green-soft);
+  color: var(--green);
+  cursor: pointer;
+  font-size: 0.96rem;
+  font-weight: 900;
+}
+
+.note-add-button span {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: var(--green);
+  color: #fff;
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.note-form {
+  display: grid;
+  gap: 9px;
+  margin-top: 12px;
+}
+
+.note-form[hidden] {
+  display: none;
+}
+
+.note-form label {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.note-form textarea {
+  width: 100%;
+  min-height: 78px;
+  resize: vertical;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--text);
+  font-family: inherit;
+  line-height: 1.55;
+}
+
+.note-form textarea:focus {
+  outline: 2px solid rgba(47, 143, 99, 0.18);
+  border-color: rgba(47, 143, 99, 0.48);
+}
+
+.note-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.note-ghost-button,
+.note-save-button {
+  min-height: 34px;
+  padding: 7px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.note-ghost-button {
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--muted);
+}
+
+.note-save-button {
+  border: 1px solid rgba(47, 143, 99, 0.26);
+  background: var(--green);
+  color: #fff;
+}
+
+.note-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.note-empty {
+  margin: 0;
+  color: var(--muted-soft);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.note-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  padding: 10px 0;
+  border-top: 1px solid rgba(226, 229, 234, 0.78);
+}
+
+.note-date {
+  display: grid;
+  place-items: center;
+  min-width: 46px;
+  padding: 5px 7px;
+  border-radius: 999px;
+  background: var(--green-soft);
+  color: var(--green);
+  font-size: 0.76rem;
+  font-weight: 900;
+}
+
+.note-text {
+  margin: 0;
+  color: var(--text);
+  font-size: 0.92rem;
+  line-height: 1.65;
+}
+
 .equipment-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
@@ -2359,6 +2511,20 @@ p {
 
   .module-action-button {
     width: 100%;
+  }
+
+  .training-notes-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .note-add-button {
+    width: 100%;
+    flex-shrink: 0;
+  }
+
+  .note-item {
+    grid-template-columns: 42px minmax(0, 1fr);
   }
 
   .action-dock {

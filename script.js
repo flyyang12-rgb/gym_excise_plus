@@ -1,4 +1,5 @@
 const STORAGE_KEY = "fitness_helper_progress_v2";
+const TRAINING_NOTES_KEY = "fitness_helper_training_notes_v1";
 const AI_REQUEST_TIMEOUT_MS = 10000;
 const AI_COACH_API = (() => {
   if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
@@ -537,6 +538,7 @@ const workoutLibrary = {
 
 let state = { ...defaultState };
 let progressStore = loadProgressStore();
+let trainingNotes = loadTrainingNotes();
 let activeDayId = "";
 let activeExerciseIndex = 0;
 let stepMotion = "forward";
@@ -601,6 +603,11 @@ const elements = {
   aiQuestionInput: document.querySelector("#aiQuestionInput"),
   aiAskButton: document.querySelector("#aiAskButton"),
   aiQuickPrompts: document.querySelector(".ai-quick-prompts"),
+  noteAddButton: document.querySelector("#noteAddButton"),
+  noteForm: document.querySelector("#noteForm"),
+  noteInput: document.querySelector("#noteInput"),
+  noteCancelButton: document.querySelector("#noteCancelButton"),
+  noteList: document.querySelector("#noteList"),
 };
 
 function todayKey() {
@@ -620,6 +627,18 @@ function loadProgressStore() {
 
 function saveProgressStore() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(progressStore));
+}
+
+function loadTrainingNotes() {
+  try {
+    return JSON.parse(localStorage.getItem(TRAINING_NOTES_KEY)) || [];
+  } catch {
+    return [];
+  }
+}
+
+function saveTrainingNotes() {
+  localStorage.setItem(TRAINING_NOTES_KEY, JSON.stringify(trainingNotes));
 }
 
 function getBmiInfo(heightCm, weightKg) {
@@ -1236,6 +1255,64 @@ function renderWarmupActions() {
   bindEquipmentJumpButtons(elements.warmupActions);
 }
 
+function formatNoteDate(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "今天";
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${month}/${day}`;
+}
+
+function renderTrainingNotes() {
+  if (!elements.noteList) return;
+  const fiveDaysAgo = Date.now() - 5 * 24 * 60 * 60 * 1000;
+  const recentNotes = trainingNotes
+    .slice()
+    .filter((note) => new Date(note.createdAt).getTime() >= fiveDaysAgo)
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .slice(0, 5);
+
+  if (!recentNotes.length) {
+    elements.noteList.innerHTML = `<p class="note-empty">还没有心得，训练完写一句就够。</p>`;
+    return;
+  }
+
+  elements.noteList.innerHTML = recentNotes.map((note) => `
+    <article class="note-item">
+      <span class="note-date">${formatNoteDate(note.createdAt)}</span>
+      <p class="note-text">${escapeHtml(note.text)}</p>
+    </article>
+  `).join("");
+}
+
+function setNoteFormOpen(isOpen) {
+  if (!elements.noteForm || !elements.noteAddButton) return;
+  elements.noteForm.hidden = !isOpen;
+  elements.noteAddButton.setAttribute("aria-expanded", String(isOpen));
+  if (isOpen) {
+    window.setTimeout(() => elements.noteInput?.focus(), 60);
+  }
+}
+
+function saveTrainingNote() {
+  const text = String(elements.noteInput?.value || "").replace(/\s+/g, " ").trim();
+  if (!text) {
+    elements.noteInput?.focus();
+    return;
+  }
+
+  trainingNotes.unshift({
+    id: `${Date.now()}`,
+    text: text.slice(0, 120),
+    createdAt: new Date().toISOString(),
+  });
+  trainingNotes = trainingNotes.slice(0, 20);
+  saveTrainingNotes();
+  if (elements.noteInput) elements.noteInput.value = "";
+  setNoteFormOpen(false);
+  renderTrainingNotes();
+}
+
 function renderFrequencyTabs() {
   elements.frequencyTabs.querySelectorAll("button").forEach((button) => {
     button.classList.toggle("is-active", Number(button.dataset.frequency) === state.trainDaysPerWeek);
@@ -1579,6 +1656,7 @@ function rerenderAll() {
   renderWeeklyPlan();
   renderWorkout();
   renderEquipmentGuide();
+  renderTrainingNotes();
 }
 
 function attachEvents() {
@@ -1673,6 +1751,26 @@ function attachEvents() {
 
   if (elements.aiObserveButton) {
     elements.aiObserveButton.addEventListener("click", openAiModal);
+  }
+
+  if (elements.noteAddButton) {
+    elements.noteAddButton.addEventListener("click", () => {
+      setNoteFormOpen(elements.noteForm?.hidden !== false);
+    });
+  }
+
+  if (elements.noteCancelButton) {
+    elements.noteCancelButton.addEventListener("click", () => {
+      if (elements.noteInput) elements.noteInput.value = "";
+      setNoteFormOpen(false);
+    });
+  }
+
+  if (elements.noteForm) {
+    elements.noteForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      saveTrainingNote();
+    });
   }
 
   if (elements.aiQuestionForm) {

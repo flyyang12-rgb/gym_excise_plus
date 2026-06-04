@@ -188,6 +188,27 @@
             AI 问答
           </button>
         </div>
+        <section class="training-notes-panel" aria-labelledby="trainingNotesTitle">
+          <div class="training-notes-head">
+            <div>
+              <p class="panel-tag">小记一下</p>
+              <h3 id="trainingNotesTitle">近 5 天心得</h3>
+            </div>
+            <button id="noteAddButton" class="note-add-button" type="button" aria-expanded="false" aria-controls="noteForm">
+              <span aria-hidden="true">+</span>
+              小记一下
+            </button>
+          </div>
+          <form id="noteForm" class="note-form" hidden>
+            <label for="noteInput">今天的训练心得</label>
+            <textarea id="noteInput" rows="3" maxlength="120" placeholder="比如：深蹲膝盖舒服多了，明天继续轻重量。"></textarea>
+            <div class="note-form-actions">
+              <button id="noteCancelButton" class="note-ghost-button" type="button">取消</button>
+              <button class="note-save-button" type="submit">保存</button>
+            </div>
+          </form>
+          <div id="noteList" class="note-list" aria-live="polite"></div>
+        </section>
       </section>
     </section>
 
@@ -293,6 +314,6 @@
     </section>
   </div>
 
-  <script src="script.js?v=20260604-ai-clean4"></script>
+  <script src="script.js?v=20260605-notes"></script>
 </body>
 </html>
