@@ -52,6 +52,11 @@ function getApiBaseUrl() {
   return (process.env.AI_BASE_URL || process.env.DEEPSEEK_BASE_URL || DEFAULT_API_BASE_URL).replace(/\/+$/, "");
 }
 
+function getChatCompletionsUrl() {
+  const apiBaseUrl = getApiBaseUrl();
+  return apiBaseUrl.endsWith("/chat/completions") ? apiBaseUrl : `${apiBaseUrl}/chat/completions`;
+}
+
 function getApiKey() {
   return stripHiddenChars(process.env.DEEPSEEK_API_KEY || process.env.OPENAI_API_KEY || process.env.AI_API_KEY || "");
 }
@@ -146,7 +151,7 @@ async function createCoachAnswer(question, context) {
     throw error;
   }
 
-  const response = await fetch(`${getApiBaseUrl()}/chat/completions`, {
+  const response = await fetch(getChatCompletionsUrl(), {
     method: "POST",
     headers: {
       Authorization: `Bearer ${apiKey}`,

@@ -101,8 +101,9 @@ function isUsefulCoachQuestion(question) {
 }
 
 function getApiConfig(env) {
+  const baseUrl = stripHiddenChars(env.AI_BASE_URL || env.DEEPSEEK_BASE_URL || DEFAULT_API_BASE_URL).replace(/\/+$/, "");
   return {
-    baseUrl: stripHiddenChars(env.AI_BASE_URL || env.DEEPSEEK_BASE_URL || DEFAULT_API_BASE_URL).replace(/\/+$/, ""),
+    chatCompletionsUrl: baseUrl.endsWith("/chat/completions") ? baseUrl : `${baseUrl}/chat/completions`,
     apiKey: stripHiddenChars(env.DEEPSEEK_API_KEY || env.OPENAI_API_KEY || env.AI_API_KEY || ""),
     model: stripHiddenChars(env.AI_MODEL || env.DEEPSEEK_MODEL || env.OPENAI_MODEL || DEFAULT_MODEL),
   };
@@ -132,12 +133,12 @@ export async function onRequestPost({ request, env }) {
       });
     }
 
-    const { baseUrl, apiKey, model } = getApiConfig(env || {});
+    const { chatCompletionsUrl, apiKey, model } = getApiConfig(env || {});
     if (!apiKey) {
       return jsonResponse({ error: "AI coach is unavailable", code: "missing_api_key" }, 500);
     }
 
-    const response = await fetch(`${baseUrl}/chat/completions`, {
+    const response = await fetch(chatCompletionsUrl, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,

@@ -42,7 +42,7 @@ edge-functions/api/ai-coach.js
 
 ```bash
 DEEPSEEK_API_KEY=你的_DeepSeek_Key
-DEEPSEEK_BASE_URL=https://api.deepseek.com
+DEEPSEEK_BASE_URL=https://ai-gateway-intl.eo-edgefunctions7.com/v1/chat/completions
 DEEPSEEK_MODEL=deepseek-v4-flash
 ```
 
