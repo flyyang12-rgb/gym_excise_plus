@@ -855,7 +855,7 @@ function buildAiCoachAnswer(question) {
   if (!hasTrainingSignal) {
     return {
       title: "说具体点",
-      lead: "说清楚位置、动作和感觉，比如卷腹腰酸；别让教练隔空算命。",
+      lead: "说清楚位置、动作和感觉，比如卷腹腰酸，我才能给你更准确的调整。",
       steps: [],
       warning: "说清问题练得更准",
     };
@@ -864,7 +864,7 @@ function buildAiCoachAnswer(question) {
   if (hasLegSignal || hasKneeSignal) {
     return {
       title: hasKneeSignal ? "可以降级" : "腿部降级",
-      lead: `今天可以练，避开「${currentExercise || workoutTitle}」，改慢走、上肢或核心；逞强不算训练。`,
+      lead: `今天可以练，先避开「${currentExercise || workoutTitle}」，改慢走、上肢或核心，让腿部舒服一点。`,
       steps: [],
       warning: "稳住节奏继续变强",
     };
@@ -873,7 +873,7 @@ function buildAiCoachAnswer(question) {
   if (hasBackSignal) {
     return {
       title: "可以换练",
-      lead: `今天可以练，避开「${currentExercise || workoutTitle}」这类受力动作，改轻走和温和活动；腰不是承重墙。`,
+      lead: `今天可以练，先避开「${currentExercise || workoutTitle}」这类受力动作，改轻走和温和活动。`,
       steps: [],
       warning: "稳住节奏继续变强",
     };
@@ -882,7 +882,7 @@ function buildAiCoachAnswer(question) {
   if (hasShoulderSignal) {
     return {
       title: "上肢降级",
-      lead: "今天可以练，推举卧推先降级，改轻重量活动；关节不负责替你逞能。",
+      lead: "今天可以练，推举卧推先降级，改轻重量活动，让关节先保持舒服。",
       steps: [],
       warning: "稳住节奏继续变强",
     };
@@ -891,7 +891,7 @@ function buildAiCoachAnswer(question) {
   if (hasSorenessSignal || hasPainSignal) {
     return {
       title: "可以轻练",
-      lead: "普通酸就轻活动，刺痛肿麻就绕开疼点；身体报警时别装听不见。",
+      lead: "普通酸就轻活动，刺痛肿麻就绕开疼点，先把安全放在前面。",
       steps: [],
       warning: "稳住节奏继续变强",
     };
@@ -900,7 +900,7 @@ function buildAiCoachAnswer(question) {
   if (/吃|饮食|蛋白|饭|热量|减脂|增肌/.test(text)) {
     return {
       title: "先补基础",
-      lead: "训练后补蛋白和主食，减脂也别饿傻；饭都不稳还谈线条。",
+      lead: "训练后补蛋白和主食，减脂也要吃稳一点，身体才有力气恢复。",
       steps: [],
       warning: "吃练睡稳继续变强",
     };
@@ -908,7 +908,7 @@ function buildAiCoachAnswer(question) {
 
   return {
     title: "可以降级",
-    lead: "今天可以练，降重量、减次数或改恢复日；计划不是拿来硬扛的。",
+    lead: "今天可以练，降重量、减次数或改恢复日，让训练更稳也更容易坚持。",
     steps: [],
     warning: "稳住节奏继续变强",
   };
@@ -1027,7 +1027,7 @@ async function askAiCoach(question) {
   renderAiMessage("user", cleanQuestion);
   const pendingMessage = renderAiMessage("assistant", {
     title: "思考中",
-    lead: "先别急着硬练，我看一下上下文。",
+    lead: "我先看一下你的训练状态，再给你更稳妥的建议。",
     steps: [],
     warning: "稳住节奏继续变强",
   });
@@ -1044,7 +1044,7 @@ async function askAiCoach(question) {
     updateAiMessage(pendingMessage, {
       ...fallback,
       title: apiErrorTitle,
-      lead: "AI服务暂时没回话，先按本地安全建议降级训练；别硬扛，肌肉不是靠逞强长的。",
+      lead: "AI服务暂时没回话，先按本地安全建议降级训练，保护好状态更重要。",
       steps: [],
       warning: "稳住节奏继续变强",
     });
@@ -1066,7 +1066,7 @@ function resetAiCoachChat() {
   elements.aiChatLog.innerHTML = "";
   renderAiMessage("assistant", {
     title: "直接说问题",
-    lead: "说位置和感觉，比如膝盖疼、腿酸、腰紧；别让教练猜谜。",
+    lead: "说位置和感觉，比如膝盖疼、腿酸、腰紧，我会按你的情况给建议。",
     steps: [],
     warning: "稳住节奏继续变强",
   });
