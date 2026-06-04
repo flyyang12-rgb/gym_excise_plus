@@ -835,7 +835,7 @@ function getAiCoachContext() {
 
 function renderAiContext() {
   if (!elements.aiContextCard) return;
-  elements.aiContextCard.textContent = `${getAiContextText()}。我会优先给保守、安全、适合新手的处理建议。`;
+  elements.aiContextCard.textContent = `${getAiContextText()}。优先给安全、适合新手的建议。`;
 }
 
 function buildAiCoachAnswer(question) {
