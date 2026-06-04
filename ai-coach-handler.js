@@ -1,5 +1,6 @@
 const DEFAULT_API_BASE_URL = "https://api.deepseek.com";
 const DEFAULT_MODEL = "deepseek-v4-flash";
+const DEFAULT_WARNING = "稳住节奏继续变强";
 const COACH_SYSTEM_PROMPT = [
   "你是「健身小助手」里的中文 AI 私教，定位是：专业、简洁、针对性强，带一点高高在上的教练式幽默。",
   "你的核心人设：像一个懂增肌、懂减脂、懂新手安全的私教。你可以轻微吐槽用户偷懒、乱练、想走捷径，但不能羞辱身材、疾病、年龄、性别或人格。",
@@ -52,11 +53,39 @@ function getApiBaseUrl() {
 }
 
 function getApiKey() {
-  return process.env.DEEPSEEK_API_KEY || process.env.OPENAI_API_KEY || process.env.AI_API_KEY || "";
+  return stripHiddenChars(process.env.DEEPSEEK_API_KEY || process.env.OPENAI_API_KEY || process.env.AI_API_KEY || "");
 }
 
 function getModel() {
-  return process.env.AI_MODEL || process.env.DEEPSEEK_MODEL || process.env.OPENAI_MODEL || DEFAULT_MODEL;
+  return stripHiddenChars(process.env.AI_MODEL || process.env.DEEPSEEK_MODEL || process.env.OPENAI_MODEL || DEFAULT_MODEL);
+}
+
+function stripHiddenChars(value) {
+  return String(value || "").replace(/^\uFEFF/, "").trim();
+}
+
+function normalizeEightChineseChars(value) {
+  const cleanText = String(value || "").replace(/[^\u4e00-\u9fa5]/g, "");
+  return cleanText.length >= 8 ? cleanText.slice(0, 8) : DEFAULT_WARNING;
+}
+
+function normalizeAnswer(value, rawText) {
+  const answer = value && typeof value === "object" ? value : {};
+  const fallbackLead = String(rawText || "")
+    .replace(/```[\s\S]*?```/g, "")
+    .replace(/[{}\[\]"`]/g, "")
+    .split(/\n|。|；/)
+    .map((line) => line.trim())
+    .find((line) => line.length >= 8);
+
+  return {
+    title: String(answer.title || "可以调整").trim().slice(0, 10),
+    lead: String(answer.lead || fallbackLead || "今天可以练，但把动作降级，避开疼点；别拿关节刷存在感。")
+      .trim()
+      .slice(0, 90),
+    steps: Array.isArray(answer.steps) ? answer.steps.slice(0, 1).filter(Boolean) : [],
+    warning: normalizeEightChineseChars(answer.warning),
+  };
 }
 
 function parseJsonAnswer(text) {
@@ -66,7 +95,21 @@ function parseJsonAnswer(text) {
     .replace(/^```\s*/i, "")
     .replace(/\s*```$/i, "");
 
-  return JSON.parse(cleanText);
+  try {
+    return normalizeAnswer(JSON.parse(cleanText), cleanText);
+  } catch (error) {
+    const jsonStart = cleanText.indexOf("{");
+    const jsonEnd = cleanText.lastIndexOf("}");
+    if (jsonStart !== -1 && jsonEnd > jsonStart) {
+      try {
+        return normalizeAnswer(JSON.parse(cleanText.slice(jsonStart, jsonEnd + 1)), cleanText);
+      } catch (_innerError) {
+        // Fall through to text compaction below.
+      }
+    }
+
+    return normalizeAnswer(null, cleanText);
+  }
 }
 
 function buildPrompt(question, context) {
@@ -99,6 +142,7 @@ async function createCoachAnswer(question, context) {
   if (!apiKey) {
     const error = new Error("Missing API key");
     error.statusCode = 500;
+    error.publicCode = "missing_api_key";
     throw error;
   }
 
@@ -121,7 +165,7 @@ async function createCoachAnswer(question, context) {
         },
       ],
       response_format: { type: "json_object" },
-      max_tokens: 220,
+      max_tokens: 500,
       temperature: 0.3,
       stream: false,
     }),
@@ -132,6 +176,7 @@ async function createCoachAnswer(question, context) {
   if (!response.ok) {
     const error = new Error(data.error?.message || "OpenAI request failed");
     error.statusCode = response.status;
+    error.publicCode = "model_request_failed";
     throw error;
   }
 
@@ -181,6 +226,7 @@ async function handleAiCoachRequest(req, res) {
     console.error(error);
     sendJson(res, error.statusCode || 500, {
       error: "AI coach is unavailable",
+      code: error.publicCode || "ai_coach_unavailable",
     });
   }
 }

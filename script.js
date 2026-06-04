@@ -989,7 +989,10 @@ async function fetchAiCoachAnswer(question) {
   });
 
   if (!response.ok) {
-    throw new Error(`AI request failed: ${response.status}`);
+    const errorPayload = await response.json().catch(() => ({}));
+    const error = new Error(errorPayload.code || `AI request failed: ${response.status}`);
+    error.code = errorPayload.code || "";
+    throw error;
   }
 
   const data = await response.json();
@@ -1033,11 +1036,14 @@ async function askAiCoach(question) {
   try {
     updateAiMessage(pendingMessage, await fetchAiCoachAnswer(cleanQuestion));
   } catch {
+    const apiErrorTitle = "AI未接通";
     const fallback = buildAiCoachAnswer(cleanQuestion);
     updateAiMessage(pendingMessage, {
       ...fallback,
-      title: `${fallback.title}（本地安全兜底）`,
-      warning: "稳住节奏继续变强",
+      title: apiErrorTitle,
+      lead: "线上 API 还在报错，先检查 Vercel 环境变量和函数日志；别急，问题不在你的肌肉。",
+      steps: [],
+      warning: "修好接口继续变强",
     });
   } finally {
     setAiQuestionBusy(false);
