@@ -1,5 +1,5 @@
 const STORAGE_KEY = "fitness_helper_progress_v2";
-const AI_REQUEST_TIMEOUT_MS = 18000;
+const AI_REQUEST_TIMEOUT_MS = 10000;
 const AI_COACH_API = (() => {
   if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
     return "https://gym-excise-plus.vercel.app/api/ai-coach";
@@ -1053,17 +1053,10 @@ async function askAiCoach(question) {
 
   try {
     updateAiMessage(pendingMessage, await fetchAiCoachAnswer(cleanQuestion));
-  } catch (error) {
-    const apiErrorTitle = "AI暂时忙";
+  } catch {
     const fallback = buildAiCoachAnswer(cleanQuestion);
-    const isNetworkError = error?.code === "ai_request_timeout" || error?.code === "ai_network_unreachable";
     updateAiMessage(pendingMessage, {
       ...fallback,
-      title: apiErrorTitle,
-      lead: isNetworkError
-        ? "手机网络暂时连不上AI服务，先按本地安全建议降级训练，保护好状态更重要。"
-        : "AI服务暂时没回话，先按本地安全建议降级训练，保护好状态更重要。",
-      steps: [],
       warning: "稳住节奏继续变强",
     });
   } finally {
