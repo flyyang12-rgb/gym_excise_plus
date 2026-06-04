@@ -1039,14 +1039,14 @@ async function askAiCoach(question) {
   try {
     updateAiMessage(pendingMessage, await fetchAiCoachAnswer(cleanQuestion));
   } catch {
-    const apiErrorTitle = "AI未接通";
+    const apiErrorTitle = "AI暂时忙";
     const fallback = buildAiCoachAnswer(cleanQuestion);
     updateAiMessage(pendingMessage, {
       ...fallback,
       title: apiErrorTitle,
-      lead: "线上 API 还在报错，先检查 Vercel 环境变量和函数日志；别急，问题不在你的肌肉。",
+      lead: "AI服务暂时没回话，先按本地安全建议降级训练；别硬扛，肌肉不是靠逞强长的。",
       steps: [],
-      warning: "修好接口继续变强",
+      warning: "稳住节奏继续变强",
     });
   } finally {
     setAiQuestionBusy(false);
