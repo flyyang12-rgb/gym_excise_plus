@@ -27,14 +27,26 @@ DEEPSEEK_MODEL=deepseek-v4-flash
 PORT=5501
 ```
 
-## 给朋友使用
+## 手机不用 VPN 的部署方式
 
-不要把 API Key 写进前端代码。推荐部署到 Vercel：
+GitHub Pages 只能托管静态页面，不能运行 AI 后端，也不能安全保存 DeepSeek Key。  
+如果手机网络访问 AI 超时，建议把整站部署到支持 Pages Functions / 云函数的平台，并使用同域接口 `/api/ai-coach`。
 
-1. 把本项目上传到 GitHub。
-2. 在 Vercel 导入仓库。
-3. 在 Vercel Project Settings -> Environment Variables 添加 `DEEPSEEK_API_KEY`、`DEEPSEEK_BASE_URL`、`DEEPSEEK_MODEL`。
-4. 部署后把 Vercel 网址发给朋友。
+项目已经包含同域函数文件：
+
+```text
+functions/api/ai-coach.js
+```
+
+部署时添加环境变量：
+
+```bash
+DEEPSEEK_API_KEY=你的_DeepSeek_Key
+DEEPSEEK_BASE_URL=https://api.deepseek.com
+DEEPSEEK_MODEL=deepseek-v4-flash
+```
+
+部署成功后，页面会自动请求当前域名下的 `/api/ai-coach`，手机不开 VPN 也更容易正常使用。
 
 默认模型使用 `deepseek-v4-flash`。
 
@@ -50,7 +62,8 @@ PORT=5501
 
 ```
 .
-├── api/ai-coach.js     # Vercel Serverless AI 接口
+├── api/ai-coach.js     # Node Serverless AI 接口
+├── functions/api/      # Pages Functions AI 接口
 ├── ai-coach-handler.js # OpenAI 调用与安全提示
 ├── index.html          # 主页面
 ├── package.json        # 本地服务脚本
