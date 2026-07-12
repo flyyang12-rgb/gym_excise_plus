@@ -542,6 +542,10 @@ let trainingNotes = loadTrainingNotes();
 let activeDayId = "";
 let activeExerciseIndex = 0;
 let stepMotion = "forward";
+let activeGuideTab = "steps";
+let restTimerId = null;
+let restState = null;
+const EXERCISE_MEDIA_ENABLED = ["localhost", "127.0.0.1"].includes(window.location.hostname);
 let activeModule = "training";
 let returnScrollY = null;
 
@@ -576,6 +580,7 @@ const elements = {
   checkinButton: document.querySelector("#checkinButton"),
   todayProgress: document.querySelector("#todayProgress"),
   equipmentGrid: document.querySelector("#equipmentGrid"),
+  dietGuide: document.querySelector("#dietGuide"),
   stretchText: document.querySelector("#stretchText"),
   recoveryText: document.querySelector("#recoveryText"),
   nutritionText: document.querySelector("#nutritionText"),
@@ -772,8 +777,54 @@ function getActiveWorkout() {
 }
 
 function resetExerciseStepper() {
+  cancelRestTimer();
   activeExerciseIndex = 0;
   stepMotion = "forward";
+}
+
+function cancelRestTimer() {
+  if (restTimerId) window.clearInterval(restTimerId);
+  restTimerId = null;
+  restState = null;
+}
+
+function finishRestTimer() {
+  if (!restState) return;
+  const nextIndex = restState.nextIndex;
+  cancelRestTimer();
+  activeExerciseIndex = nextIndex;
+  activeGuideTab = "steps";
+  stepMotion = "forward";
+  renderWorkout();
+}
+
+function updateRestTimerDisplay() {
+  if (!restState) return;
+  const remaining = window.ExerciseGuides.getRemainingRestSeconds(restState.endAt);
+  restState.remaining = remaining;
+  const number = elements.exerciseList.querySelector("[data-rest-seconds]");
+  const ring = elements.exerciseList.querySelector("[data-rest-ring]");
+  if (number) number.textContent = String(remaining);
+  if (ring) ring.style.setProperty("--rest-progress", `${(remaining / restState.duration) * 360}deg`);
+  if (remaining <= 0) finishRestTimer();
+}
+
+function startRestTimer(nextIndex) {
+  cancelRestTimer();
+  const duration = 60;
+  restState = { duration, remaining: duration, endAt: Date.now() + duration * 1000, nextIndex };
+  renderWorkout();
+  restTimerId = window.setInterval(updateRestTimerDisplay, 250);
+}
+
+function adjustActiveRest(delta) {
+  if (!restState) return;
+  const remaining = window.ExerciseGuides.getRemainingRestSeconds(restState.endAt);
+  const adjusted = window.ExerciseGuides.adjustRestDuration(remaining, delta);
+  restState.duration = adjusted;
+  restState.remaining = adjusted;
+  restState.endAt = Date.now() + adjusted * 1000;
+  updateRestTimerDisplay();
 }
 
 function getExerciseProgressMap(workout) {
@@ -1192,9 +1243,9 @@ function renderOverview() {
     elements.calendarStartWindow.textContent = getStartWindow(state.workEndTime);
   }
   renderGoalTabs();
-  elements.stretchText.textContent = goalInfo.stretch;
-  elements.recoveryText.textContent = goalInfo.recovery;
-  elements.nutritionText.textContent = goalInfo.nutrition;
+  if (elements.stretchText) elements.stretchText.textContent = goalInfo.stretch;
+  if (elements.recoveryText) elements.recoveryText.textContent = goalInfo.recovery;
+  if (elements.nutritionText) elements.nutritionText.textContent = goalInfo.nutrition;
 }
 
 function renderProfileCalendar() {
@@ -1385,6 +1436,7 @@ function renderWorkout() {
   const totalExercises = workout.exercises.length;
   activeExerciseIndex = Math.min(Math.max(activeExerciseIndex, 0), Math.max(totalExercises - 1, 0));
   const exercise = workout.exercises[activeExerciseIndex];
+  const guide = window.ExerciseGuides.getExerciseGuide(exercise, { mediaEnabled: EXERCISE_MEDIA_ENABLED });
   const complete = !!checkedMap[exercise.name];
   const tutorialUrl = state.goal === "muscleGain" ? tutorialLinks[exercise.name] : "";
   const equipmentTarget = state.goal === "fatLoss" ? "mat" : (exercise.equipment || "");
@@ -1397,6 +1449,30 @@ function renderWorkout() {
   const nextExercise = workout.exercises[activeExerciseIndex + 1];
   const percent = totalExercises ? Math.round(((activeExerciseIndex + 1) / totalExercises) * 100) : 0;
   const completionPercent = progress.total ? Math.round((progress.completed / progress.total) * 100) : 0;
+
+  if (restState) {
+    const nextExercise = workout.exercises[restState.nextIndex];
+    const remaining = window.ExerciseGuides.getRemainingRestSeconds(restState.endAt);
+    elements.exerciseList.innerHTML = `
+      <section class="rest-player" aria-live="polite" aria-label="组间休息">
+        <div class="rest-copy">
+          <span class="stepper-kicker">动作完成 · 休息一下</span>
+          <h3>下一项：${nextExercise.name}</h3>
+          <p>喝一小口水，放松刚才发力的部位。呼吸稳下来后再继续。</p>
+        </div>
+        <div class="rest-ring" data-rest-ring style="--rest-progress: ${(remaining / restState.duration) * 360}deg">
+          <div><strong data-rest-seconds>${remaining}</strong><span>秒</span></div>
+        </div>
+        <div class="rest-controls">
+          <button type="button" data-rest-adjust="-15">-15 秒</button>
+          <button type="button" class="step-nav-button step-nav-button-primary" data-rest-skip>跳过休息</button>
+          <button type="button" data-rest-adjust="15">+15 秒</button>
+        </div>
+      </section>
+    `;
+    bindRestInteractions();
+    return;
+  }
 
   elements.exerciseList.innerHTML = `
     <div class="exercise-stepper is-${stepMotion}" aria-label="动作分步训练" aria-live="polite">
@@ -1441,14 +1517,6 @@ function renderWorkout() {
               <div class="exercise-title">
                 <span>${complete ? "已完成" : "当前动作"}</span>
                 <strong>${exercise.name}</strong>
-                <div class="exercise-top-meta">
-                  <span>${exercise.sets}</span>
-                  ${state.goal === "fatLoss"
-                    ? `<span>只需瑜伽垫</span><button type="button" class="tutorial-link tutorial-jump" data-equipment-target="mat">${equipmentJumpLabel}</button>`
-                    : (exercise.equipment
-                      ? `<span>优先器械：${equipmentLibrary[exercise.equipment].name}</span><button type="button" class="tutorial-link tutorial-jump" data-equipment-target="${equipmentTarget}">${equipmentJumpLabel}</button>`
-                      : `<span>徒手动作</span>`)}
-                </div>
               </div>
               <div class="exercise-head-actions">
                 ${tutorialUrl ? `<a class="tutorial-link" href="${tutorialUrl}" target="_blank" rel="noopener noreferrer">教学详情</a>` : ""}
@@ -1461,18 +1529,46 @@ function renderWorkout() {
             <p class="exercise-note">${exercise.note || ""}</p>
           </div>
         </div>
-        <div class="guide-grid">
-          <div class="guide-box">
-            <span>站位</span>
-            <strong>${exercise.stance || "站稳或坐稳，先把身体摆正。"}</strong>
+        <div class="exercise-player-body">
+          <div class="exercise-demo ${guide.media ? "has-media" : "is-text-only"}" data-exercise-demo>
+            ${guide.media ? `
+              <img src="${guide.media.src}" alt="${guide.media.alt}" width="180" height="180" loading="lazy" data-exercise-media>
+              <a href="${guide.media.attributionUrl}" target="_blank" rel="noopener noreferrer">${guide.media.attribution}</a>
+            ` : `
+              <div class="exercise-demo-placeholder" aria-label="当前为文字指导模式">
+                <span>${String(activeExerciseIndex + 1).padStart(2, "0")}</span>
+                <strong>${guide.name}</strong>
+                <small>${guide.hasSpecificGuide ? "示范媒体授权后上线" : "跟随文字提示慢速练习"}</small>
+              </div>
+            `}
+            <div class="exercise-demo-meta">
+              <span>${exercise.sets}</span>
+              ${state.goal === "fatLoss"
+                ? `<span>只需瑜伽垫</span><button type="button" class="tutorial-link tutorial-jump" data-equipment-target="mat">${equipmentJumpLabel}</button>`
+                : (exercise.equipment
+                  ? `<span>优先器械：${equipmentLibrary[exercise.equipment].name}</span><button type="button" class="tutorial-link tutorial-jump" data-equipment-target="${equipmentTarget}">${equipmentJumpLabel}</button>`
+                  : `<span>徒手动作</span>`)}
+            </div>
           </div>
-          <div class="guide-box">
-            <span>握法</span>
-            <strong>${exercise.grip || "双手自然放好，先不要追求重。"}</strong>
-          </div>
-          <div class="guide-box">
-            <span>启动</span>
-            <strong>${exercise.firstMove || "先做慢一点，先把路线做对。"}</strong>
+          <div class="exercise-guide-panel">
+            <div class="muscle-summary">
+              <div><span>主要发力</span><strong>${guide.target}</strong></div>
+              <div><span>辅助参与</span><strong>${guide.secondary.join(" · ")}</strong></div>
+            </div>
+            <div class="guide-tabs" role="tablist" aria-label="动作指导分类">
+              ${[
+                ["steps", "动作步骤"],
+                ["breathing", "发力呼吸"],
+                ["mistakes", "常见错误"],
+                ["alternative", "简单替代"],
+              ].map(([key, label]) => `<button type="button" role="tab" aria-selected="${activeGuideTab === key}" tabindex="${activeGuideTab === key ? "0" : "-1"}" class="${activeGuideTab === key ? "is-active" : ""}" data-guide-tab="${key}">${label}</button>`).join("")}
+            </div>
+            <div class="guide-tab-content" role="tabpanel" tabindex="0">
+              ${activeGuideTab === "steps" ? `<ol>${guide.steps.map((item) => `<li>${item}</li>`).join("")}</ol>` : ""}
+              ${activeGuideTab === "breathing" ? `<div class="guide-callout"><span>呼吸节奏</span><strong>${guide.breathing}</strong></div>` : ""}
+              ${activeGuideTab === "mistakes" ? `<ul>${guide.mistakes.map((item) => `<li>${item}</li>`).join("")}</ul>` : ""}
+              ${activeGuideTab === "alternative" ? `<div class="guide-callout guide-callout-soft"><span>降低难度</span><strong>${guide.alternative}</strong></div>` : ""}
+            </div>
           </div>
         </div>
         ${state.goal === "fatLoss" ? `<div class="exercise-actions"><span class="pill">只需瑜伽垫</span></div>` : ""}
@@ -1481,9 +1577,7 @@ function renderWorkout() {
       <div class="stepper-footer">
         <button type="button" class="step-nav-button" data-step-direction="prev" ${activeExerciseIndex === 0 ? "disabled" : ""}>上一条</button>
         <span>${nextExercise ? `下一条 · ${nextExercise.name}` : "全部动作都看完了，可以收尾恢复"}</span>
-        <button type="button" class="step-nav-button step-nav-button-primary" data-step-direction="next">
-          ${activeExerciseIndex === totalExercises - 1 ? "回到第一条" : "下一条"}
-        </button>
+        <button type="button" class="step-nav-button step-nav-button-primary" data-step-direction="next" ${activeExerciseIndex === totalExercises - 1 ? "disabled" : ""}>下一条</button>
       </div>
     </div>
   `;
@@ -1498,16 +1592,11 @@ function bindWorkoutInteractions() {
     checkbox.addEventListener("change", () => {
       const workout = getActiveWorkout();
       const lastIndex = workout ? workout.exercises.length - 1 : 0;
-      const shouldAdvance = checkbox.checked && activeExerciseIndex < lastIndex;
+      const shouldRest = checkbox.checked && activeExerciseIndex < lastIndex;
       setExerciseCompleted(checkbox.dataset.workoutId, checkbox.dataset.exerciseName, checkbox.checked);
       renderWeeklyPlan();
-      if (shouldAdvance) {
-        stepMotion = "forward";
-        activeExerciseIndex += 1;
-        window.setTimeout(renderWorkout, 180);
-      } else {
-        renderWorkout();
-      }
+      if (shouldRest) startRestTimer(activeExerciseIndex + 1);
+      else renderWorkout();
     });
   });
 
@@ -1516,6 +1605,7 @@ function bindWorkoutInteractions() {
       const nextIndex = Number(button.dataset.stepIndex);
       stepMotion = nextIndex >= activeExerciseIndex ? "forward" : "back";
       activeExerciseIndex = nextIndex;
+      activeGuideTab = "steps";
       renderWorkout();
     });
   });
@@ -1529,12 +1619,44 @@ function bindWorkoutInteractions() {
         stepMotion = "back";
         activeExerciseIndex = Math.max(0, activeExerciseIndex - 1);
       } else {
-        stepMotion = activeExerciseIndex >= lastIndex ? "back" : "forward";
-        activeExerciseIndex = activeExerciseIndex >= lastIndex ? 0 : activeExerciseIndex + 1;
+        stepMotion = "forward";
+        activeExerciseIndex = window.ExerciseGuides.getNextExerciseIndex(activeExerciseIndex, workout.exercises.length);
       }
+      activeGuideTab = "steps";
       renderWorkout();
     });
   });
+
+  const guideTabs = Array.from(elements.exerciseList.querySelectorAll("[data-guide-tab]"));
+  guideTabs.forEach((button, index) => {
+    button.addEventListener("click", () => {
+      activeGuideTab = button.dataset.guideTab;
+      renderWorkout();
+    });
+    button.addEventListener("keydown", (event) => {
+      if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
+      event.preventDefault();
+      const offset = event.key === 'ArrowRight' ? 1 : -1;
+      const nextTab = guideTabs[(index + offset + guideTabs.length) % guideTabs.length];
+      activeGuideTab = nextTab.dataset.guideTab;
+      renderWorkout();
+      elements.exerciseList.querySelector(`[data-guide-tab="${activeGuideTab}"]`)?.focus();
+    });
+  });
+
+  const media = elements.exerciseList.querySelector("[data-exercise-media]");
+  media?.addEventListener("error", () => {
+    const demo = elements.exerciseList.querySelector("[data-exercise-demo]");
+    if (demo) demo.innerHTML = '<div class="exercise-demo-placeholder"><strong>示范加载失败</strong><small>请继续按文字步骤完成动作</small></div>';
+  }, { once: true });
+
+}
+
+function bindRestInteractions() {
+  elements.exerciseList.querySelectorAll("[data-rest-adjust]").forEach((button) => {
+    button.addEventListener("click", () => adjustActiveRest(Number(button.dataset.restAdjust)));
+  });
+  elements.exerciseList.querySelector("[data-rest-skip]")?.addEventListener("click", finishRestTimer);
 }
 
 function renderEquipmentGuide() {
@@ -1566,6 +1688,80 @@ function renderEquipmentGuide() {
       </article>
     `;
   }).join("");
+}
+
+function renderDietGuide() {
+  if (!elements.dietGuide) return;
+  const guide = window.DietGuide.getDietGuide(state.goal);
+  elements.dietGuide.innerHTML = `
+    <header class="diet-hero">
+      <div>
+        <p class="panel-tag">${guide.label}饮食</p>
+        <h2>${guide.headline}</h2>
+        <p>${guide.intro}</p>
+      </div>
+      <span class="diet-goal-badge">当前目标 · ${guide.label}</span>
+    </header>
+    <div class="diet-principles" aria-label="饮食核心原则">
+      ${guide.principles.map((item, index) => `<div><span>0${index + 1}</span><strong>${item}</strong></div>`).join("")}
+    </div>
+    <section class="diet-schedule" aria-labelledby="dietScheduleTitle">
+      <div class="section-head diet-section-head">
+        <div><p class="panel-tag">一天怎么吃</p><h3 id="dietScheduleTitle">按时间滑着选就行</h3></div>
+        <div class="diet-carousel-controls" aria-label="切换饮食建议">
+          <button type="button" data-diet-direction="prev" aria-label="上一张饮食卡">←</button>
+          <span><strong data-diet-current>1</strong> / ${guide.periods.length}</span>
+          <button type="button" data-diet-direction="next" aria-label="下一张饮食卡">→</button>
+        </div>
+      </div>
+      <div class="diet-period-grid" data-diet-carousel tabindex="0" aria-label="分时段饮食建议">
+        ${guide.periods.map((period, index) => `
+          <article class="diet-period-card" data-diet-card data-diet-index="${index}">
+            <div class="diet-period-head"><div><strong>${period.title}</strong><span>${period.timing}</span></div><span class="diet-period-dot" aria-hidden="true"></span></div>
+            <ul>${period.options.map((option) => `<li>${option}</li>`).join("")}</ul>
+          </article>
+        `).join("")}
+      </div>
+    </section>
+    <p class="diet-disclaimer">以上为健康成年人的通用入门建议。如有疾病、食物过敏、孕期或特殊饮食要求，请咨询医生或营养师。</p>
+  `;
+  bindDietCarousel();
+}
+
+function bindDietCarousel() {
+  const carousel = elements.dietGuide?.querySelector("[data-diet-carousel]");
+  if (!carousel) return;
+  const cards = Array.from(carousel.querySelectorAll("[data-diet-card]"));
+  const currentLabel = elements.dietGuide.querySelector("[data-diet-current]");
+
+  function getCurrentIndex() {
+    if (!cards.length) return 0;
+    return cards.reduce((nearest, card, index) => (
+      Math.abs(card.offsetLeft - carousel.scrollLeft) < Math.abs(cards[nearest].offsetLeft - carousel.scrollLeft) ? index : nearest
+    ), 0);
+  }
+
+  function updateCurrentLabel() {
+    if (currentLabel) currentLabel.textContent = String(getCurrentIndex() + 1);
+  }
+
+  function scrollToIndex(index) {
+    const target = cards[Math.min(cards.length - 1, Math.max(0, index))];
+    target?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "start" });
+  }
+
+  elements.dietGuide.querySelectorAll("[data-diet-direction]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const offset = button.dataset.dietDirection === "next" ? 1 : -1;
+      scrollToIndex(getCurrentIndex() + offset);
+    });
+  });
+  carousel.addEventListener("scroll", updateCurrentLabel, { passive: true });
+  carousel.addEventListener("keydown", (event) => {
+    if (!["ArrowLeft", "ArrowRight"].includes(event.key)) return;
+    event.preventDefault();
+    scrollToIndex(getCurrentIndex() + (event.key === "ArrowRight" ? 1 : -1));
+  });
 }
 
 function bindEquipmentJumpButtons(scope = document) {
@@ -1656,6 +1852,7 @@ function rerenderAll() {
   renderWeeklyPlan();
   renderWorkout();
   renderEquipmentGuide();
+  renderDietGuide();
   renderTrainingNotes();
 }
 
@@ -1834,6 +2031,7 @@ function attachEvents() {
   });
 
   window.addEventListener("scroll", updateBackToTopButton, { passive: true });
+  window.addEventListener("beforeunload", cancelRestTimer);
 }
 
 function init() {

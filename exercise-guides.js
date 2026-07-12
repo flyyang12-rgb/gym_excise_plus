@@ -1,0 +1,89 @@
+(function (root, factory) {
+  const api = factory();
+  if (typeof module === "object" && module.exports) module.exports = api;
+  root.ExerciseGuides = api;
+})(typeof globalThis !== "undefined" ? globalThis : this, function () {
+  const MEDIA_BASE = "exercise-media/";
+  const ATTRIBUTION_URL = "https://gymvisual.com/";
+
+  const aliases = {
+    "卷腹 / 平板支撑": "仰卧卷腹",
+    "核心收尾": "平板支撑",
+    "俯卧撑或器械推胸": "跪姿俯卧撑",
+    "二头或三头补强": "哑铃弯举",
+    "椭圆机或单车": "椭圆机",
+  };
+
+  const guides = {
+    "登山跑": guide("0630", "0630-RJgzwny.gif", "核心、心肺", ["髋屈肌", "肩部"], ["双手撑稳，肩膀保持在手腕正上方。", "收紧腹部，让头、背和髋尽量保持一条直线。", "一侧膝盖向胸口提，再有节奏地左右交替。"], "提膝时呼气，换腿时短促吸气，保持均匀节奏。", ["臀部越抬越高：放慢速度并持续收腹。", "脚落地太重：前脚掌轻点地面。"], "改为慢速交替提膝，或双手撑高凳完成。"),
+    "跪姿俯卧撑": guide("3211", "3211-ZOuKWir.gif", "胸部", ["肱三头肌", "肩前束", "核心"], ["双膝落垫，双手略宽于肩，身体从头到膝成直线。", "肩胛稳定，屈肘让胸口缓慢靠近地面。", "手掌推地回到起点，肘部不要完全锁死。"], "下降时吸气，推起时呼气。", ["塌腰或撅臀：先收紧腹部和臀部。", "手肘向两侧张开：让肘部约朝后外侧。"], "双手撑在稳固高台上做上斜俯卧撑。"),
+    "仰卧卷腹": guide("0001", "0001-2gPfomN.gif", "腹直肌", ["髋屈肌"], ["仰卧屈膝，双脚踩稳，双手轻放耳侧或胸前。", "下背贴近垫面，先收紧腹部。", "用腹部带动肩胛离地，停顿后缓慢还原。"], "卷起时呼气，还原时吸气。", ["双手拉脖子：手只轻触头侧。", "整段坐起：只需让肩胛离开垫面。"], "缩小卷起幅度，或改做死虫。"),
+    "平板支撑": guide("0464", "0464-CosupLu.gif", "核心", ["臀部", "肩部"], ["前臂撑地，肘部位于肩膀下方。", "脚尖踩地，收紧腹部和臀部。", "保持头、背、髋和脚跟成一条直线。"], "保持自然呼吸，每次呼气都再收紧腹部。", ["塌腰：缩短保持时间。", "耸肩：主动把肩膀远离耳朵。"], "双膝落地保持同样的躯干直线。"),
+    "死虫": guide("0276", "0276-iny3m5y.gif", "核心", ["髋屈肌"], ["仰卧，髋膝各约九十度，双臂指向天花板。", "轻收下巴，让下背贴紧垫面。", "对侧手脚缓慢伸远，再回到起点交替完成。"], "伸展时缓慢呼气，回收时吸气。", ["下背离地：缩小手脚伸展范围。", "动作太快：每次伸展至少用两秒。"], "只动腿或只动手，降低协调难度。"),
+    "俄罗斯转体": guide("0687", "0687-XVDdcoj.gif", "腹斜肌", ["腹直肌", "髋屈肌"], ["坐在垫上屈膝，胸口打开，身体轻微后倾。", "双手合拢放在胸前，腹部持续收紧。", "胸廓带动身体左右转动，骨盆尽量稳定。"], "转向一侧时呼气，回到中间时吸气。", ["只甩手臂：让胸口一起转动。", "弓背含胸：减小后倾角度。"], "双脚踩地并缩小转动范围。"),
+    "臀桥": guide("3561", "3561-GibBPPg.gif", "臀大肌", ["腘绳肌", "核心"], ["仰卧屈膝，双脚与髋同宽踩地。", "收紧腹部，脚跟发力把髋部抬起。", "顶端夹紧臀部，缓慢落回但不要完全放松。"], "抬髋时呼气，下落时吸气。", ["用腰顶起：保持肋骨下沉。", "膝盖内扣：膝盖始终对准脚尖。"], "缩小抬髋幅度，或顶端不做停顿。"),
+    "史密斯深蹲": guide("0770", "0770-jFtipLl.gif", "臀腿", ["股四头肌", "腘绳肌", "核心"], ["杠放在上背，双脚站在杠铃前方少许。", "吸气收腹，髋膝同时弯曲向下。", "膝盖对准脚尖，脚掌完整踩地后站起。"], "下蹲吸气，站起通过最难位置时呼气。", ["膝盖内扣：减轻重量并让膝盖跟随脚尖。", "脚跟抬起：调整站距并减小深度。"], "徒手箱式深蹲或哑铃杯式深蹲。"),
+    "罗马尼亚硬拉": guide("1459", "1459-rR0LJzx.gif", "臀腿后侧", ["臀大肌", "下背部", "握力"], ["双脚与髋同宽，哑铃贴近大腿。", "膝盖微屈，屁股向后推，背部保持稳定。", "哑铃沿腿下降到后侧有拉伸感，再夹臀站起。"], "下降吸气，站起并伸髋时呼气。", ["弯腰代替屈髋：想象屁股去碰身后的墙。", "哑铃离腿太远：全程贴近腿部。"], "减轻重量，并把下降终点控制在膝盖附近。"),
+    "哑铃杯式深蹲": guide("1760", "1760-yn8yg1r.gif", "股四头肌", ["臀大肌", "核心"], ["双手托住哑铃一端，贴近胸前。", "双脚略宽于肩，脚尖自然向外。", "髋膝同时弯曲下蹲，脚掌发力站起。"], "下蹲吸气，站起时呼气。", ["哑铃离身体太远：始终贴近胸口。", "身体前扑：减轻重量并放慢下降。"], "徒手深蹲到凳子。"),
+    "高位下拉": guide("2330", "2330-LEprlgG.gif", "背阔肌", ["肱二头肌", "上背部"], ["坐稳并固定双腿，胸口自然打开。", "双手略宽于肩握杆，先让肩膀下沉。", "肘部向下带动横杆靠近上胸，再受控还原。"], "下拉时呼气，还原时吸气。", ["身体大幅后仰：减轻重量。", "用手臂硬拉：先做沉肩动作。"], "改用更轻重量或弹力带下拉。"),
+    "坐姿划船": guide("0180", "0180-hvV79Si.gif", "上背部", ["背阔肌", "肱二头肌"], ["双脚踩稳，膝盖微屈，腰背保持自然。", "肩膀先向后下方移动。", "肘部贴近身体，把手拉向肚脐后缓慢送回。"], "拉回时呼气，手臂伸出时吸气。", ["含胸圆背：减轻重量并挺起胸口。", "身体前后摆动：固定躯干。"], "使用弹力带坐姿划船。"),
+  };
+
+  function guide(id, file, target, secondary, steps, breathing, mistakes, alternative) {
+    return { id, file, target, secondary, steps, breathing, mistakes, alternative };
+  }
+
+  function normalizeExerciseName(name) {
+    return aliases[name] || name || "当前动作";
+  }
+
+  function getExerciseGuide(exercise = {}, options = {}) {
+    const name = normalizeExerciseName(exercise.name);
+    const specific = guides[name];
+    const fallback = {
+      target: "全身协调",
+      secondary: ["核心稳定"],
+      steps: [exercise.stance || "先把身体摆到稳定、舒服的起始位置。", exercise.firstMove || "用轻重量或慢速度完成第一下。", "保持动作路线一致，感觉不适就立即停止。"],
+      breathing: "发力时呼气，还原时吸气；不要憋气抢次数。",
+      mistakes: ["速度太快：放慢动作，优先保持稳定。", "为了次数牺牲姿势：减少次数或降低难度。"],
+      alternative: "降低重量、缩小幅度，或选择同部位的徒手动作。",
+    };
+    const data = specific || fallback;
+    return {
+      name,
+      hasSpecificGuide: Boolean(specific),
+      target: data.target,
+      secondary: data.secondary,
+      steps: data.steps,
+      breathing: data.breathing,
+      mistakes: data.mistakes,
+      alternative: data.alternative,
+      media: specific && options.mediaEnabled ? {
+        src: MEDIA_BASE + specific.file,
+        alt: `${name}动作示范`,
+        attribution: "© Gym visual",
+        attributionUrl: ATTRIBUTION_URL,
+      } : null,
+    };
+  }
+
+  function getNextExerciseIndex(currentIndex, total) {
+    return Math.min(currentIndex + 1, Math.max(total - 1, 0));
+  }
+
+  function adjustRestDuration(seconds, delta) {
+    return Math.min(180, Math.max(15, seconds + delta));
+  }
+
+  function getRemainingRestSeconds(endAt, now = Date.now()) {
+    return Math.max(0, Math.ceil((endAt - now) / 1000));
+  }
+
+  return {
+    adjustRestDuration,
+    getExerciseGuide,
+    getNextExerciseIndex,
+    getRemainingRestSeconds,
+    normalizeExerciseName,
+  };
+});

@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#ef6a2e">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>健身小助手</title>
-  <link rel="stylesheet" href="style.css?v=20260604-ai-clean4">
+  <link rel="stylesheet" href="style.css?v=20260712-browse-complete-split">
 </head>
 <body>
   <div class="app-shell">
@@ -15,6 +15,7 @@
         <div class="hero-main">
           <p class="eyebrow">训练节奏</p>
           <h1>按计划行事</h1>
+          <p class="hero-motto">简单的事情重复做，重复的事情一直做</p>
         </div>
 
         <aside class="hero-side" aria-label="当前训练概览">
@@ -149,70 +150,7 @@
             </div>
           </div>
         </section>
-      </main>
-    </section>
-
-    <section class="app-module app-module-page" data-module="recovery" aria-label="恢复模块" hidden>
-      <section class="recovery-panel secondary-section">
-        <div class="section-head module-page-head">
-          <div>
-            <p class="panel-tag">恢复提醒</p>
-            <h2>收尾要做什么</h2>
-          </div>
-        </div>
-        <div class="recovery-grid">
-          <article class="mini-card recovery-card recovery-card-stretch">
-            <div class="recovery-card-icon" aria-hidden="true">练</div>
-            <div class="recovery-card-copy">
-              <span>45-90 分钟</span>
-              <h3>练（训练）</h3>
-              <p id="stretchText">今天别求完美，先把动作做完。
-练 45-90 分钟，重量循序渐进。
-宁愿稳定多练，也别一上来拼废。</p>
-            </div>
-          </article>
-          <article class="mini-card recovery-card recovery-card-rest">
-            <div class="recovery-card-icon" aria-hidden="true">吃</div>
-            <div class="recovery-card-copy">
-              <span>蛋白 + 碳水</span>
-              <h3>吃（饮食）</h3>
-              <p id="recoveryText">肌肉不是练出来的，是恢复出来的。
-训练后 1 小时内补充蛋白质 + 碳水。
-吃够，比硬撑更重要。</p>
-            </div>
-          </article>
-          <article class="mini-card recovery-card recovery-card-food">
-            <div class="recovery-card-icon" aria-hidden="true">睡</div>
-            <div class="recovery-card-copy">
-              <span>7-8 小时</span>
-              <h3>睡（恢复）</h3>
-              <p id="nutritionText">睡眠是最便宜的增肌剂。
-每天尽量睡满 7-8 小时。
-恢复跟不上，训练白用功。</p>
-            </div>
-          </article>
-          <article class="mini-card recovery-card recovery-card-safe">
-            <div class="recovery-card-icon" aria-hidden="true">稳</div>
-            <div class="recovery-card-copy">
-              <span>长期主义</span>
-              <h3>稳（坚持）</h3>
-              <p>真正厉害的人，是能一直练的人。
-状态差也练一点，别轻易断。
-长期主义，身材才会回应你。</p>
-            </div>
-          </article>
-        </div>
-        <div class="recovery-actions">
-          <button id="bmiOpenButton" class="module-action-button module-action-button-light" type="button">
-            <span>BM</span>
-            BMI 身体数据
-          </button>
-          <button id="aiObserveButton" class="module-action-button" type="button">
-            <span>AI</span>
-            AI 问答
-          </button>
-        </div>
-        <section class="training-notes-panel" aria-labelledby="trainingNotesTitle">
+        <section class="training-notes-panel training-notes-merged" aria-labelledby="trainingNotesTitle">
           <div class="training-notes-head">
             <div>
               <p class="panel-tag">小记一下</p>
@@ -232,7 +170,8 @@
           </form>
           <div id="noteList" class="note-list" aria-live="polite"></div>
         </section>
-      </section>
+
+      </main>
     </section>
 
     <section class="app-module app-module-page" data-module="equipment" aria-label="器械模块" hidden>
@@ -246,6 +185,50 @@
         <div id="equipmentGrid" class="equipment-grid"></div>
       </section>
     </section>
+
+    <section class="app-module app-module-page" data-module="diet" aria-label="饮食模块" hidden>
+      <section class="diet-panel secondary-section">
+        <div id="dietGuide"></div>
+        <section class="recovery-panel diet-recovery" aria-labelledby="recoveryTitle">
+          <div class="section-head recovery-merged-head">
+            <div>
+              <p class="panel-tag">练完记得</p>
+              <h2 id="recoveryTitle">吃、睡、稳</h2>
+            </div>
+          </div>
+          <div class="recovery-grid">
+            <article class="mini-card recovery-card recovery-card-rest">
+              <div class="recovery-card-icon" aria-hidden="true">吃</div>
+              <div class="recovery-card-copy">
+                <span>蛋白 + 碳水</span>
+                <h3>吃（饮食）</h3>
+                <p id="recoveryText">训练后及时补充蛋白质和碳水，正常吃饭比硬撑更重要。</p>
+              </div>
+            </article>
+            <article class="mini-card recovery-card recovery-card-food">
+              <div class="recovery-card-icon" aria-hidden="true">睡</div>
+              <div class="recovery-card-copy">
+                <span>7-8 小时</span>
+                <h3>睡（恢复）</h3>
+                <p id="nutritionText">每天尽量睡满 7-8 小时，恢复跟不上，训练效果也会打折。</p>
+              </div>
+            </article>
+            <article class="mini-card recovery-card recovery-card-safe">
+              <div class="recovery-card-icon" aria-hidden="true">稳</div>
+              <div class="recovery-card-copy">
+                <span>长期主义</span>
+                <h3>稳（坚持）</h3>
+                <p>状态差也做一点，不靠极端饮食。能一直执行的方案，才是适合你的方案。</p>
+              </div>
+            </article>
+          </div>
+          <div class="recovery-actions">
+            <button id="bmiOpenButton" class="module-action-button module-action-button-light" type="button"><span>BM</span>BMI 身体数据</button>
+            <button id="aiObserveButton" class="module-action-button" type="button"><span>AI</span>AI 问答</button>
+          </div>
+        </section>
+      </section>
+    </section>
   </div>
 
   <nav class="app-tabbar" aria-label="模块导航">
@@ -253,13 +236,13 @@
       <span>训</span>
       训练
     </button>
-    <button type="button" data-module-target="recovery">
-      <span>复</span>
-      恢复
-    </button>
     <button type="button" data-module-target="equipment">
       <span>械</span>
       器械
+    </button>
+    <button type="button" data-module-target="diet">
+      <span>食</span>
+      饮食
     </button>
   </nav>
 
@@ -337,6 +320,8 @@
     </section>
   </div>
 
-  <script src="script.js?v=20260605-notes"></script>
+  <script src="exercise-guides.js?v=20260712-guides"></script>
+  <script src="diet-guide.js?v=20260712-diet"></script>
+  <script src="script.js?v=20260712-browse-complete-split"></script>
 </body>
 </html>
