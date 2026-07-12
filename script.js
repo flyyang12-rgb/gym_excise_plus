@@ -545,7 +545,11 @@ let stepMotion = "forward";
 let activeGuideTab = "steps";
 let restTimerId = null;
 let restState = null;
-const EXERCISE_MEDIA_ENABLED = ["localhost", "127.0.0.1"].includes(window.location.hostname);
+const EXERCISE_MEDIA_ENABLED = [
+  "localhost",
+  "127.0.0.1",
+  "flyyang12-rgb.github.io",
+].includes(window.location.hostname);
 let activeModule = "training";
 let returnScrollY = null;
 
