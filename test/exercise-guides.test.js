@@ -66,6 +66,12 @@ test("keeps licensed media disabled until the feature flag is enabled", () => {
   assert.equal(enabled.media.attribution, "© Gym visual");
 });
 
+test("marks near-match media as an approximate demonstration", () => {
+  const guide = getExerciseGuide({ name: "猫牛式" }, { mediaEnabled: true });
+  assert.match(guide.media.src, /1363-JbC2iaV\.gif$/);
+  assert.equal(guide.media.approximate, true);
+});
+
 test("does not wrap to the first exercise after the final exercise", () => {
   assert.equal(getNextExerciseIndex(0, 4), 1);
   assert.equal(getNextExerciseIndex(3, 4), 3);

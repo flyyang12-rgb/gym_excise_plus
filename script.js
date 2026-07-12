@@ -1538,6 +1538,7 @@ function renderWorkout() {
             ${guide.media ? `
               <img src="${guide.media.src}" alt="${guide.media.alt}" width="180" height="180" loading="lazy" data-exercise-media>
               <a href="${guide.media.attributionUrl}" target="_blank" rel="noopener noreferrer">${guide.media.attribution}</a>
+              ${guide.media.approximate ? `<span class="exercise-media-kind">相似动作示范</span>` : ""}
             ` : `
               <div class="exercise-demo-placeholder" aria-label="当前为文字指导模式">
                 <span>${String(activeExerciseIndex + 1).padStart(2, "0")}</span>

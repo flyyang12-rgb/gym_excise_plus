@@ -43,6 +43,19 @@
     "弓步蹲": strengthGuide("3470", "3470-kMzUs9Y.gif", "臀腿", ["股四头肌", "核心"], "向前跨步后垂直下蹲，前脚完整踩稳再站回。"),
     "箭步蹲": strengthGuide("0336", "0336-RRWFUcw.gif", "臀腿", ["股四头肌", "核心"], "双手持哑铃前后站稳，身体垂直下降后前脚发力站起。"),
     "绳索飞鸟": strengthGuide("0188", "0188-xLYSdtg.gif", "胸部", ["肩前束"], "站稳并轻屈手肘，让双手沿弧线在胸前靠拢。"),
+    "侧卧抬腿": approximateGuide("0710", "0710-7WaDzyL.gif", "臀中肌", ["髋外展肌"], "参考侧向髋外展路线，侧卧时保持骨盆稳定。"),
+    "全身拉伸": approximateGuide("0794", "0794-1jXLYEw.gif", "躯干拉伸", ["背部", "肩部"], "参考站姿侧向拉伸，实际训练按页面文字逐个部位放松。"),
+    "原地高抬腿": approximateGuide("3636", "3636-ealLwvX.gif", "心肺", ["髋屈肌", "核心"], "参考高抬腿路线，原地完成时保持身体直立。"),
+    "呼吸放松": approximateGuide("1363", "1363-JbC2iaV.gif", "脊柱放松", ["核心"], "参考温和脊柱伸展，配合缓慢深呼吸。"),
+    "山地爬行": approximateGuide("3360", "3360-0Yz8WdV.gif", "全身心肺", ["核心", "肩部", "臀腿"], "参考熊爬动作路线，保持膝盖离地并控制移动。"),
+    "开合跳低冲击版": approximateGuide("3224", "3224-1g5bPpA.gif", "心肺", ["臀腿", "肩部"], "参考开合动作，但低冲击版本改为左右迈步，不做跳跃。"),
+    "深蹲到伸展": approximateGuide("1685", "1685-QChZi3x.gif", "臀腿", ["肩部", "核心"], "下蹲后站起并向上伸展，动作连续但不要抢速度。"),
+    "深蹲脉冲": approximateGuide("1685", "1685-QChZi3x.gif", "臀腿", ["股四头肌", "核心"], "参考深蹲路线，在底部小幅度上下移动。"),
+    "猫牛式": approximateGuide("1363", "1363-JbC2iaV.gif", "脊柱活动", ["核心", "背部"], "参考脊柱屈伸路线，四点跪姿下缓慢拱背和塌背。"),
+    "鸟狗式": approximateGuide("1512", "1512-qBcKorM.gif", "核心稳定", ["臀部", "背部"], "参考四点跪姿，实际动作伸出对侧手脚并保持骨盆稳定。"),
+    "超人式": approximateGuide("0489", "0489-zhMwOwE.gif", "下背部", ["臀部", "上背部"], "参考背伸路线，俯卧时小幅抬起手脚，不要过度反弓。"),
+    "跑步机快走": approximateGuide("3666", "3666-rjiM4L3.gif", "心肺", ["臀腿"], "参考坡度走路姿势，保持自然步幅和稳定呼吸。"),
+    "臀腿拉伸": approximateGuide("1511", "1511-99rWm7w.gif", "大腿后侧", ["臀部", "小腿"], "参考腘绳肌拉伸，拉到轻微牵拉感即可。"),
   };
 
   function guide(id, file, target, secondary, steps, breathing, mistakes, alternative) {
@@ -51,6 +64,12 @@
 
   function strengthGuide(id, file, target, secondary, cue) {
     return guide(id, file, target, secondary, ["先用轻重量摆好稳定的起始姿势。", cue, "受控回到起点，保持每次动作路线一致。"], "发力时呼气，还原时吸气。", ["借力摆动：减轻重量并放慢速度。", "动作幅度失控：只做到能稳定控制的位置。"], "降低重量或改用同部位的徒手动作。" );
+  }
+
+  function approximateGuide(id, file, target, secondary, cue) {
+    const data = strengthGuide(id, file, target, secondary, cue);
+    data.approximate = true;
+    return data;
   }
 
   function normalizeExerciseName(name) {
@@ -83,6 +102,7 @@
         alt: `${name}动作示范`,
         attribution: "© Gym visual",
         attributionUrl: ATTRIBUTION_URL,
+        approximate: Boolean(specific.approximate),
       } : null,
     };
   }
