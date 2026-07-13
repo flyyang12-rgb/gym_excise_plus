@@ -3765,3 +3765,153 @@ video {
     gap: 4px;
   }
 }
+
+@media (max-width: 300px) {
+  body {
+    padding-inline: 3px;
+  }
+
+  .app-shell {
+    width: 100%;
+    padding-inline: 2px;
+  }
+
+  .hero,
+  .hero-main,
+  .hero-side,
+  .hero-overview,
+  .profile-calendar,
+  .profile-calendar-head,
+  .plan-panel,
+  .workout-panel,
+  .training-notes-panel,
+  .secondary-section,
+  .diet-hero,
+  .diet-section-head,
+  .equipment-card,
+  .equipment-content {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .hero {
+    gap: 14px;
+    padding: 42px 10px 12px;
+  }
+
+  .hero h1 {
+    width: auto;
+    max-width: 100%;
+    font-size: 1.55rem;
+  }
+
+  .hero-motto {
+    margin-top: 10px;
+    padding-left: 8px;
+    font-size: 0.72rem;
+    line-height: 1.5;
+  }
+
+  .version-badge {
+    top: 10px;
+    right: 10px;
+    font-size: 9px;
+  }
+
+  .profile-calendar,
+  .hero-overview,
+  .plan-panel,
+  .workout-panel,
+  .training-notes-panel,
+  .secondary-section {
+    padding: 10px;
+  }
+
+  .profile-calendar-head {
+    gap: 6px;
+  }
+
+  .profile-calendar-badge {
+    min-width: 54px;
+    padding: 7px;
+  }
+
+  .goal-tabs,
+  .frequency-tabs,
+  .calendar-strip {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .calendar-strip {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 3px;
+  }
+
+  .calendar-day {
+    min-width: 0;
+    padding-inline: 2px;
+  }
+
+  .section-head h2,
+  .module-page-head h2,
+  .diet-hero h2 {
+    font-size: 1.3rem;
+    line-height: 1.2;
+  }
+
+  .weekly-plan .day-card {
+    flex-basis: 94%;
+  }
+
+  .workout-panel .exercise-stepper {
+    padding: 5px;
+  }
+
+  .stepper-dots {
+    gap: 3px;
+    padding-inline: 4px;
+  }
+
+  .stepper-dots button {
+    min-width: 32px;
+  }
+
+  .workout-panel .exercise-head-actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .workout-panel .exercise-head-actions > * {
+    grid-column: 1;
+  }
+
+  .exercise-demo {
+    width: min(100%, 180px);
+  }
+
+  .guide-tabs button {
+    padding-inline: 8px;
+    font-size: 11px;
+  }
+
+  .diet-section-head {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .diet-carousel-controls {
+    justify-content: space-between;
+  }
+
+  .app-tabbar button {
+    min-width: 0;
+    padding-inline: 2px;
+    font-size: 10px;
+  }
+
+  .app-tabbar button span {
+    width: 24px;
+    height: 24px;
+    font-size: 10px;
+  }
+}
