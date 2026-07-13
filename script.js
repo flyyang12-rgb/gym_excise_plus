@@ -585,6 +585,7 @@ const elements = {
   todayProgress: document.querySelector("#todayProgress"),
   equipmentGrid: document.querySelector("#equipmentGrid"),
   dietGuide: document.querySelector("#dietGuide"),
+  versionBadge: document.querySelector("#versionBadge"),
   stretchText: document.querySelector("#stretchText"),
   recoveryText: document.querySelector("#recoveryText"),
   nutritionText: document.querySelector("#nutritionText"),
@@ -2049,6 +2050,34 @@ function init() {
   rerenderAll();
   updateBackToWorkoutButton();
   updateBackToTopButton();
+  updateVersionBadge();
+}
+
+async function updateVersionBadge() {
+  if (!elements.versionBadge) return;
+  try {
+    const response = await fetch("https://api.github.com/repos/flyyang12-rgb/gym_excise_plus/commits/main", {
+      headers: { Accept: "application/vnd.github+json" },
+    });
+    if (!response.ok) return;
+    const payload = await response.json();
+    const committedAt = payload?.commit?.committer?.date;
+    if (!committedAt) return;
+    const parts = new Intl.DateTimeFormat("zh-CN", {
+      timeZone: "Asia/Shanghai",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }).formatToParts(new Date(committedAt));
+    const value = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+    elements.versionBadge.textContent = `v${value.year}.${value.month}.${value.day} ${value.hour}:${value.minute}`;
+    elements.versionBadge.title = `最后提交 ${payload.sha?.slice(0, 7) || ""}`.trim();
+  } catch {
+    // Keep the HTML fallback when GitHub is unavailable or rate-limited.
+  }
 }
 
 init();
