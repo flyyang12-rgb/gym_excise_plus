@@ -3470,3 +3470,176 @@ p {
     flex-direction: column;
   }
 }
+
+/* Final responsive guardrails: keep app controls stable across phone sizes. */
+html {
+  min-width: 0;
+  overflow-x: clip;
+}
+
+body,
+.app-shell,
+.app-module,
+.dashboard-layout,
+.plan-panel,
+.workout-panel,
+.exercise-stepper,
+.exercise-card,
+.diet-panel,
+.equipment-panel {
+  min-width: 0;
+  max-width: 100%;
+}
+
+img,
+video {
+  max-width: 100%;
+  height: auto;
+}
+
+.app-tabbar {
+  padding-bottom: max(0px, env(safe-area-inset-bottom));
+}
+
+.app-tabbar button {
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.bmi-modal-panel,
+.ai-modal .bmi-modal-panel {
+  max-height: calc(100dvh - 24px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+@media (max-width: 760px) {
+  body {
+    padding-inline: clamp(8px, 3vw, 15px);
+    padding-bottom: calc(92px + env(safe-area-inset-bottom));
+  }
+
+  .hero,
+  .plan-panel,
+  .workout-panel,
+  .training-notes-panel,
+  .diet-panel,
+  .equipment-panel {
+    width: 100%;
+  }
+
+  .section-head h2,
+  .diet-hero h2,
+  .module-page-head h2 {
+    overflow-wrap: anywhere;
+  }
+
+  .step-nav-button,
+  .primary-button,
+  .module-action-button,
+  .diet-carousel-controls button {
+    min-height: 44px;
+  }
+
+  .guide-tabs button {
+    min-height: 40px;
+  }
+
+  .exercise-demo img {
+    aspect-ratio: 1;
+    object-fit: contain;
+  }
+}
+
+@media (max-width: 430px) {
+  .hero {
+    padding: 18px 16px;
+  }
+
+  .hero h1 {
+    font-size: 2rem;
+    line-height: 1.08;
+  }
+
+  .hero-motto {
+    font-size: 0.9rem;
+  }
+
+  .frequency-tabs,
+  .goal-tabs {
+    width: 100%;
+  }
+
+  .frequency-tabs button,
+  .goal-tabs button {
+    min-width: 0;
+    flex: 1 1 0;
+  }
+
+  .exercise-head-actions {
+    width: 100%;
+  }
+
+  .exercise-head-actions > *,
+  .exercise-check-card {
+    width: 100%;
+  }
+
+  .exercise-demo {
+    max-width: 200px;
+  }
+
+  .guide-tabs {
+    scroll-padding-inline: 8px;
+  }
+
+  .stepper-footer {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .stepper-footer .step-nav-button {
+    min-width: 0;
+    padding-inline: 8px;
+  }
+
+  .diet-section-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+  }
+
+  .diet-carousel-controls {
+    gap: 4px;
+  }
+
+  .diet-carousel-controls button {
+    width: 44px;
+  }
+
+  .bmi-modal,
+  .ai-modal {
+    padding: 8px;
+  }
+}
+
+@media (max-width: 340px) {
+  body {
+    padding-inline: 6px;
+  }
+
+  .app-tabbar button {
+    gap: 3px;
+    padding-inline: 4px;
+    font-size: 12px;
+  }
+
+  .app-tabbar button span {
+    width: 28px;
+    height: 28px;
+  }
+
+  .exercise-top-meta,
+  .exercise-demo-meta {
+    gap: 4px;
+  }
+}
