@@ -3565,11 +3565,72 @@ video {
     aspect-ratio: 1;
     object-fit: contain;
   }
+
+  .weekly-plan {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    padding: 2px 2px 8px;
+  }
+
+  .weekly-plan::-webkit-scrollbar {
+    display: none;
+  }
+
+  .weekly-plan .day-card {
+    flex: 0 0 min(86%, 300px);
+    min-height: 210px;
+    padding: 0;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+
+  .weekly-plan .day-card::before,
+  .weekly-plan .day-card::after {
+    display: none;
+  }
+
+  .weekly-plan .day-card-shell,
+  .weekly-plan .day-card:first-child .day-card-shell {
+    height: 100%;
+    padding: 16px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: #fff;
+  }
+
+  .weekly-plan .day-card.is-active .day-card-shell {
+    border-color: rgba(239, 106, 46, 0.45);
+    box-shadow: 0 12px 26px rgba(16, 24, 39, 0.08);
+  }
+
+  .diet-panel,
+  .diet-panel > *,
+  #dietGuide,
+  #dietGuide > *,
+  .diet-recovery,
+  .diet-recovery .recovery-grid,
+  .diet-schedule,
+  .diet-period-grid {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .diet-recovery .recovery-card,
+  .diet-recovery .recovery-card + .recovery-card,
+  .diet-recovery .recovery-card:first-child {
+    width: 100%;
+    min-width: 0;
+  }
 }
 
 @media (max-width: 430px) {
   .app-shell {
-    padding: 10px 4px calc(110px + env(safe-area-inset-bottom));
+    padding: 10px 4px calc(140px + env(safe-area-inset-bottom));
   }
 
   .workout-panel {
