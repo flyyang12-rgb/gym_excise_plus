@@ -3642,7 +3642,21 @@ video {
   }
 
   .hero {
+    grid-template-columns: minmax(0, 1fr);
     padding: 46px 16px 18px;
+  }
+
+  .hero-main,
+  .hero-side,
+  .hero-overview,
+  .profile-calendar,
+  .profile-calendar-head,
+  .calendar-strip,
+  .hero-art,
+  .hero-art-image {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
   }
 
   .version-badge {
