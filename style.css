@@ -89,6 +89,7 @@ button {
 }
 
 .hero {
+  position: relative;
   display: grid;
   gap: 28px;
   padding: 34px;
@@ -927,6 +928,21 @@ p {
   font-size: 11px;
   text-align: center;
   text-decoration: none;
+}
+
+.version-badge {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  z-index: 2;
+  padding: 5px 8px;
+  border: 1px solid rgba(24, 35, 32, 0.1);
+  color: #758078;
+  background: rgba(255, 255, 255, 0.82);
+  font-size: 11px;
+  font-weight: 750;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .exercise-media-kind {
@@ -3553,7 +3569,12 @@ video {
 
 @media (max-width: 430px) {
   .hero {
-    padding: 18px 16px;
+    padding: 46px 16px 18px;
+  }
+
+  .version-badge {
+    top: 14px;
+    right: 16px;
   }
 
   .hero h1 {
