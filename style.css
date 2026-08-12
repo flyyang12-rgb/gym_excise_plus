@@ -1226,6 +1226,278 @@ p {
   .rest-ring { transition: none !important; }
 }
 
+/* 动作教学：保留当前训练上下文，用底部抽屉承接更完整的示范。 */
+.tutorial-sheet {
+  place-items: end center;
+  padding: 24px 24px 0;
+}
+
+.tutorial-sheet-panel {
+  width: min(100%, 760px);
+  max-height: min(88dvh, 760px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
+  border-bottom: 0;
+  border-radius: 22px 22px 0 0;
+  background: #fff;
+  box-shadow: 0 -18px 60px rgba(7, 18, 37, 0.18);
+}
+
+.tutorial-sheet-handle {
+  width: 100%;
+  min-height: 26px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border: 0;
+  background: transparent;
+  cursor: grab;
+  touch-action: none;
+}
+
+.tutorial-sheet-handle:active {
+  cursor: grabbing;
+}
+
+.tutorial-sheet-handle span {
+  width: 42px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--line);
+}
+
+.tutorial-sheet-head {
+  flex: 0 0 auto;
+  padding: 2px 24px 16px;
+  border-bottom: 1px solid rgba(207, 213, 223, 0.72);
+}
+
+.tutorial-sheet-head > div {
+  min-width: 0;
+}
+
+.tutorial-sheet-head h2 {
+  font-size: clamp(1.3rem, 3vw, 1.75rem);
+}
+
+.tutorial-sheet-head p:last-child {
+  margin: 7px 0 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.tutorial-sheet-scroll {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 20px 24px;
+}
+
+.tutorial-sheet-grid {
+  display: grid;
+  grid-template-columns: minmax(220px, 290px) minmax(0, 1fr);
+  gap: 22px;
+  align-items: start;
+}
+
+.tutorial-sheet-figure {
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid rgba(207, 213, 223, 0.78);
+  background: #fff;
+}
+
+.tutorial-sheet-figure[hidden],
+.tutorial-sheet-media-fallback[hidden],
+.tutorial-sheet-media-kind[hidden],
+.tutorial-sheet-actions [hidden] {
+  display: none;
+}
+
+.tutorial-sheet-figure img {
+  width: 100%;
+  aspect-ratio: 1;
+  display: block;
+  object-fit: contain;
+  background: #fff;
+}
+
+.tutorial-sheet-figure figcaption {
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 10px;
+  background: #eef0eb;
+  color: #5c675f;
+  font-size: 11px;
+}
+
+.tutorial-sheet-figure a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.tutorial-sheet-media-kind {
+  color: var(--accent-deep);
+  font-weight: 800;
+}
+
+.tutorial-sheet-media-fallback {
+  min-height: 220px;
+  display: grid;
+  place-content: center;
+  gap: 7px;
+  padding: 24px;
+  border: 1px solid rgba(207, 213, 223, 0.78);
+  background: var(--surface-soft);
+  text-align: center;
+}
+
+.tutorial-sheet-media-fallback span {
+  color: var(--muted);
+}
+
+.tutorial-sheet-guide {
+  min-width: 0;
+  display: grid;
+  gap: 14px;
+}
+
+.tutorial-sheet-cue {
+  margin: 0;
+}
+
+.tutorial-sheet-section {
+  padding: 14px 16px;
+  border-left: 3px solid var(--accent);
+  background: var(--surface-soft);
+}
+
+.tutorial-sheet-section > span {
+  color: var(--accent-deep);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.tutorial-sheet-section ol,
+.tutorial-sheet-section ul {
+  margin: 9px 0 0;
+  padding-left: 1.2rem;
+}
+
+.tutorial-sheet-section li {
+  padding-left: 4px;
+  color: var(--navy);
+  line-height: 1.58;
+}
+
+.tutorial-sheet-section li + li {
+  margin-top: 6px;
+}
+
+.tutorial-sheet-warning {
+  border-left-color: var(--navy);
+}
+
+.tutorial-sheet-warning > span {
+  color: var(--navy);
+}
+
+.tutorial-sheet-actions {
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: 10px;
+  padding: 14px 24px calc(14px + env(safe-area-inset-bottom));
+  border-top: 1px solid rgba(207, 213, 223, 0.72);
+  background: rgba(255, 255, 255, 0.98);
+}
+
+.tutorial-sheet-actions > * {
+  min-height: 46px;
+  justify-content: center;
+  text-align: center;
+  text-decoration: none;
+}
+
+.tutorial-sheet-actions.is-single-action {
+  grid-template-columns: 1fr;
+}
+
+.tutorial-sheet-panel.is-dragging {
+  animation: none !important;
+  transform: translateY(var(--tutorial-drag-y, 0));
+  transition: none;
+}
+
+.tutorial-sheet-panel.is-snapping-back {
+  transform: translateY(var(--tutorial-drag-y, 0));
+  transition: transform 200ms var(--motion-ease-out);
+}
+
+@media (max-width: 700px) {
+  .tutorial-sheet {
+    padding: 12px 0 0;
+  }
+
+  .tutorial-sheet-panel {
+    width: 100%;
+    max-height: calc(100dvh - 12px);
+    border-right: 0;
+    border-left: 0;
+  }
+
+  .tutorial-sheet-head {
+    padding: 0 16px 12px;
+  }
+
+  .tutorial-sheet-head p:last-child {
+    margin-top: 5px;
+    font-size: 0.9rem;
+  }
+
+  .tutorial-sheet-scroll {
+    padding: 14px 16px;
+  }
+
+  .tutorial-sheet-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .tutorial-sheet-figure,
+  .tutorial-sheet-media-fallback {
+    width: min(100%, 300px);
+    justify-self: center;
+  }
+
+  .tutorial-sheet-figure img {
+    max-height: 250px;
+  }
+
+  .tutorial-sheet-guide {
+    gap: 10px;
+  }
+
+  .tutorial-sheet-section {
+    padding: 11px 13px;
+  }
+
+  .tutorial-sheet-actions {
+    padding: 10px max(12px, env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+  }
+}
+
+@media (max-width: 350px) {
+  .tutorial-sheet-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Compact phone workout: keep exercise switching and the demo in easy reach. */
 @media (max-width: 480px) {
   .app-module.is-active {
@@ -5208,5 +5480,35 @@ body.has-modal-open {
 
   .workout-panel .stepper-footer .step-nav-button-primary {
     width: 112px;
+  }
+}
+
+/* Final tutorial drawer precedence over every legacy modal breakpoint. */
+.bmi-modal.tutorial-sheet {
+  place-items: end center;
+  padding: 24px 24px 0;
+}
+
+.tutorial-sheet .bmi-modal-panel.tutorial-sheet-panel {
+  width: min(100%, 760px);
+  max-height: min(88dvh, 760px);
+  display: flex;
+  padding: 0;
+  border-bottom: 0;
+  border-radius: 22px 22px 0 0;
+}
+
+@media (max-width: 700px) {
+  .bmi-modal.tutorial-sheet {
+    padding: 12px 0 0;
+  }
+
+  .tutorial-sheet .bmi-modal-panel.tutorial-sheet-panel {
+    width: 100%;
+    max-height: calc(100dvh - 12px);
+    padding: 0;
+    border-right: 0;
+    border-left: 0;
+    border-radius: 22px 22px 0 0;
   }
 }

@@ -1,7 +1,7 @@
 const STORAGE_KEY = "fitness_helper_progress_v2";
 const TRAINING_NOTES_KEY = "fitness_helper_training_notes_v1";
 const AI_REQUEST_TIMEOUT_MS = 10000;
-const APP_VERSION = "2026.08.12.9";
+const APP_VERSION = "2026.08.12.10";
 const MODAL_EXIT_DURATION_MS = 180;
 const modalCloseTimers = new WeakMap();
 const modalPreviousFocus = new WeakMap();
@@ -616,6 +616,23 @@ const elements = {
   aiQuestionInput: document.querySelector("#aiQuestionInput"),
   aiAskButton: document.querySelector("#aiAskButton"),
   aiQuickPrompts: document.querySelector(".ai-quick-prompts"),
+  tutorialSheet: document.querySelector("#tutorialSheet"),
+  tutorialSheetBackdrop: document.querySelector("#tutorialSheetBackdrop"),
+  tutorialSheetPanel: document.querySelector(".tutorial-sheet-panel"),
+  tutorialSheetHandle: document.querySelector("#tutorialSheetHandle"),
+  tutorialSheetClose: document.querySelector("#tutorialSheetClose"),
+  tutorialSheetContinue: document.querySelector("#tutorialSheetContinue"),
+  tutorialSheetTitle: document.querySelector("#tutorialSheetTitle"),
+  tutorialSheetSummary: document.querySelector("#tutorialSheetSummary"),
+  tutorialSheetCue: document.querySelector("#tutorialSheetCue"),
+  tutorialSheetSteps: document.querySelector("#tutorialSheetSteps"),
+  tutorialSheetMistakes: document.querySelector("#tutorialSheetMistakes"),
+  tutorialSheetFigure: document.querySelector("#tutorialSheetFigure"),
+  tutorialSheetImage: document.querySelector("#tutorialSheetImage"),
+  tutorialSheetMediaCredit: document.querySelector("#tutorialSheetMediaCredit"),
+  tutorialSheetMediaKind: document.querySelector("#tutorialSheetMediaKind"),
+  tutorialSheetMediaFallback: document.querySelector("#tutorialSheetMediaFallback"),
+  tutorialSheetExternal: document.querySelector("#tutorialSheetExternal"),
   noteAddButton: document.querySelector("#noteAddButton"),
   noteForm: document.querySelector("#noteForm"),
   noteInput: document.querySelector("#noteInput"),
@@ -1200,7 +1217,7 @@ function hideModal(modal) {
     modal.hidden = true;
     modal.classList.remove("is-closing");
     modalCloseTimers.delete(modal);
-    const hasOpenModal = [elements.bmiModal, elements.aiModal].some((item) => item && !item.hidden);
+    const hasOpenModal = [elements.bmiModal, elements.aiModal, elements.tutorialSheet].some((item) => item && !item.hidden);
     document.body.classList.toggle("has-modal-open", hasOpenModal);
     const previousFocus = modalPreviousFocus.get(modal);
     if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true });
@@ -1236,6 +1253,108 @@ function openAiModal() {
 
 function closeAiModal() {
   hideModal(elements.aiModal);
+}
+
+function renderTutorialSheet(exercise, guide, tutorialUrl) {
+  elements.tutorialSheetTitle.textContent = exercise.name;
+  elements.tutorialSheetSummary.textContent = exercise.note || "先看一遍动作路线，再慢慢跟着做。";
+  elements.tutorialSheetCue.textContent = guide.memoryCue;
+  elements.tutorialSheetSteps.innerHTML = guide.steps.map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+  elements.tutorialSheetMistakes.innerHTML = guide.mistakes.slice(0, 2).map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+
+  const hasMedia = Boolean(guide.media);
+  elements.tutorialSheetFigure.hidden = !hasMedia;
+  elements.tutorialSheetMediaFallback.hidden = hasMedia;
+  if (hasMedia) {
+    elements.tutorialSheetImage.src = guide.media.src;
+    elements.tutorialSheetImage.alt = guide.media.alt;
+    elements.tutorialSheetMediaCredit.textContent = guide.media.attribution;
+    if (guide.media.attributionUrl) {
+      elements.tutorialSheetMediaCredit.href = guide.media.attributionUrl;
+      elements.tutorialSheetMediaCredit.removeAttribute("aria-disabled");
+    } else {
+      elements.tutorialSheetMediaCredit.removeAttribute("href");
+      elements.tutorialSheetMediaCredit.setAttribute("aria-disabled", "true");
+    }
+    elements.tutorialSheetMediaKind.hidden = !guide.media.approximate;
+  }
+
+  elements.tutorialSheetExternal.hidden = !tutorialUrl;
+  elements.tutorialSheetExternal.parentElement.classList.toggle("is-single-action", !tutorialUrl);
+  if (tutorialUrl) elements.tutorialSheetExternal.href = tutorialUrl;
+}
+
+function openTutorialSheet() {
+  const workout = getActiveWorkout();
+  const exercise = workout?.exercises[activeExerciseIndex];
+  if (!exercise || !elements.tutorialSheet) return;
+  const guide = window.ExerciseGuides.getExerciseGuide(exercise, { mediaEnabled: EXERCISE_MEDIA_ENABLED });
+  const tutorialUrl = state.goal === "muscleGain" ? tutorialLinks[exercise.name] : "";
+  renderTutorialSheet(exercise, guide, tutorialUrl);
+  showModal(elements.tutorialSheet);
+  window.setTimeout(() => elements.tutorialSheetClose?.focus(), 80);
+}
+
+function closeTutorialSheet() {
+  hideModal(elements.tutorialSheet);
+}
+
+function keepFocusInsideModal(event) {
+  if (event.key !== "Tab") return;
+  const modal = [elements.tutorialSheet, elements.aiModal, elements.bmiModal]
+    .find((item) => item && !item.hidden && !item.classList.contains("is-closing"));
+  if (!modal) return;
+  const focusable = Array.from(modal.querySelectorAll(
+    'button:not([disabled]):not([hidden]), a[href]:not([hidden]), input:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+  )).filter((item) => item.getClientRects().length > 0);
+  if (!focusable.length) return;
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault();
+    first.focus();
+  }
+}
+
+function bindTutorialSheetDrag() {
+  const handle = elements.tutorialSheetHandle;
+  const panel = elements.tutorialSheetPanel;
+  if (!handle || !panel) return;
+  let startY = null;
+  let distance = 0;
+
+  const finishDrag = (event) => {
+    if (startY === null) return;
+    if (handle.hasPointerCapture?.(event.pointerId)) handle.releasePointerCapture(event.pointerId);
+    panel.classList.remove("is-dragging");
+    startY = null;
+    if (distance > 84) {
+      panel.style.removeProperty("--tutorial-drag-y");
+      closeTutorialSheet();
+    } else {
+      panel.classList.add("is-snapping-back");
+      requestAnimationFrame(() => panel.style.removeProperty("--tutorial-drag-y"));
+    }
+    window.setTimeout(() => panel.classList.remove("is-snapping-back"), 220);
+    distance = 0;
+  };
+
+  handle.addEventListener("pointerdown", (event) => {
+    startY = event.clientY;
+    distance = 0;
+    handle.setPointerCapture?.(event.pointerId);
+    panel.classList.add("is-dragging");
+  });
+  handle.addEventListener("pointermove", (event) => {
+    if (startY === null) return;
+    distance = Math.max(0, event.clientY - startY);
+    panel.style.setProperty("--tutorial-drag-y", `${distance}px`);
+  });
+  handle.addEventListener("pointerup", finishDrag);
+  handle.addEventListener("pointercancel", finishDrag);
 }
 
 function renderOverview() {
@@ -1474,7 +1593,6 @@ function renderWorkout() {
   const exercise = workout.exercises[activeExerciseIndex];
   const guide = window.ExerciseGuides.getExerciseGuide(exercise, { mediaEnabled: EXERCISE_MEDIA_ENABLED });
   const complete = !!checkedMap[exercise.name];
-  const tutorialUrl = state.goal === "muscleGain" ? tutorialLinks[exercise.name] : "";
   const equipmentTarget = state.goal === "fatLoss" ? "mat" : (exercise.equipment || "");
   const equipmentJumpLabel = state.goal === "fatLoss"
     ? "看瑜伽垫"
@@ -1556,7 +1674,7 @@ function renderWorkout() {
                 <strong>${exercise.name}</strong>
               </div>
               <div class="exercise-head-actions">
-                ${tutorialUrl ? `<a class="tutorial-link" href="${tutorialUrl}" target="_blank" rel="noopener noreferrer">看教学</a>` : ""}
+                ${guide.hasSpecificGuide ? `<button type="button" class="tutorial-link" data-open-tutorial>看教学</button>` : ""}
                 <label class="exercise-check exercise-check-card">
                   <input type="checkbox" data-workout-id="${workout.id}" data-exercise-name="${exercise.name}" ${complete ? "checked" : ""}>
                   <span>${complete ? "已完成" : "完成"}</span>
@@ -1628,6 +1746,8 @@ function renderWorkout() {
 
 function bindWorkoutInteractions() {
   bindEquipmentJumpButtons(elements.exerciseList);
+
+  elements.exerciseList.querySelector("[data-open-tutorial]")?.addEventListener("click", openTutorialSheet);
 
   elements.exerciseList.querySelectorAll("input[type='checkbox']").forEach((checkbox) => {
     checkbox.addEventListener("change", () => {
@@ -2062,6 +2182,27 @@ function attachEvents() {
     elements.aiModalClose.addEventListener("click", closeAiModal);
   }
 
+  if (elements.tutorialSheetBackdrop) {
+    elements.tutorialSheetBackdrop.addEventListener("click", closeTutorialSheet);
+  }
+
+  if (elements.tutorialSheetClose) {
+    elements.tutorialSheetClose.addEventListener("click", closeTutorialSheet);
+  }
+
+  if (elements.tutorialSheetContinue) {
+    elements.tutorialSheetContinue.addEventListener("click", closeTutorialSheet);
+  }
+
+  if (elements.tutorialSheetImage) {
+    elements.tutorialSheetImage.addEventListener("error", () => {
+      elements.tutorialSheetFigure.hidden = true;
+      elements.tutorialSheetMediaFallback.hidden = false;
+    });
+  }
+
+  bindTutorialSheetDrag();
+
   [elements.bmiHeightInput, elements.bmiWeightInput].forEach((input) => {
     if (!input) return;
     input.addEventListener("input", renderBmiModalPreview);
@@ -2081,7 +2222,9 @@ function attachEvents() {
     if (event.key === "Escape") {
       closeBmiModal();
       closeAiModal();
+      closeTutorialSheet();
     }
+    keepFocusInsideModal(event);
   });
 
   window.addEventListener("scroll", updateBackToTopButton, { passive: true });

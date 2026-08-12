@@ -6,13 +6,13 @@
   <meta name="theme-color" content="#ef6a2e">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>健身小助手</title>
-  <link rel="stylesheet" href="style.css?v=20260812-mobile-next-v9">
+  <link rel="stylesheet" href="style.css?v=20260812-tutorial-sheet-v10">
 </head>
 <body>
   <div class="app-shell">
     <section class="app-module app-module-training is-active" data-module="training" aria-label="训练模块">
       <header class="hero">
-        <span id="versionBadge" class="version-badge" title="当前版本">v2026.08.12.9</span>
+        <span id="versionBadge" class="version-badge" title="当前版本">v2026.08.12.10</span>
         <div class="hero-main">
           <p class="eyebrow">训练节奏</p>
           <h1>按计划行事</h1>
@@ -254,6 +254,59 @@
     <button id="backToWorkoutButton" class="dock-button dock-button-quiet" type="button">返回动作</button>
   </div>
 
+  <div id="tutorialSheet" class="bmi-modal tutorial-sheet" aria-hidden="true" hidden>
+    <div id="tutorialSheetBackdrop" class="bmi-modal-backdrop"></div>
+    <section class="bmi-modal-panel tutorial-sheet-panel" role="dialog" aria-modal="true" aria-labelledby="tutorialSheetTitle" aria-describedby="tutorialSheetSummary">
+      <div id="tutorialSheetHandle" class="tutorial-sheet-handle" aria-hidden="true">
+        <span aria-hidden="true"></span>
+      </div>
+      <div class="bmi-modal-head tutorial-sheet-head">
+        <div>
+          <p class="panel-tag">动作教学</p>
+          <h2 id="tutorialSheetTitle">动作名称</h2>
+          <p id="tutorialSheetSummary">先看一遍路线，再开始做。</p>
+        </div>
+        <button id="tutorialSheetClose" class="bmi-modal-close" type="button" aria-label="关闭动作教学">关闭</button>
+      </div>
+
+      <div class="tutorial-sheet-scroll">
+        <div class="tutorial-sheet-grid">
+          <figure id="tutorialSheetFigure" class="tutorial-sheet-figure">
+            <img id="tutorialSheetImage" src="" alt="" width="320" height="320">
+            <figcaption>
+              <a id="tutorialSheetMediaCredit" href="#" target="_blank" rel="noopener noreferrer">© Gym visual</a>
+              <span id="tutorialSheetMediaKind" hidden>相似动作示范</span>
+            </figcaption>
+          </figure>
+          <div id="tutorialSheetMediaFallback" class="tutorial-sheet-media-fallback" hidden>
+            <strong>示范图暂时没加载出来</strong>
+            <span>先跟着三步慢慢做，也能练。</span>
+          </div>
+
+          <div class="tutorial-sheet-guide">
+            <div class="exercise-memory-cue tutorial-sheet-cue">
+              <span>一眼记住</span>
+              <strong id="tutorialSheetCue">稳住比速度更重要。</strong>
+            </div>
+            <div class="tutorial-sheet-section">
+              <span>照着做</span>
+              <ol id="tutorialSheetSteps"></ol>
+            </div>
+            <div class="tutorial-sheet-section tutorial-sheet-warning">
+              <span>别踩坑</span>
+              <ul id="tutorialSheetMistakes"></ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tutorial-sheet-actions">
+        <button id="tutorialSheetContinue" class="primary-button" type="button">看懂了，继续练</button>
+        <a id="tutorialSheetExternal" class="soft-button" href="#" target="_blank" rel="noopener noreferrer">打开完整视频 ↗</a>
+      </div>
+    </section>
+  </div>
+
   <div id="bmiModal" class="bmi-modal" aria-hidden="true" hidden>
     <div id="bmiModalBackdrop" class="bmi-modal-backdrop"></div>
     <section class="bmi-modal-panel" role="dialog" aria-modal="true" aria-labelledby="bmiModalTitle">
@@ -321,8 +374,8 @@
     </section>
   </div>
 
-  <script src="exercise-guides.js?v=20260812-mobile-next-v9"></script>
+  <script src="exercise-guides.js?v=20260812-tutorial-sheet-v10"></script>
   <script src="diet-guide.js?v=20260712-diet"></script>
-  <script src="script.js?v=20260812-mobile-next-v9"></script>
+  <script src="script.js?v=20260812-tutorial-sheet-v10"></script>
 </body>
 </html>
