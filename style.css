@@ -3929,3 +3929,743 @@ video {
     font-size: 10px;
   }
 }
+
+/* Unified phone experience: one mobile layout for Android and iPhone. */
+@media (max-width: 480px) {
+  :root {
+    --phone-gutter: clamp(8px, 2.8vw, 14px);
+    --phone-panel-radius: 18px;
+    --phone-tabbar-height: 64px;
+  }
+
+  html {
+    background: #f4f6f8;
+  }
+
+  body {
+    min-height: 100dvh;
+    padding: 0;
+    padding-right: env(safe-area-inset-right);
+    padding-left: env(safe-area-inset-left);
+    padding-bottom: calc(var(--phone-tabbar-height) + env(safe-area-inset-bottom));
+    background:
+      radial-gradient(circle at 12% 0%, rgba(239, 106, 46, 0.08), transparent 32%),
+      linear-gradient(180deg, #fafbfc 0%, #f1f4f7 100%);
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    touch-action: manipulation;
+  }
+
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+
+  .app-shell {
+    width: 100%;
+    padding: var(--phone-gutter) var(--phone-gutter) calc(76px + env(safe-area-inset-bottom));
+  }
+
+  .app-module-page {
+    min-height: calc(100dvh - var(--phone-tabbar-height));
+    gap: 12px;
+  }
+
+  .dashboard-layout {
+    gap: 12px;
+    margin-top: 12px;
+  }
+
+  .hero,
+  .plan-panel,
+  .workout-panel,
+  .training-notes-panel,
+  .secondary-section {
+    border-radius: var(--phone-panel-radius);
+    box-shadow: 0 8px 24px rgba(16, 24, 39, 0.055);
+  }
+
+  .hero {
+    gap: 14px;
+    padding: 42px 14px 14px;
+  }
+
+  .version-badge {
+    top: 12px;
+    right: 14px;
+    max-width: calc(100% - 28px);
+    padding: 5px 7px;
+    overflow: hidden;
+    border-radius: 7px;
+    font-size: 10px;
+    text-overflow: ellipsis;
+  }
+
+  .eyebrow,
+  .panel-tag {
+    margin-bottom: 6px;
+    font-size: 0.7rem;
+  }
+
+  .hero h1 {
+    font-size: clamp(1.75rem, 8.5vw, 2.15rem);
+    line-height: 1.08;
+  }
+
+  .hero-motto {
+    margin-top: 10px;
+    padding-left: 10px;
+    border-left-width: 3px;
+    font-size: 0.86rem;
+    line-height: 1.55;
+  }
+
+  .hero-side,
+  .hero-overview {
+    gap: 8px;
+  }
+
+  .hero-overview {
+    padding: 0;
+    border: 0;
+    background: transparent;
+  }
+
+  .profile-calendar-hero {
+    padding: 12px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: linear-gradient(180deg, rgba(255, 248, 242, 0.9), #fff);
+  }
+
+  .profile-calendar-head {
+    align-items: center;
+  }
+
+  .profile-calendar-badge {
+    min-width: 58px;
+    padding: 7px 9px;
+  }
+
+  .goal-tabs {
+    margin-top: 10px;
+  }
+
+  .goal-tabs button,
+  .frequency-tabs button {
+    min-height: 44px;
+  }
+
+  .calendar-strip {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: clamp(4px, 2.2vw, 10px);
+  }
+
+  .calendar-day {
+    min-width: 0;
+  }
+
+  .calendar-day-dot {
+    width: 32px;
+    height: 32px;
+  }
+
+  .hero-art {
+    max-height: 84px;
+    padding: 2px 6px 0;
+  }
+
+  .hero-art-image {
+    height: 84px;
+    aspect-ratio: auto;
+    object-fit: contain;
+  }
+
+  .plan-panel,
+  .workout-panel,
+  .secondary-section {
+    padding: 14px;
+  }
+
+  .section-head,
+  .section-head-split {
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .section-head h2,
+  .module-page-head h2,
+  .diet-hero h2 {
+    font-size: clamp(1.25rem, 6vw, 1.55rem);
+    line-height: 1.2;
+  }
+
+  .frequency-tabs {
+    width: 100%;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .weekly-plan {
+    margin-inline: -2px;
+    padding-bottom: 5px;
+  }
+
+  .weekly-plan .day-card {
+    flex-basis: min(84%, 292px);
+    min-height: 190px;
+  }
+
+  .weekly-plan .day-card-shell,
+  .weekly-plan .day-card:first-child .day-card-shell {
+    padding: 14px;
+  }
+
+  .day-card p {
+    font-size: 0.9rem;
+    line-height: 1.55;
+  }
+
+  .workout-panel > .section-head {
+    align-items: stretch;
+  }
+
+  .workout-panel .checkin-box {
+    width: 100%;
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: stretch;
+  }
+
+  .workout-panel .checkin-box span {
+    text-align: left;
+  }
+
+  .workout-panel .checkin-box .primary-button,
+  .workout-panel .warmup-actions button,
+  .exercise-head-actions .tutorial-link,
+  .workout-panel .exercise-demo-meta > button,
+  .guide-tabs button {
+    min-height: 44px;
+  }
+
+  .exercise-head-actions .tutorial-link {
+    justify-content: center;
+    padding: 9px 12px;
+    border: 1px solid rgba(239, 106, 46, 0.24);
+    border-radius: 10px;
+    background: var(--accent-soft);
+  }
+
+  .workout-panel .warmup-card {
+    padding: 13px;
+    border-radius: 14px;
+  }
+
+  .workout-panel .warmup-actions,
+  .workout-panel .warmup-actions button {
+    width: 100%;
+  }
+
+  .workout-panel .exercise-stepper {
+    gap: 12px;
+    padding: 8px;
+    border-radius: 14px;
+  }
+
+  .workout-panel .stepper-dots {
+    gap: 5px;
+    padding: 8px 4px;
+  }
+
+  .stepper-dots button {
+    min-width: 0;
+    min-height: 44px;
+  }
+
+  .exercise-stage {
+    gap: 12px;
+    padding: 12px;
+    border-radius: 12px;
+  }
+
+  .exercise-stage-number {
+    min-height: 40px;
+  }
+
+  .workout-panel .exercise-title > strong {
+    font-size: clamp(1.35rem, 7vw, 1.7rem);
+  }
+
+  .exercise-demo {
+    width: min(100%, 190px);
+    min-height: 0;
+    margin-inline: auto;
+  }
+
+  .exercise-demo img {
+    width: min(100%, 180px);
+    height: auto;
+    aspect-ratio: 1;
+  }
+
+  .stepper-footer {
+    gap: 8px;
+  }
+
+  .stepper-footer .step-nav-button {
+    min-height: 48px;
+  }
+
+  .training-notes-panel {
+    margin-top: 0;
+    padding: 14px;
+  }
+
+  .note-add-button {
+    width: 48px;
+    height: 48px;
+  }
+
+  .equipment-card {
+    border-radius: 14px;
+  }
+
+  .equipment-image {
+    aspect-ratio: 16 / 10;
+  }
+
+  .diet-panel {
+    gap: 12px;
+  }
+
+  .diet-hero {
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .recovery-actions,
+  .note-form-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .recovery-actions > *,
+  .note-form-actions > * {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .app-tabbar {
+    min-height: calc(var(--phone-tabbar-height) + env(safe-area-inset-bottom));
+    padding:
+      5px
+      max(6px, env(safe-area-inset-right))
+      max(5px, env(safe-area-inset-bottom))
+      max(6px, env(safe-area-inset-left));
+    border-top-color: rgba(207, 213, 223, 0.78);
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: 0 -10px 30px rgba(16, 24, 39, 0.1);
+  }
+
+  .app-tabbar button {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 26px 16px;
+    gap: 1px;
+    min-height: 54px;
+    padding: 4px 6px;
+    border-radius: 12px;
+    font-size: 0.72rem;
+    line-height: 1;
+  }
+
+  .app-tabbar button.is-active {
+    border-radius: 12px;
+  }
+
+  .app-tabbar button span {
+    width: 26px;
+    height: 26px;
+    margin-inline: auto;
+    font-size: 0.7rem;
+  }
+
+  .action-dock {
+    right: max(10px, env(safe-area-inset-right));
+    bottom: calc(var(--phone-tabbar-height) + 12px + env(safe-area-inset-bottom));
+    left: max(10px, env(safe-area-inset-left));
+  }
+
+  .rocket-button {
+    width: 48px;
+    min-height: 48px;
+  }
+
+  .bmi-modal,
+  .ai-modal {
+    place-items: end center;
+    padding: 12px 0 0;
+  }
+
+  .bmi-modal-panel,
+  .ai-modal .bmi-modal-panel {
+    width: 100%;
+    max-height: calc(100dvh - 12px);
+    padding: 18px max(16px, env(safe-area-inset-right)) calc(18px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+    border-right: 0;
+    border-bottom: 0;
+    border-left: 0;
+    border-radius: 22px 22px 0 0;
+  }
+
+  .ai-chat-log {
+    max-height: min(38dvh, 300px);
+  }
+}
+
+@media (max-width: 359px) {
+  .app-tabbar button {
+    padding-inline: 2px;
+    font-size: 0.68rem;
+  }
+
+  .weekly-plan .day-card {
+    flex-basis: 90%;
+  }
+
+  .calendar-strip {
+    gap: 3px;
+  }
+
+  .calendar-day-dot {
+    width: 29px;
+    height: 29px;
+  }
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+  .app-shell {
+    padding-bottom: calc(64px + env(safe-area-inset-bottom));
+  }
+
+  .app-tabbar {
+    --phone-tabbar-height: 54px;
+  }
+
+  .app-tabbar button {
+    grid-template-columns: auto auto;
+    grid-template-rows: 1fr;
+    gap: 5px;
+    min-height: 44px;
+  }
+
+  .action-dock {
+    bottom: calc(58px + env(safe-area-inset-bottom));
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .day-card,
+  .equipment-card,
+  .exercise-check-card,
+  .stepper-dots button {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .equipment-card:hover,
+  .exercise-check-card:hover,
+  .stepper-dots button:hover {
+    transform: none;
+  }
+}
+
+/* Interaction flow: keep the visual system, soften how the interface responds. */
+:root {
+  --motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-fast: 160ms;
+  --motion-base: 240ms;
+  --motion-slow: 340ms;
+}
+
+body.has-modal-open {
+  overflow: hidden;
+}
+
+.app-module.is-active {
+  animation: moduleFlowIn var(--motion-slow) var(--motion-ease-out) both;
+}
+
+.frequency-tabs button,
+.goal-tabs button,
+.app-tabbar button,
+.app-tabbar button span,
+.primary-button,
+.ghost-button,
+.soft-button,
+.guide-button,
+.module-action-button,
+.note-add-button,
+.note-ghost-button,
+.note-save-button,
+.bmi-modal-close,
+.ai-quick-prompts button,
+.diet-carousel-controls button,
+.dock-button,
+.day-card-shell,
+.equipment-card,
+.recovery-card,
+.guide-tabs button,
+.tutorial-link {
+  transition:
+    transform var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-base) var(--motion-ease),
+    border-color var(--motion-base) ease,
+    background-color var(--motion-base) ease,
+    color var(--motion-base) ease,
+    opacity var(--motion-fast) ease;
+}
+
+.frequency-tabs button.is-active,
+.goal-tabs button.is-active,
+.app-tabbar button.is-active {
+  animation: controlSettle 280ms var(--motion-ease-out) both;
+}
+
+.app-tabbar button.is-active span {
+  transform: translateY(-1px) scale(1.04);
+}
+
+.weekly-plan .day-card.is-active .day-card-shell {
+  animation: cardSettle 320ms var(--motion-ease-out) both;
+}
+
+.exercise-card-focus {
+  animation-duration: 320ms;
+  animation-timing-function: var(--motion-ease-out);
+}
+
+.note-form:not([hidden]) {
+  transform-origin: top center;
+  animation: formReveal 280ms var(--motion-ease-out) both;
+}
+
+.note-item,
+.ai-message {
+  animation: contentSettle 280ms var(--motion-ease-out) both;
+}
+
+.equipment-card.is-highlighted {
+  animation: highlightSettle 620ms var(--motion-ease-out) both;
+}
+
+.bmi-modal:not([hidden]) .bmi-modal-backdrop {
+  animation: modalBackdropIn var(--motion-base) ease both;
+}
+
+.bmi-modal:not([hidden]) .bmi-modal-panel {
+  transform-origin: center bottom;
+  animation: modalPanelIn 320ms var(--motion-ease-out) both;
+}
+
+.bmi-modal.is-closing .bmi-modal-backdrop {
+  animation: modalBackdropOut 180ms ease both;
+}
+
+.bmi-modal.is-closing .bmi-modal-panel {
+  animation: modalPanelOut 180ms ease both;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .day-card:hover .day-card-shell,
+  .equipment-card:hover,
+  .recovery-card:hover {
+    transform: translateY(-3px);
+  }
+
+  .primary-button:hover,
+  .ghost-button:hover,
+  .soft-button:hover,
+  .guide-button:hover,
+  .module-action-button:hover,
+  .note-save-button:hover,
+  .note-ghost-button:hover,
+  .bmi-modal-close:hover,
+  .ai-quick-prompts button:hover,
+  .diet-carousel-controls button:hover,
+  .dock-button:hover {
+    transform: translateY(-1px);
+  }
+
+  .tutorial-link:hover {
+    transform: translateX(2px);
+  }
+}
+
+.frequency-tabs button:active,
+.goal-tabs button:active,
+.app-tabbar button:active,
+.primary-button:active,
+.ghost-button:active,
+.soft-button:active,
+.guide-button:active,
+.module-action-button:active,
+.note-add-button:active,
+.note-ghost-button:active,
+.note-save-button:active,
+.bmi-modal-close:active,
+.ai-quick-prompts button:active,
+.diet-carousel-controls button:active,
+.dock-button:active,
+.step-nav-button:not(:disabled):active,
+.exercise-check-card:active {
+  transform: translateY(1px) scale(0.98);
+  transition-duration: 80ms;
+}
+
+.day-card:active .day-card-shell,
+.equipment-card:active,
+.recovery-card:active {
+  transform: scale(0.99);
+  transition-duration: 80ms;
+}
+
+@keyframes moduleFlowIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.995);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes controlSettle {
+  0% { transform: scale(0.96); }
+  70% { transform: scale(1.015); }
+  100% { transform: scale(1); }
+}
+
+@keyframes cardSettle {
+  from {
+    opacity: 0.88;
+    transform: translateY(4px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes formReveal {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scaleY(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+  }
+}
+
+@keyframes contentSettle {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes highlightSettle {
+  0% { transform: translateY(4px) scale(0.985); }
+  55% { transform: translateY(-3px) scale(1.006); }
+  100% { transform: translateY(-2px) scale(1); }
+}
+
+@keyframes modalBackdropIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalBackdropOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes modalPanelIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes modalPanelOut {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(10px) scale(0.99);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .app-module.is-active,
+  .frequency-tabs button.is-active,
+  .goal-tabs button.is-active,
+  .app-tabbar button.is-active,
+  .weekly-plan .day-card.is-active .day-card-shell,
+  .exercise-card-focus,
+  .note-form:not([hidden]),
+  .note-item,
+  .ai-message,
+  .equipment-card.is-highlighted,
+  .bmi-modal:not([hidden]) .bmi-modal-backdrop,
+  .bmi-modal:not([hidden]) .bmi-modal-panel,
+  .bmi-modal.is-closing .bmi-modal-backdrop,
+  .bmi-modal.is-closing .bmi-modal-panel {
+    animation: none !important;
+  }
+
+  .frequency-tabs button,
+  .goal-tabs button,
+  .app-tabbar button,
+  .app-tabbar button span,
+  .primary-button,
+  .ghost-button,
+  .soft-button,
+  .guide-button,
+  .module-action-button,
+  .note-add-button,
+  .note-ghost-button,
+  .note-save-button,
+  .bmi-modal-close,
+  .ai-quick-prompts button,
+  .diet-carousel-controls button,
+  .dock-button,
+  .day-card-shell,
+  .equipment-card,
+  .recovery-card,
+  .guide-tabs button,
+  .tutorial-link {
+    transition-duration: 0.01ms !important;
+  }
+}
