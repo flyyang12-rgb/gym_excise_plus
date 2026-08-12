@@ -1,7 +1,7 @@
 const STORAGE_KEY = "fitness_helper_progress_v2";
 const TRAINING_NOTES_KEY = "fitness_helper_training_notes_v1";
 const AI_REQUEST_TIMEOUT_MS = 10000;
-const APP_VERSION = "2026.08.12.7";
+const APP_VERSION = "2026.08.12.8";
 const MODAL_EXIT_DURATION_MS = 180;
 const modalCloseTimers = new WeakMap();
 const modalPreviousFocus = new WeakMap();
@@ -1530,13 +1530,14 @@ function renderWorkout() {
           <span style="width: ${percent}%"></span>
         </div>
       </div>
-      <div class="stepper-dots" aria-label="选择动作">
+      <div class="stepper-dots" aria-label="选择动作" style="--exercise-count: ${totalExercises}">
         ${workout.exercises.map((item, index) => `
           <button
             type="button"
             class="${index === activeExerciseIndex ? "is-active" : ""} ${checkedMap[item.name] ? "is-complete" : ""}"
             data-step-index="${index}"
             aria-label="查看动作 ${index + 1}：${item.name}"
+            ${index === activeExerciseIndex ? 'aria-current="step"' : ""}
           >
             ${index + 1}
           </button>
@@ -1555,10 +1556,10 @@ function renderWorkout() {
                 <strong>${exercise.name}</strong>
               </div>
               <div class="exercise-head-actions">
-                ${tutorialUrl ? `<a class="tutorial-link" href="${tutorialUrl}" target="_blank" rel="noopener noreferrer">教学详情</a>` : ""}
+                ${tutorialUrl ? `<a class="tutorial-link" href="${tutorialUrl}" target="_blank" rel="noopener noreferrer">看教学</a>` : ""}
                 <label class="exercise-check exercise-check-card">
                   <input type="checkbox" data-workout-id="${workout.id}" data-exercise-name="${exercise.name}" ${complete ? "checked" : ""}>
-                  <span>${complete ? "已完成" : "标记完成"}</span>
+                  <span>${complete ? "已完成" : "完成"}</span>
                 </label>
               </div>
             </div>
@@ -1647,6 +1648,7 @@ function bindWorkoutInteractions() {
       activeExerciseIndex = nextIndex;
       activeGuideTab = "steps";
       renderWorkout();
+      scrollActiveExerciseIntoView();
     });
   });
 
@@ -1664,6 +1666,7 @@ function bindWorkoutInteractions() {
       }
       activeGuideTab = "steps";
       renderWorkout();
+      scrollActiveExerciseIntoView();
     });
   });
 
@@ -1690,6 +1693,17 @@ function bindWorkoutInteractions() {
     if (demo) demo.innerHTML = '<div class="exercise-demo-placeholder"><strong>示范加载失败</strong><small>请继续按文字步骤完成动作</small></div>';
   }, { once: true });
 
+}
+
+function scrollActiveExerciseIntoView() {
+  requestAnimationFrame(() => {
+    const stage = elements.exerciseList.querySelector(".exercise-stage");
+    if (!stage || window.innerWidth > 480) return;
+    stage.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+      block: "start",
+    });
+  });
 }
 
 function bindRestInteractions() {

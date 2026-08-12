@@ -1226,6 +1226,266 @@ p {
   .rest-ring { transition: none !important; }
 }
 
+/* Compact phone workout: keep exercise switching and the demo in easy reach. */
+@media (max-width: 480px) {
+  :root {
+    --phone-tabbar-height: 56px;
+  }
+
+  body {
+    overflow-x: clip;
+    padding-bottom: calc(var(--phone-tabbar-height) + env(safe-area-inset-bottom));
+  }
+
+  .app-shell {
+    padding-bottom: calc(62px + env(safe-area-inset-bottom));
+  }
+
+  .workout-panel {
+    padding: 8px;
+  }
+
+  .workout-panel .exercise-stepper {
+    overflow: visible;
+    gap: 8px;
+    padding: 6px;
+    border-radius: 12px;
+  }
+
+  .workout-panel .stepper-head,
+  .workout-panel .stepper-progress-row {
+    display: none;
+  }
+
+  .workout-panel .stepper-dots {
+    position: sticky;
+    top: max(4px, env(safe-area-inset-top));
+    z-index: 25;
+    grid-template-columns: repeat(var(--exercise-count), minmax(0, 1fr));
+    gap: 5px;
+    margin: -2px 0 0;
+    padding: 5px;
+    border: 1px solid rgba(207, 213, 223, 0.86);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: 0 8px 20px rgba(16, 24, 39, 0.1);
+    backdrop-filter: blur(12px);
+  }
+
+  .workout-panel .stepper-dots button {
+    min-width: 0;
+    min-height: 44px;
+    padding: 0;
+    border-radius: 9px;
+    font-size: 0.92rem;
+    box-shadow: none;
+  }
+
+  .exercise-stage {
+    gap: 7px;
+    padding: 10px;
+    border-radius: 11px;
+  }
+
+  .workout-panel .exercise-stage-number {
+    display: none;
+  }
+
+  .workout-panel .exercise-stage-main {
+    gap: 7px;
+  }
+
+  .workout-panel .exercise-head {
+    gap: 8px;
+  }
+
+  .workout-panel .exercise-title {
+    gap: 3px;
+  }
+
+  .workout-panel .exercise-title > span {
+    font-size: 0.68rem;
+  }
+
+  .workout-panel .exercise-title > strong {
+    font-size: clamp(1.18rem, 6vw, 1.45rem);
+    line-height: 1.12;
+  }
+
+  .workout-panel .exercise-head-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .workout-panel .exercise-head-actions > :only-child {
+    grid-column: 1 / -1;
+  }
+
+  .exercise-check-card,
+  .exercise-card-focus .exercise-head-actions .tutorial-link {
+    min-height: 42px;
+    padding: 7px 9px;
+    border-radius: 9px;
+    font-size: 0.82rem;
+  }
+
+  .exercise-card-focus .exercise-note {
+    font-size: 0.86rem;
+    line-height: 1.5;
+  }
+
+  .workout-panel .exercise-player-body {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .workout-panel .exercise-demo {
+    width: 100%;
+    max-width: none;
+    min-height: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: minmax(118px, 42%) minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    align-items: start;
+  }
+
+  .workout-panel .exercise-demo img {
+    grid-column: 1;
+    grid-row: 1;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+  }
+
+  .workout-panel .exercise-demo > a,
+  .workout-panel .exercise-media-credit {
+    grid-column: 1;
+    grid-row: 2;
+    padding: 5px 4px;
+    font-size: 9px;
+  }
+
+  .workout-panel .exercise-media-kind {
+    grid-column: 1;
+    grid-row: 1;
+    align-self: start;
+    justify-self: start;
+    z-index: 1;
+    margin: 5px;
+  }
+
+  .workout-panel .exercise-demo-meta {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-content: start;
+    align-self: stretch;
+    padding: 8px;
+    border-top: 0;
+    border-left: 1px solid rgba(24, 35, 32, 0.1);
+    background: #fff;
+  }
+
+  .workout-panel .exercise-demo-meta > span,
+  .workout-panel .exercise-demo-meta > button {
+    width: 100%;
+    min-height: 34px;
+    padding: 6px 7px;
+    justify-content: flex-start;
+    font-size: 10px;
+  }
+
+  .workout-panel .exercise-demo-meta > button {
+    min-height: 44px;
+  }
+
+  .muscle-summary {
+    gap: 5px;
+    margin-bottom: 7px;
+  }
+
+  .muscle-summary > div {
+    min-height: 48px;
+    padding: 7px 9px;
+  }
+
+  .muscle-summary strong {
+    font-size: 12px;
+  }
+
+  .exercise-memory-cue {
+    gap: 6px;
+    margin-bottom: 7px;
+    padding: 8px 9px;
+  }
+
+  .exercise-memory-cue strong {
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
+  .guide-tabs button {
+    min-height: 40px;
+    padding: 8px 7px 7px;
+    font-size: 10px;
+  }
+
+  .guide-tab-content {
+    min-height: 120px;
+    padding-top: 9px;
+    font-size: 0.86rem;
+  }
+
+  .stepper-footer {
+    gap: 6px;
+    padding: 6px;
+  }
+
+  .stepper-footer span {
+    font-size: 0.78rem;
+  }
+
+  .stepper-footer .step-nav-button {
+    min-height: 44px;
+    padding: 8px;
+  }
+
+  .app-tabbar {
+    min-height: calc(var(--phone-tabbar-height) + env(safe-area-inset-bottom));
+    padding-top: 3px;
+    padding-bottom: max(3px, env(safe-area-inset-bottom));
+  }
+
+  .app-tabbar button {
+    grid-template-rows: 22px 14px;
+    min-height: 48px;
+    padding: 3px 4px;
+    border-radius: 10px;
+    font-size: 0.66rem;
+  }
+
+  .app-tabbar button span {
+    width: 22px;
+    height: 22px;
+    font-size: 0.64rem;
+  }
+
+  .action-dock {
+    bottom: calc(var(--phone-tabbar-height) + 8px + env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-width: 359px) {
+  .workout-panel .exercise-demo {
+    grid-template-columns: minmax(106px, 40%) minmax(0, 1fr);
+  }
+
+  .workout-panel .stepper-dots button {
+    min-height: 42px;
+  }
+}
+
 /* Compact training flow after merging recovery into the main module. */
 .workout-panel {
   padding: 22px;
@@ -4699,5 +4959,121 @@ body.has-modal-open {
   .guide-tabs button,
   .tutorial-link {
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* Final phone precedence: later legacy breakpoints must not enlarge the workout again. */
+@media (max-width: 480px) {
+  :root {
+    --phone-tabbar-height: 56px;
+  }
+
+  body {
+    padding-bottom: calc(var(--phone-tabbar-height) + env(safe-area-inset-bottom));
+  }
+
+  .app-shell {
+    padding-bottom: calc(62px + env(safe-area-inset-bottom));
+  }
+
+  .workout-panel {
+    padding: 8px;
+  }
+
+  .workout-panel .exercise-stepper {
+    gap: 8px;
+    padding: 6px;
+  }
+
+  .workout-panel .stepper-dots {
+    gap: 5px;
+    padding: 5px;
+  }
+
+  .exercise-stage {
+    gap: 7px;
+    padding: 10px;
+    scroll-margin-top: calc(68px + env(safe-area-inset-top));
+  }
+
+  .workout-panel .exercise-title > strong {
+    font-size: clamp(1.18rem, 6vw, 1.45rem);
+  }
+
+  .workout-panel .exercise-head-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .workout-panel .exercise-head-actions > :only-child {
+    grid-column: 1 / -1;
+  }
+
+  .workout-panel .exercise-player-body {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .workout-panel .exercise-demo {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    grid-template-columns: minmax(118px, 42%) minmax(0, 1fr);
+  }
+
+  .workout-panel .exercise-demo img {
+    width: 100%;
+    height: auto;
+  }
+
+  .workout-panel .exercise-demo-meta {
+    padding: 8px;
+  }
+
+  .guide-tabs button {
+    min-height: 40px;
+  }
+
+  .stepper-footer .step-nav-button {
+    min-height: 44px;
+  }
+
+  .app-tabbar {
+    min-height: calc(var(--phone-tabbar-height) + env(safe-area-inset-bottom));
+    padding-top: 3px;
+    padding-bottom: max(3px, env(safe-area-inset-bottom));
+  }
+
+  .app-tabbar button {
+    grid-template-rows: 22px 14px;
+    min-height: 48px;
+    padding: 3px 4px;
+    border-radius: 10px;
+    font-size: 0.66rem;
+  }
+
+  .app-tabbar button.is-active {
+    border-radius: 10px;
+  }
+
+  .app-tabbar button span {
+    width: 22px;
+    height: 22px;
+    font-size: 0.64rem;
+  }
+
+  .action-dock {
+    bottom: calc(var(--phone-tabbar-height) + 8px + env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-width: 359px) {
+  .workout-panel .exercise-demo {
+    grid-template-columns: minmax(106px, 40%) minmax(0, 1fr);
+  }
+
+  .workout-panel .stepper-dots button {
+    min-height: 44px;
   }
 }
