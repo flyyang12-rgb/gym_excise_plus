@@ -1228,6 +1228,11 @@ p {
 
 /* Compact phone workout: keep exercise switching and the demo in easy reach. */
 @media (max-width: 480px) {
+  .app-module.is-active {
+    animation: none;
+    transform: none;
+  }
+
   :root {
     --phone-tabbar-height: 56px;
   }
@@ -1400,12 +1405,12 @@ p {
     min-height: 44px;
   }
 
-  .muscle-summary {
+  .workout-panel .muscle-summary {
     gap: 5px;
     margin-bottom: 7px;
   }
 
-  .muscle-summary > div {
+  .workout-panel .muscle-summary > div {
     min-height: 48px;
     padding: 7px 9px;
   }
@@ -5075,5 +5080,133 @@ body.has-modal-open {
 
   .workout-panel .stepper-dots button {
     min-height: 44px;
+  }
+}
+
+/* v9: denser muscle summary and an always-reachable mobile next action. */
+@media (max-width: 480px) {
+  .app-module.is-active {
+    animation: none;
+    transform: none;
+  }
+
+  .app-shell {
+    padding-bottom: calc(112px + env(safe-area-inset-bottom));
+  }
+
+  .workout-panel .stepper-dots {
+    padding: 3px;
+  }
+
+  .exercise-stage {
+    padding: 8px;
+  }
+
+  .workout-panel .exercise-stage-main {
+    gap: 5px;
+  }
+
+  .workout-panel .exercise-title > strong {
+    font-size: clamp(1.12rem, 5.6vw, 1.35rem);
+  }
+
+  .exercise-card-focus .exercise-note {
+    font-size: 0.82rem;
+    line-height: 1.45;
+  }
+
+  .workout-panel .exercise-player-body {
+    padding: 6px;
+  }
+
+  .workout-panel .exercise-demo {
+    grid-template-columns: minmax(108px, 38%) minmax(0, 1fr);
+  }
+
+  .workout-panel .exercise-demo-meta {
+    padding: 6px;
+    gap: 3px;
+  }
+
+  .workout-panel .exercise-demo-meta > span,
+  .workout-panel .exercise-demo-meta > button {
+    min-height: 30px;
+    padding: 5px 6px;
+  }
+
+  .workout-panel .exercise-demo-meta > button {
+    min-height: 42px;
+  }
+
+  .workout-panel .muscle-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 5px;
+    margin-bottom: 6px;
+  }
+
+  .workout-panel .muscle-summary > div {
+    min-height: 50px;
+    padding: 6px 7px;
+    gap: 2px;
+  }
+
+  .workout-panel .muscle-summary span {
+    font-size: 10px;
+  }
+
+  .workout-panel .muscle-summary strong {
+    font-size: 11px;
+    line-height: 1.35;
+  }
+
+  .exercise-memory-cue {
+    margin-bottom: 5px;
+    padding: 6px 8px;
+  }
+
+  .guide-tab-content {
+    min-height: 108px;
+    padding-top: 7px;
+  }
+
+  .workout-panel .stepper-footer {
+    min-height: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    backdrop-filter: none;
+  }
+
+  .workout-panel .stepper-footer > span,
+  .workout-panel .stepper-footer > .step-nav-button:not(.step-nav-button-primary) {
+    display: none;
+  }
+
+  .workout-panel .stepper-footer .step-nav-button-primary {
+    position: fixed;
+    left: auto;
+    right: max(10px, env(safe-area-inset-right));
+    bottom: calc(var(--phone-tabbar-height) + 8px + env(safe-area-inset-bottom));
+    z-index: 44;
+    width: 126px;
+    max-width: 36vw;
+    min-height: 46px;
+    padding: 9px 14px;
+    border-radius: 12px;
+    box-shadow: 0 12px 28px rgba(7, 18, 37, 0.24);
+  }
+
+  .workout-panel .stepper-footer .step-nav-button-primary:disabled {
+    display: none;
+  }
+}
+
+@media (max-width: 359px) {
+  .workout-panel .exercise-demo {
+    grid-template-columns: minmax(102px, 37%) minmax(0, 1fr);
+  }
+
+  .workout-panel .stepper-footer .step-nav-button-primary {
+    width: 112px;
   }
 }
