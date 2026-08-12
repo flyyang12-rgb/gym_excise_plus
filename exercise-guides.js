@@ -28,8 +28,8 @@
     "史密斯深蹲": guide("0770", "0770-jFtipLl.gif", "臀腿", ["股四头肌", "腘绳肌", "核心"], ["杠放在上背，双脚站在杠铃前方少许。", "吸气收腹，髋膝同时弯曲向下。", "膝盖对准脚尖，脚掌完整踩地后站起。"], "下蹲吸气，站起通过最难位置时呼气。", ["膝盖内扣：减轻重量并让膝盖跟随脚尖。", "脚跟抬起：调整站距并减小深度。"], "徒手箱式深蹲或哑铃杯式深蹲。"),
     "罗马尼亚硬拉": guide("1459", "1459-rR0LJzx.gif", "臀腿后侧", ["臀大肌", "下背部", "握力"], ["双脚与髋同宽，哑铃贴近大腿。", "膝盖微屈，屁股向后推，背部保持稳定。", "哑铃沿腿下降到后侧有拉伸感，再夹臀站起。"], "下降吸气，站起并伸髋时呼气。", ["弯腰代替屈髋：想象屁股去碰身后的墙。", "哑铃离腿太远：全程贴近腿部。"], "减轻重量，并把下降终点控制在膝盖附近。"),
     "哑铃杯式深蹲": guide("1760", "1760-yn8yg1r.gif", "股四头肌", ["臀大肌", "核心"], ["双手托住哑铃一端，贴近胸前。", "双脚略宽于肩，脚尖自然向外。", "髋膝同时弯曲下蹲，脚掌发力站起。"], "下蹲吸气，站起时呼气。", ["哑铃离身体太远：始终贴近胸口。", "身体前扑：减轻重量并放慢下降。"], "徒手深蹲到凳子。"),
-    "高位下拉": guide("2330", "2330-LEprlgG.gif", "背阔肌", ["肱二头肌", "上背部"], ["坐稳并固定双腿，胸口自然打开。", "双手略宽于肩握杆，先让肩膀下沉。", "肘部向下带动横杆靠近上胸，再受控还原。"], "下拉时呼气，还原时吸气。", ["身体大幅后仰：减轻重量。", "用手臂硬拉：先做沉肩动作。"], "改用更轻重量或弹力带下拉。"),
-    "坐姿划船": guide("0180", "0180-hvV79Si.gif", "上背部", ["背阔肌", "肱二头肌"], ["双脚踩稳，膝盖微屈，腰背保持自然。", "肩膀先向后下方移动。", "肘部贴近身体，把手拉向肚脐后缓慢送回。"], "拉回时呼气，手臂伸出时吸气。", ["含胸圆背：减轻重量并挺起胸口。", "身体前后摆动：固定躯干。"], "使用弹力带坐姿划船。"),
+    "高位下拉": guide("custom-lat-pulldown", "custom-lat-pulldown.webp", "背阔肌", ["肱二头肌", "上背部"], ["坐到综合训练器自带座椅上，用前方泡棉滚轮压稳大腿，胸口自然打开。", "双手略宽于肩握住上方横杆，先把肩膀向下沉，横杆始终位于头部前方。", "肘部向下带动横杆拉到锁骨下方，再慢慢送回到手臂接近伸直。"], "下拉时呼气，还原时吸气。", ["把横杆拉到颈后：只做胸前下拉。", "身体大幅后仰或甩动：减轻重量，固定躯干。"], "减轻配重；如果横杆过高够不到，先请人帮忙把横杆递到手里。", { attribution: "按现有器材定制", attributionUrl: "" }),
+    "绳索直臂下压": guide("custom-straight-arm-pulldown", "custom-straight-arm-pulldown.webp", "背阔肌", ["大圆肌", "核心", "肱三头肌长头"], ["把直杆或绳索接到综合训练器上方滑轮，面向器械退半步站稳。", "膝盖微屈、髋部稍向后，手臂接近伸直并让肩膀远离耳朵。", "保持肘部角度不变，用背部把手柄沿弧线压到大腿前侧，再慢慢送回到眼睛高度。"], "向下压时呼气，受控还原时吸气。", ["手肘不断弯曲：会变成肱三头肌下压，先减轻重量。", "身体前后甩动或站得太远：靠近器械并收紧腹部。"], "使用更轻配重，或改为分腿站姿增加稳定性。", { attribution: "按现有器材定制", attributionUrl: "" }),
     "单臂哑铃划船": strengthGuide("0292", "0292-C0MA9bC.gif", "上背部", ["背阔肌", "肱二头肌"], "一手一膝支撑稳，另一手把哑铃拉向腰侧。"),
     "侧平举": strengthGuide("0334", "0334-DsgkuIt.gif", "肩中束", ["斜方肌"], "用轻哑铃向身体两侧抬起，手肘不要超过肩高。"),
     "俯身飞鸟": strengthGuide("0383", "0383-EAs3xL9.gif", "肩后束", ["上背部"], "俯身稳住躯干，双臂向两侧打开，不要耸肩。"),
@@ -58,8 +58,8 @@
     "臀腿拉伸": approximateGuide("1511", "1511-99rWm7w.gif", "大腿后侧", ["臀部", "小腿"], "参考腘绳肌拉伸，拉到轻微牵拉感即可。"),
   };
 
-  function guide(id, file, target, secondary, steps, breathing, mistakes, alternative) {
-    return { id, file, target, secondary, steps, breathing, mistakes, alternative };
+  function guide(id, file, target, secondary, steps, breathing, mistakes, alternative, mediaMeta = {}) {
+    return { id, file, target, secondary, steps, breathing, mistakes, alternative, ...mediaMeta };
   }
 
   function strengthGuide(id, file, target, secondary, cue) {
@@ -100,8 +100,8 @@
       media: specific && options.mediaEnabled ? {
         src: MEDIA_BASE + specific.file,
         alt: `${name}动作示范`,
-        attribution: "© Gym visual",
-        attributionUrl: ATTRIBUTION_URL,
+        attribution: specific.attribution || "© Gym visual",
+        attributionUrl: specific.attributionUrl ?? ATTRIBUTION_URL,
         approximate: Boolean(specific.approximate),
       } : null,
     };

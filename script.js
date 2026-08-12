@@ -1,7 +1,7 @@
 const STORAGE_KEY = "fitness_helper_progress_v2";
 const TRAINING_NOTES_KEY = "fitness_helper_training_notes_v1";
 const AI_REQUEST_TIMEOUT_MS = 10000;
-const APP_VERSION = "2026.08.12.4";
+const APP_VERSION = "2026.08.12.6";
 const MODAL_EXIT_DURATION_MS = 180;
 const modalCloseTimers = new WeakMap();
 const modalPreviousFocus = new WeakMap();
@@ -68,7 +68,7 @@ const equipmentLibrary = {
   cable: {
     name: "综合训练器",
     image: "images/cable.jpg",
-    useFor: ["夹胸", "高位下拉", "坐姿划船", "绳索下压"],
+    useFor: ["夹胸", "高位下拉", "绳索直臂下压", "绳索下压"],
     simple: "看到可以拉钢丝绳、可以挂把手的那台大器械，基本就是它。",
     standard: "重量先轻一点，先把动作路线学会。",
   },
@@ -109,7 +109,6 @@ const tutorialLinks = {
   "绳索下压": "https://www.xiaohongshu.com/discovery/item/6946a2c1000000001d03d823?source=webshare&xhsshare=pc_web&xsec_token=ABVIBRKeSeeFgmGjFfPIV8EeyfzlacCzXKlNajs4etG8E=&xsec_source=pc_share",
   "核心收尾": "https://www.xiaohongshu.com/discovery/item/6868fc5b0000000011003d77?source=webshare&xhsshare=pc_web&xsec_token=AB-jxwVW5NMjX44jVM8oSnWHpIS29GV3CyNjpQ74XbQAM=&xsec_source=pc_share",
   "高位下拉": "https://www.xiaohongshu.com/discovery/item/694f169b000000001e023f3a?source=webshare&xhsshare=pc_web&xsec_token=ABVdf03TJ0VOyFfwsXUyLuLjE2Du8hQjoyV2XXl4ciNWw=&xsec_source=pc_share",
-  "坐姿划船": "https://www.xiaohongshu.com/discovery/item/6a044f6c000000000803ff53?source=webshare&xhsshare=pc_web&xsec_token=ABup58vH0GjzQgVPV9WKq3qLvzZBEzzq0gt8HsHjyKW_o=&xsec_source=pc_share",
   "单臂哑铃划船": "https://www.xiaohongshu.com/discovery/item/68dd273d0000000007039e65?source=webshare&xhsshare=pc_web&xsec_token=ABDahkb7-hS6y-N-tSJdG-Q3LgQs7HX3Hoyc-Hlx1U4vM=&xsec_source=pc_share",
   "哑铃弯举": "https://www.xiaohongshu.com/discovery/item/68b05bf6000000001d00a317?source=webshare&xhsshare=pc_web&xsec_token=AByE-pqPmbHxJqEYe9ikDyWdlmWgRXYCK1Eu2SywEY0RM=&xsec_source=pc_share",
   "史密斯深蹲": "https://www.xiaohongshu.com/discovery/item/69b7fd9e0000000023015451?source=webshare&xhsshare=pc_web&xsec_token=ABNFQ8AtpwMw5M0RDVNjgmd8okp4kmVG1fxyfhrLltS7c=&xsec_source=pc_share",
@@ -327,20 +326,20 @@ const workoutLibrary = {
       {
         name: "高位下拉",
         sets: "4组 x 8-10次",
-        note: "上方横杆往胸口方向拉，不要拉到脖子后面。",
+        note: "就用现场这台综合训练器的上方横杆，始终拉向锁骨下方，不做颈后下拉。",
         equipment: "cable",
-        stance: "坐在器械上，双腿固定住，胸口打开。",
-        grip: "双手比肩略宽握住横杆。",
-        firstMove: "先沉肩，再把横杆拉向上胸位置，回去时别一下放掉。",
+        stance: "面朝前坐在自带座椅上，用前方泡棉滚轮压稳大腿，胸口打开。",
+        grip: "双手比肩略宽握住上方横杆，横杆保持在头部前方。",
+        firstMove: "先沉肩，再把横杆拉到锁骨下方，回去时慢慢送到手臂接近伸直。",
       },
       {
-        name: "坐姿划船",
-        sets: "3组 x 10次",
-        note: "胸挺起来，把把手往肚脐附近拉。",
+        name: "绳索直臂下压",
+        sets: "3组 x 12次",
+        note: "把直杆或绳索接到上方滑轮，站在器械前完成，占地更小。",
         equipment: "cable",
-        stance: "坐稳，双脚踩住脚踏，腰背挺直。",
-        grip: "双手握住把手，手心相对更容易上手。",
-        firstMove: "先把肩往后带，再把手拉向肚脐附近。",
+        stance: "面向器械退半步，双脚与肩同宽，膝盖微屈，身体轻微前倾。",
+        grip: "双手与肩同宽握直杆或绳索，手臂接近伸直，肘部保留一点弯曲。",
+        firstMove: "固定肘部角度，用背部把手柄从胸前沿弧线压到大腿前侧。",
       },
       {
         name: "单臂哑铃划船",
@@ -484,11 +483,11 @@ const workoutLibrary = {
       {
         name: "高位下拉",
         sets: "3组 x 10次",
-        note: "继续用综合训练器，背部稳稳发力。",
+        note: "继续用现场综合训练器的上方横杆，只做胸前下拉。",
         equipment: "cable",
-        stance: "坐稳，胸口打开。",
-        grip: "双手略宽握住横杆。",
-        firstMove: "先沉肩，再把横杆拉向上胸。",
+        stance: "坐上自带座椅，用泡棉滚轮压稳大腿，胸口打开。",
+        grip: "双手略宽握住横杆，横杆始终位于头部前方。",
+        firstMove: "先沉肩，再把横杆拉到锁骨下方。",
       },
       {
         name: "单车冲刺",
@@ -1570,7 +1569,9 @@ function renderWorkout() {
           <div class="exercise-demo ${guide.media ? "has-media" : "is-text-only"}" data-exercise-demo>
             ${guide.media ? `
               <img src="${guide.media.src}" alt="${guide.media.alt}" width="180" height="180" loading="lazy" data-exercise-media>
-              <a href="${guide.media.attributionUrl}" target="_blank" rel="noopener noreferrer">${guide.media.attribution}</a>
+              ${guide.media.attributionUrl
+                ? `<a href="${guide.media.attributionUrl}" target="_blank" rel="noopener noreferrer">${guide.media.attribution}</a>`
+                : `<span class="exercise-media-credit">${guide.media.attribution}</span>`}
               ${guide.media.approximate ? `<span class="exercise-media-kind">相似动作示范</span>` : ""}
             ` : `
               <div class="exercise-demo-placeholder" aria-label="当前为文字指导模式">

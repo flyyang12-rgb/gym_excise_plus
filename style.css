@@ -930,6 +930,15 @@ p {
   text-decoration: none;
 }
 
+.exercise-media-credit {
+  width: 100%;
+  padding: 6px 10px;
+  color: #5c675f;
+  background: #eef0eb;
+  font-size: 11px;
+  text-align: center;
+}
+
 .version-badge {
   position: absolute;
   top: 14px;
