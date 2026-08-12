@@ -1,6 +1,10 @@
 const STORAGE_KEY = "fitness_helper_progress_v2";
 const TRAINING_NOTES_KEY = "fitness_helper_training_notes_v1";
 const AI_REQUEST_TIMEOUT_MS = 10000;
+const APP_VERSION = "2026.08.12.4";
+const MODAL_EXIT_DURATION_MS = 180;
+const modalCloseTimers = new WeakMap();
+const modalPreviousFocus = new WeakMap();
 const AI_COACH_API = (() => {
   if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
     return "https://gym-excise-plus.vercel.app/api/ai-coach";
@@ -1172,6 +1176,40 @@ function renderBmiModalPreview() {
   elements.bmiModalLabel.textContent = bmiInfo.label;
 }
 
+function showModal(modal) {
+  if (!modal) return;
+  const pendingClose = modalCloseTimers.get(modal);
+  if (pendingClose) {
+    window.clearTimeout(pendingClose);
+    modalCloseTimers.delete(modal);
+  }
+  const focusedElement = document.activeElement;
+  if (focusedElement instanceof HTMLElement && !modal.contains(focusedElement)) {
+    modalPreviousFocus.set(modal, focusedElement);
+  }
+  modal.classList.remove("is-closing");
+  modal.hidden = false;
+  modal.setAttribute("aria-hidden", "false");
+  document.body.classList.add("has-modal-open");
+}
+
+function hideModal(modal) {
+  if (!modal || modal.hidden || modal.classList.contains("is-closing")) return;
+  modal.setAttribute("aria-hidden", "true");
+  modal.classList.add("is-closing");
+  const timeoutId = window.setTimeout(() => {
+    modal.hidden = true;
+    modal.classList.remove("is-closing");
+    modalCloseTimers.delete(modal);
+    const hasOpenModal = [elements.bmiModal, elements.aiModal].some((item) => item && !item.hidden);
+    document.body.classList.toggle("has-modal-open", hasOpenModal);
+    const previousFocus = modalPreviousFocus.get(modal);
+    if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true });
+    modalPreviousFocus.delete(modal);
+  }, MODAL_EXIT_DURATION_MS);
+  modalCloseTimers.set(modal, timeoutId);
+}
+
 function openBmiModal() {
   if (!elements.bmiModal) return;
   if (elements.bmiHeightInput) {
@@ -1181,30 +1219,24 @@ function openBmiModal() {
     elements.bmiWeightInput.value = state.weightKg ?? "";
   }
   renderBmiModalPreview();
-  elements.bmiModal.hidden = false;
-  elements.bmiModal.setAttribute("aria-hidden", "false");
+  showModal(elements.bmiModal);
   window.setTimeout(() => elements.bmiHeightInput?.focus(), 80);
 }
 
 function closeBmiModal() {
-  if (!elements.bmiModal) return;
-  elements.bmiModal.hidden = true;
-  elements.bmiModal.setAttribute("aria-hidden", "true");
+  hideModal(elements.bmiModal);
 }
 
 function openAiModal() {
   if (!elements.aiModal) return;
   renderAiContext();
   resetAiCoachChat();
-  elements.aiModal.hidden = false;
-  elements.aiModal.setAttribute("aria-hidden", "false");
+  showModal(elements.aiModal);
   window.setTimeout(() => elements.aiQuestionInput?.focus(), 80);
 }
 
 function closeAiModal() {
-  if (!elements.aiModal) return;
-  elements.aiModal.hidden = true;
-  elements.aiModal.setAttribute("aria-hidden", "true");
+  hideModal(elements.aiModal);
 }
 
 function renderOverview() {
@@ -2055,6 +2087,8 @@ function init() {
 
 async function updateVersionBadge() {
   if (!elements.versionBadge) return;
+  elements.versionBadge.textContent = `v${APP_VERSION}`;
+  elements.versionBadge.title = `当前版本 v${APP_VERSION}`;
   try {
     const response = await fetch("https://api.github.com/repos/flyyang12-rgb/gym_excise_plus/commits/main", {
       headers: { Accept: "application/vnd.github+json" },
@@ -2073,10 +2107,11 @@ async function updateVersionBadge() {
       hour12: false,
     }).formatToParts(new Date(committedAt));
     const value = Object.fromEntries(parts.map((part) => [part.type, part.value]));
-    elements.versionBadge.textContent = `v${value.year}.${value.month}.${value.day} ${value.hour}:${value.minute}`;
-    elements.versionBadge.title = `最后提交 ${payload.sha?.slice(0, 7) || ""}`.trim();
+    const commitTime = `${value.year}.${value.month}.${value.day} ${value.hour}:${value.minute}`;
+    const commitSha = payload.sha?.slice(0, 7) || "";
+    elements.versionBadge.title = `当前版本 v${APP_VERSION} · 最后提交 ${commitTime} ${commitSha}`.trim();
   } catch {
-    // Keep the HTML fallback when GitHub is unavailable or rate-limited.
+    // The release version remains visible when GitHub is unavailable or rate-limited.
   }
 }
 
