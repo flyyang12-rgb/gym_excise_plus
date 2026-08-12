@@ -1042,6 +1042,29 @@ p {
 
 .muscle-summary strong { font-size: 14px; line-height: 1.4; }
 
+.exercise-memory-cue {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--surface-warm);
+}
+
+.exercise-memory-cue span {
+  flex: 0 0 auto;
+  color: var(--accent-deep);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.exercise-memory-cue strong {
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
 .guide-tabs {
   display: flex;
   gap: 4px;

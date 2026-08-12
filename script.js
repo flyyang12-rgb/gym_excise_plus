@@ -1,7 +1,7 @@
 const STORAGE_KEY = "fitness_helper_progress_v2";
 const TRAINING_NOTES_KEY = "fitness_helper_training_notes_v1";
 const AI_REQUEST_TIMEOUT_MS = 10000;
-const APP_VERSION = "2026.08.12.6";
+const APP_VERSION = "2026.08.12.7";
 const MODAL_EXIT_DURATION_MS = 180;
 const modalCloseTimers = new WeakMap();
 const modalPreviousFocus = new WeakMap();
@@ -1591,22 +1591,23 @@ function renderWorkout() {
           </div>
           <div class="exercise-guide-panel">
             <div class="muscle-summary">
-              <div><span>主要发力</span><strong>${guide.target}</strong></div>
-              <div><span>辅助参与</span><strong>${guide.secondary.join(" · ")}</strong></div>
+              <div><span>主要练这里</span><strong>${guide.target}</strong></div>
+              <div><span>顺便练到</span><strong>${guide.secondary.join(" · ")}</strong></div>
             </div>
+            <div class="exercise-memory-cue"><span>看图记</span><strong>${guide.memoryCue}</strong></div>
             <div class="guide-tabs" role="tablist" aria-label="动作指导分类">
               ${[
-                ["steps", "动作步骤"],
-                ["breathing", "发力呼吸"],
-                ["mistakes", "常见错误"],
-                ["alternative", "简单替代"],
+                ["steps", "怎么做"],
+                ["breathing", "怎么呼吸"],
+                ["mistakes", "别这样"],
+                ["alternative", "轻松版"],
               ].map(([key, label]) => `<button type="button" role="tab" aria-selected="${activeGuideTab === key}" tabindex="${activeGuideTab === key ? "0" : "-1"}" class="${activeGuideTab === key ? "is-active" : ""}" data-guide-tab="${key}">${label}</button>`).join("")}
             </div>
             <div class="guide-tab-content" role="tabpanel" tabindex="0">
               ${activeGuideTab === "steps" ? `<ol>${guide.steps.map((item) => `<li>${item}</li>`).join("")}</ol>` : ""}
-              ${activeGuideTab === "breathing" ? `<div class="guide-callout"><span>呼吸节奏</span><strong>${guide.breathing}</strong></div>` : ""}
+              ${activeGuideTab === "breathing" ? `<div class="guide-callout"><span>跟着节奏来</span><strong>${guide.breathing}</strong></div>` : ""}
               ${activeGuideTab === "mistakes" ? `<ul>${guide.mistakes.map((item) => `<li>${item}</li>`).join("")}</ul>` : ""}
-              ${activeGuideTab === "alternative" ? `<div class="guide-callout guide-callout-soft"><span>降低难度</span><strong>${guide.alternative}</strong></div>` : ""}
+              ${activeGuideTab === "alternative" ? `<div class="guide-callout guide-callout-soft"><span>今天轻松一点</span><strong>${guide.alternative}</strong></div>` : ""}
             </div>
           </div>
         </div>
