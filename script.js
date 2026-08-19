@@ -1,7 +1,7 @@
 const STORAGE_KEY = "fitness_helper_progress_v2";
 const TRAINING_NOTES_KEY = "fitness_helper_training_notes_v1";
 const AI_REQUEST_TIMEOUT_MS = 10000;
-const APP_VERSION = "2026.08.12.10";
+const APP_VERSION = "2026.08.19.11";
 const MODAL_EXIT_DURATION_MS = 180;
 const modalCloseTimers = new WeakMap();
 const modalPreviousFocus = new WeakMap();
@@ -564,6 +564,12 @@ const elements = {
   goal: document.querySelector("#goal"),
   goalTabs: document.querySelector("#goalTabs"),
   weeklyPlan: document.querySelector("#weeklyPlan"),
+  planDateLabel: document.querySelector("#planDateLabel"),
+  planDateValue: document.querySelector("#planDateValue"),
+  planCarouselCount: document.querySelector("#planCarouselCount"),
+  planCarouselPrev: document.querySelector("#planCarouselPrev"),
+  planCarouselNext: document.querySelector("#planCarouselNext"),
+  planCarouselDots: document.querySelector("#planCarouselDots"),
   frequencyTabs: document.querySelector("#frequencyTabs"),
   resetButton: document.querySelector("#resetButton"),
   heroFrequency: document.querySelector("#heroFrequency"),
@@ -1525,19 +1531,100 @@ function renderFrequencyTabs() {
   });
 }
 
+function getPlanDate(item) {
+  const date = new Date();
+  date.setHours(12, 0, 0, 0);
+  const todayIndex = date.getDay() || 7;
+  const targetIndex = getWeekdayIndex(item.day) || 7;
+  date.setDate(date.getDate() - todayIndex + targetIndex);
+  return date;
+}
+
+function formatPlanDate(item) {
+  const date = getPlanDate(item);
+  return `${date.getMonth() + 1}月${date.getDate()}日 · ${item.day}`;
+}
+
+function updatePlanCarouselUi(plan) {
+  const activeIndex = Math.max(0, plan.findIndex((item) => item.id === activeDayId));
+  const activeItem = plan[activeIndex];
+  if (!activeItem) return;
+
+  const itemDate = getPlanDate(activeItem);
+  const today = new Date();
+  const isToday = itemDate.toDateString() === today.toDateString();
+  const isNearest = activeItem.id === getNearestPlanId(plan);
+  if (elements.planDateLabel) {
+    elements.planDateLabel.textContent = isToday ? "今天安排" : (isNearest ? "最近安排" : "已选安排");
+  }
+  if (elements.planDateValue) elements.planDateValue.textContent = formatPlanDate(activeItem);
+  if (elements.planCarouselCount) elements.planCarouselCount.textContent = `${activeIndex + 1} / ${plan.length}`;
+  if (elements.planCarouselPrev) elements.planCarouselPrev.disabled = activeIndex === 0;
+  if (elements.planCarouselNext) elements.planCarouselNext.disabled = activeIndex === plan.length - 1;
+
+  elements.weeklyPlan.querySelectorAll("[data-day-id]").forEach((card, index) => {
+    const active = index === activeIndex;
+    card.classList.toggle("is-active", active);
+    card.setAttribute("aria-current", active ? "true" : "false");
+  });
+  elements.planCarouselDots?.querySelectorAll("[data-plan-dot]").forEach((dot, index) => {
+    const active = index === activeIndex;
+    dot.classList.toggle("is-active", active);
+    dot.setAttribute("aria-current", active ? "true" : "false");
+  });
+}
+
+function scrollPlanCardIntoView(index, behavior = "smooth") {
+  const card = elements.weeklyPlan.querySelectorAll("[data-day-id]")[index];
+  if (!card) return;
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  elements.weeklyPlan.scrollTo({
+    left: card.offsetLeft - elements.weeklyPlan.offsetLeft,
+    behavior: reduceMotion ? "auto" : behavior,
+  });
+}
+
+function selectPlanDay(dayId, options = {}) {
+  const plan = getCurrentPlan();
+  const index = plan.findIndex((item) => item.id === dayId);
+  if (index < 0) return;
+  const changed = activeDayId !== dayId;
+  activeDayId = dayId;
+  if (changed) resetExerciseStepper();
+  updatePlanCarouselUi(plan);
+  renderProfileCalendar();
+  renderWorkout();
+  if (options.scroll !== false) scrollPlanCardIntoView(index, options.behavior || "smooth");
+  if (options.focus) {
+    elements.weeklyPlan.querySelector(`[data-day-id="${dayId}"]`)?.focus({ preventScroll: true });
+  }
+}
+
+function movePlanCarousel(offset) {
+  const plan = getCurrentPlan();
+  const activeIndex = Math.max(0, plan.findIndex((item) => item.id === activeDayId));
+  const nextIndex = Math.min(plan.length - 1, Math.max(0, activeIndex + offset));
+  if (nextIndex === activeIndex) return;
+  selectPlanDay(plan[nextIndex].id, { focus: true });
+}
+
 function renderWeeklyPlan() {
   const plan = getCurrentPlan();
   if (!plan.find((item) => item.id === activeDayId)) {
     activeDayId = getNearestPlanId(plan);
   }
 
-  elements.weeklyPlan.innerHTML = plan.map((item) => {
+  elements.weeklyPlan.innerHTML = plan.map((item, index) => {
     const active = item.id === activeDayId;
     const complete = isWorkoutComplete(item);
     const count = countCompletedExercises(item);
     return `
-      <button type="button" class="day-card ${active ? "is-active" : ""} ${complete ? "is-complete" : ""}" data-day-id="${item.id}">
+      <button type="button" class="day-card ${active ? "is-active" : ""} ${complete ? "is-complete" : ""}" data-day-id="${item.id}" aria-label="${formatPlanDate(item)}，${item.title}" aria-current="${active ? "true" : "false"}">
         <div class="day-card-shell">
+          <div class="day-card-date-row">
+            <span>${formatPlanDate(item)}</span>
+            <small>${String(index + 1).padStart(2, "0")}</small>
+          </div>
           <div class="day-top">
             <div>
               <strong>${item.day} · ${item.title}</strong>
@@ -1553,15 +1640,44 @@ function renderWeeklyPlan() {
     `;
   }).join("");
 
+  elements.planCarouselDots.innerHTML = plan.map((item, index) => `
+    <button type="button" data-plan-dot="${index}" aria-label="查看${formatPlanDate(item)}" class="${item.id === activeDayId ? "is-active" : ""}"></button>
+  `).join("");
+
   elements.weeklyPlan.querySelectorAll("[data-day-id]").forEach((button) => {
     button.addEventListener("click", () => {
-      activeDayId = button.dataset.dayId;
-      resetExerciseStepper();
-      renderProfileCalendar();
-      renderWeeklyPlan();
-      renderWorkout();
-      button.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      selectPlanDay(button.dataset.dayId);
     });
+  });
+
+  elements.planCarouselDots.querySelectorAll("[data-plan-dot]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const item = plan[Number(button.dataset.planDot)];
+      if (item) selectPlanDay(item.id);
+    });
+  });
+
+  let scrollTimer = null;
+  elements.weeklyPlan.addEventListener("scroll", () => {
+    window.clearTimeout(scrollTimer);
+    scrollTimer = window.setTimeout(() => {
+      const cards = Array.from(elements.weeklyPlan.querySelectorAll("[data-day-id]"));
+      const railRect = elements.weeklyPlan.getBoundingClientRect();
+      const nearestCard = cards.reduce((nearest, card) => {
+        const rect = card.getBoundingClientRect();
+        const distance = Math.abs(rect.left - railRect.left);
+        return !nearest || distance < nearest.distance ? { card, distance } : nearest;
+      }, null)?.card;
+      if (nearestCard && nearestCard.dataset.dayId !== activeDayId) {
+        selectPlanDay(nearestCard.dataset.dayId, { scroll: false });
+      }
+    }, 90);
+  }, { passive: true });
+
+  updatePlanCarouselUi(plan);
+  requestAnimationFrame(() => {
+    const activeIndex = Math.max(0, plan.findIndex((item) => item.id === activeDayId));
+    scrollPlanCardIntoView(activeIndex, "auto");
   });
 }
 
@@ -2225,6 +2341,19 @@ function attachEvents() {
       closeTutorialSheet();
     }
     keepFocusInsideModal(event);
+  });
+
+  elements.planCarouselPrev?.addEventListener("click", () => movePlanCarousel(-1));
+  elements.planCarouselNext?.addEventListener("click", () => movePlanCarousel(1));
+  elements.weeklyPlan?.addEventListener("keydown", (event) => {
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      movePlanCarousel(-1);
+    }
+    if (event.key === "ArrowRight") {
+      event.preventDefault();
+      movePlanCarousel(1);
+    }
   });
 
   window.addEventListener("scroll", updateBackToTopButton, { passive: true });

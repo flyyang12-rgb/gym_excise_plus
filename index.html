@@ -6,13 +6,13 @@
   <meta name="theme-color" content="#ef6a2e">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>健身小助手</title>
-  <link rel="stylesheet" href="style.css?v=20260812-tutorial-sheet-v10">
+  <link rel="stylesheet" href="style.css?v=20260819-plan-carousel-v11">
 </head>
 <body>
   <div class="app-shell">
     <section class="app-module app-module-training is-active" data-module="training" aria-label="训练模块">
       <header class="hero">
-        <span id="versionBadge" class="version-badge" title="当前版本">v2026.08.12.10</span>
+        <span id="versionBadge" class="version-badge" title="当前版本">v2026.08.19.11</span>
         <div class="hero-main">
           <p class="eyebrow">训练节奏</p>
           <h1>按计划行事</h1>
@@ -90,7 +90,19 @@
             </div>
           </div>
 
-          <div id="weeklyPlan" class="weekly-plan"></div>
+          <div class="plan-carousel-bar" aria-live="polite">
+            <div class="plan-carousel-date">
+              <span id="planDateLabel">最近安排</span>
+              <strong id="planDateValue">--月--日 · 周--</strong>
+            </div>
+            <div class="plan-carousel-controls">
+              <span id="planCarouselCount">1 / 5</span>
+              <button id="planCarouselPrev" type="button" aria-label="查看上一张训练卡">←</button>
+              <button id="planCarouselNext" type="button" aria-label="查看下一张训练卡">→</button>
+            </div>
+          </div>
+          <div id="weeklyPlan" class="weekly-plan" role="region" aria-label="本周训练卡片，左右滑动切换" tabindex="0"></div>
+          <div id="planCarouselDots" class="plan-carousel-dots" aria-label="训练卡片位置"></div>
         </section>
 
         <section class="workout-panel" aria-label="今晚训练">
@@ -374,8 +386,8 @@
     </section>
   </div>
 
-  <script src="exercise-guides.js?v=20260812-tutorial-sheet-v10"></script>
+  <script src="exercise-guides.js?v=20260819-plan-carousel-v11"></script>
   <script src="diet-guide.js?v=20260712-diet"></script>
-  <script src="script.js?v=20260812-tutorial-sheet-v10"></script>
+  <script src="script.js?v=20260819-plan-carousel-v11"></script>
 </body>
 </html>
