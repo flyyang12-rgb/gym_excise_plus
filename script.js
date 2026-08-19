@@ -1,7 +1,7 @@
 const STORAGE_KEY = "fitness_helper_progress_v2";
 const TRAINING_NOTES_KEY = "fitness_helper_training_notes_v1";
 const AI_REQUEST_TIMEOUT_MS = 10000;
-const APP_VERSION = "2026.08.19.11";
+const APP_VERSION = "2026.08.19.12";
 const MODAL_EXIT_DURATION_MS = 180;
 const modalCloseTimers = new WeakMap();
 const modalPreviousFocus = new WeakMap();
@@ -564,12 +564,6 @@ const elements = {
   goal: document.querySelector("#goal"),
   goalTabs: document.querySelector("#goalTabs"),
   weeklyPlan: document.querySelector("#weeklyPlan"),
-  planDateLabel: document.querySelector("#planDateLabel"),
-  planDateValue: document.querySelector("#planDateValue"),
-  planCarouselCount: document.querySelector("#planCarouselCount"),
-  planCarouselPrev: document.querySelector("#planCarouselPrev"),
-  planCarouselNext: document.querySelector("#planCarouselNext"),
-  planCarouselDots: document.querySelector("#planCarouselDots"),
   frequencyTabs: document.querySelector("#frequencyTabs"),
   resetButton: document.querySelector("#resetButton"),
   heroFrequency: document.querySelector("#heroFrequency"),
@@ -1550,27 +1544,10 @@ function updatePlanCarouselUi(plan) {
   const activeItem = plan[activeIndex];
   if (!activeItem) return;
 
-  const itemDate = getPlanDate(activeItem);
-  const today = new Date();
-  const isToday = itemDate.toDateString() === today.toDateString();
-  const isNearest = activeItem.id === getNearestPlanId(plan);
-  if (elements.planDateLabel) {
-    elements.planDateLabel.textContent = isToday ? "今天安排" : (isNearest ? "最近安排" : "已选安排");
-  }
-  if (elements.planDateValue) elements.planDateValue.textContent = formatPlanDate(activeItem);
-  if (elements.planCarouselCount) elements.planCarouselCount.textContent = `${activeIndex + 1} / ${plan.length}`;
-  if (elements.planCarouselPrev) elements.planCarouselPrev.disabled = activeIndex === 0;
-  if (elements.planCarouselNext) elements.planCarouselNext.disabled = activeIndex === plan.length - 1;
-
   elements.weeklyPlan.querySelectorAll("[data-day-id]").forEach((card, index) => {
     const active = index === activeIndex;
     card.classList.toggle("is-active", active);
     card.setAttribute("aria-current", active ? "true" : "false");
-  });
-  elements.planCarouselDots?.querySelectorAll("[data-plan-dot]").forEach((dot, index) => {
-    const active = index === activeIndex;
-    dot.classList.toggle("is-active", active);
-    dot.setAttribute("aria-current", active ? "true" : "false");
   });
 }
 
@@ -1579,7 +1556,7 @@ function scrollPlanCardIntoView(index, behavior = "smooth") {
   if (!card) return;
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   elements.weeklyPlan.scrollTo({
-    left: card.offsetLeft - elements.weeklyPlan.offsetLeft,
+    left: card.offsetLeft - ((elements.weeklyPlan.clientWidth - card.offsetWidth) / 2),
     behavior: reduceMotion ? "auto" : behavior,
   });
 }
@@ -1640,20 +1617,9 @@ function renderWeeklyPlan() {
     `;
   }).join("");
 
-  elements.planCarouselDots.innerHTML = plan.map((item, index) => `
-    <button type="button" data-plan-dot="${index}" aria-label="查看${formatPlanDate(item)}" class="${item.id === activeDayId ? "is-active" : ""}"></button>
-  `).join("");
-
   elements.weeklyPlan.querySelectorAll("[data-day-id]").forEach((button) => {
     button.addEventListener("click", () => {
       selectPlanDay(button.dataset.dayId);
-    });
-  });
-
-  elements.planCarouselDots.querySelectorAll("[data-plan-dot]").forEach((button) => {
-    button.addEventListener("click", () => {
-      const item = plan[Number(button.dataset.planDot)];
-      if (item) selectPlanDay(item.id);
     });
   });
 
@@ -1663,15 +1629,16 @@ function renderWeeklyPlan() {
     scrollTimer = window.setTimeout(() => {
       const cards = Array.from(elements.weeklyPlan.querySelectorAll("[data-day-id]"));
       const railRect = elements.weeklyPlan.getBoundingClientRect();
+      const railCenter = railRect.left + railRect.width / 2;
       const nearestCard = cards.reduce((nearest, card) => {
         const rect = card.getBoundingClientRect();
-        const distance = Math.abs(rect.left - railRect.left);
+        const distance = Math.abs(rect.left + rect.width / 2 - railCenter);
         return !nearest || distance < nearest.distance ? { card, distance } : nearest;
       }, null)?.card;
       if (nearestCard && nearestCard.dataset.dayId !== activeDayId) {
         selectPlanDay(nearestCard.dataset.dayId, { scroll: false });
       }
-    }, 90);
+    }, 140);
   }, { passive: true });
 
   updatePlanCarouselUi(plan);
@@ -2343,8 +2310,6 @@ function attachEvents() {
     keepFocusInsideModal(event);
   });
 
-  elements.planCarouselPrev?.addEventListener("click", () => movePlanCarousel(-1));
-  elements.planCarouselNext?.addEventListener("click", () => movePlanCarousel(1));
   elements.weeklyPlan?.addEventListener("keydown", (event) => {
     if (event.key === "ArrowLeft") {
       event.preventDefault();

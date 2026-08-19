@@ -5891,3 +5891,84 @@ body.has-modal-open {
     flex-basis: 91%;
   }
 }
+
+/* v12 · 单卡居中吸附，移除重复导航 UI。 */
+.plan-carousel-bar,
+.plan-carousel-dots {
+  display: none;
+}
+
+.weekly-plan,
+.weekly-plan[tabindex] {
+  gap: 12px;
+  padding: 6px 0 12px;
+  scroll-padding-inline: 0;
+  scroll-snap-type: x mandatory;
+  cursor: grab;
+}
+
+.weekly-plan:active {
+  cursor: grabbing;
+}
+
+.weekly-plan::before,
+.weekly-plan::after {
+  content: "";
+  flex: 0 0 calc((100% - min(82%, 420px)) / 2 - 12px);
+}
+
+.weekly-plan .day-card,
+.weekly-plan .day-card.is-active {
+  flex-basis: min(82%, 420px);
+  scroll-snap-align: center;
+}
+
+.weekly-plan .day-card-shell,
+.weekly-plan .day-card:first-child .day-card-shell,
+.weekly-plan .day-card.is-active .day-card-shell {
+  transition:
+    transform 420ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 320ms ease,
+    border-color 320ms ease,
+    box-shadow 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.weekly-plan .day-card:not(.is-active) .day-card-shell {
+  opacity: 0.58;
+  transform: scale(0.965);
+}
+
+.weekly-plan .day-card.is-active .day-card-shell {
+  opacity: 1;
+  transform: scale(1);
+}
+
+@media (max-width: 480px) {
+  .weekly-plan,
+  .weekly-plan[tabindex] {
+    gap: 9px;
+    padding: 5px 0 10px;
+  }
+
+  .weekly-plan::before,
+  .weekly-plan::after {
+    flex-basis: calc(6% - 9px);
+  }
+
+  .weekly-plan .day-card,
+  .weekly-plan .day-card.is-active {
+    flex-basis: 88%;
+  }
+}
+
+@media (max-width: 350px) {
+  .weekly-plan .day-card,
+  .weekly-plan .day-card.is-active {
+    flex-basis: 88%;
+  }
+
+  .weekly-plan::before,
+  .weekly-plan::after {
+    flex-basis: calc(6% - 9px);
+  }
+}
