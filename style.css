@@ -1794,6 +1794,46 @@ p {
   }
 }
 
+/* v14 · 本周卡片的层叠基础，最终尺寸规则放在文件末尾。 */
+.weekly-plan {
+  perspective: 900px;
+}
+
+.weekly-plan .day-card {
+  z-index: 1;
+}
+
+.weekly-plan .day-card.is-before,
+.weekly-plan .day-card.is-after {
+  z-index: 2;
+}
+
+.weekly-plan .day-card.is-active {
+  z-index: 4;
+}
+
+.weekly-plan .day-card-shell,
+.weekly-plan .day-card:first-child .day-card-shell,
+.weekly-plan .day-card.is-active .day-card-shell {
+  display: flex;
+  flex-direction: column;
+  transform-origin: center center;
+  will-change: transform, opacity;
+  animation: none;
+}
+
+.weekly-plan .day-card .pill-row {
+  margin-top: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .weekly-plan .day-card-shell,
+  .weekly-plan .day-card:first-child .day-card-shell,
+  .weekly-plan .day-card.is-active .day-card-shell {
+    transition-duration: 0.01ms;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .weekly-plan,
   .weekly-plan[tabindex] {
@@ -5976,5 +6016,88 @@ body.has-modal-open {
   .weekly-plan::before,
   .weekly-plan::after {
     flex-basis: calc(6% - 9px);
+  }
+}
+
+/* Final v14 precedence: larger centered card with responsive depth. */
+.weekly-plan,
+.weekly-plan[tabindex] {
+  gap: 8px;
+  padding-block: 10px 18px;
+}
+
+.weekly-plan::before,
+.weekly-plan::after {
+  flex-basis: calc((100% - min(88%, 520px)) / 2 - 8px);
+}
+
+.weekly-plan .day-card,
+.weekly-plan .day-card.is-active {
+  flex-basis: min(88%, 520px);
+  min-height: 220px;
+}
+
+.weekly-plan .day-card:not(.is-active) .day-card-shell {
+  opacity: 0.42;
+  transform: translateY(16px) scale(0.9);
+}
+
+.weekly-plan .day-card.is-near.is-before .day-card-shell {
+  opacity: 0.7;
+  transform: translateX(18px) translateY(12px) rotate(-0.7deg) scale(0.94);
+}
+
+.weekly-plan .day-card.is-near.is-after .day-card-shell {
+  opacity: 0.7;
+  transform: translateX(-18px) translateY(12px) rotate(0.7deg) scale(0.94);
+}
+
+.weekly-plan .day-card.is-active .day-card-shell {
+  padding: 18px 20px 20px;
+  border-radius: 16px;
+  border-color: rgba(7, 18, 37, 0.24);
+  box-shadow:
+    0 18px 36px rgba(7, 18, 37, 0.12),
+    0 5px 12px rgba(7, 18, 37, 0.06);
+  opacity: 1;
+  transform: translateY(-2px) scale(1);
+  animation: none;
+}
+
+@media (max-width: 480px) {
+  .weekly-plan,
+  .weekly-plan[tabindex] {
+    gap: 6px;
+    padding-block: 8px 16px;
+  }
+
+  .weekly-plan::before,
+  .weekly-plan::after {
+    flex-basis: calc(4% - 6px);
+  }
+
+  .weekly-plan .day-card,
+  .weekly-plan .day-card.is-active {
+    flex-basis: 92%;
+    min-height: 210px;
+  }
+
+  .weekly-plan .day-card-shell,
+  .weekly-plan .day-card:first-child .day-card-shell,
+  .weekly-plan .day-card.is-active .day-card-shell {
+    padding: 17px 18px 18px;
+    border-radius: 16px;
+  }
+}
+
+@media (max-width: 350px) {
+  .weekly-plan .day-card,
+  .weekly-plan .day-card.is-active {
+    flex-basis: 93%;
+  }
+
+  .weekly-plan::before,
+  .weekly-plan::after {
+    flex-basis: calc(3.5% - 6px);
   }
 }

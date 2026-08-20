@@ -1,7 +1,7 @@
 const STORAGE_KEY = "fitness_helper_progress_v2";
 const TRAINING_NOTES_KEY = "fitness_helper_training_notes_v1";
 const AI_REQUEST_TIMEOUT_MS = 10000;
-const APP_VERSION = "2026.08.20.13";
+const APP_VERSION = "2026.08.20.14";
 const MODAL_EXIT_DURATION_MS = 180;
 const modalCloseTimers = new WeakMap();
 const modalPreviousFocus = new WeakMap();
@@ -1518,16 +1518,32 @@ function formatPlanDate(item) {
   return `${date.getMonth() + 1}月${date.getDate()}日 · ${item.day}`;
 }
 
-function updatePlanCarouselUi(plan) {
-  const activeIndex = Math.max(0, plan.findIndex((item) => item.id === activeDayId));
+function updatePlanCarouselUi(plan, previewIndex = null) {
+  const selectedIndex = Math.max(0, plan.findIndex((item) => item.id === activeDayId));
+  const activeIndex = previewIndex ?? selectedIndex;
   const activeItem = plan[activeIndex];
   if (!activeItem) return;
 
   elements.weeklyPlan.querySelectorAll("[data-day-id]").forEach((card, index) => {
     const active = index === activeIndex;
     card.classList.toggle("is-active", active);
+    card.classList.toggle("is-before", index < activeIndex);
+    card.classList.toggle("is-after", index > activeIndex);
+    card.classList.toggle("is-near", Math.abs(index - activeIndex) === 1);
     card.setAttribute("aria-current", active ? "true" : "false");
   });
+}
+
+function getNearestPlanCardIndex() {
+  const cards = Array.from(elements.weeklyPlan.querySelectorAll("[data-day-id]"));
+  if (!cards.length) return -1;
+  const railRect = elements.weeklyPlan.getBoundingClientRect();
+  const railCenter = railRect.left + railRect.width / 2;
+  return cards.reduce((nearest, card, index) => {
+    const rect = card.getBoundingClientRect();
+    const distance = Math.abs(rect.left + rect.width / 2 - railCenter);
+    return distance < nearest.distance ? { index, distance } : nearest;
+  }, { index: 0, distance: Number.POSITIVE_INFINITY }).index;
 }
 
 function scrollPlanCardIntoView(index, behavior = "smooth") {
@@ -1603,22 +1619,26 @@ function renderWeeklyPlan() {
   });
 
   let scrollTimer = null;
-  elements.weeklyPlan.addEventListener("scroll", () => {
+  let scrollFrame = null;
+  elements.weeklyPlan.onscroll = () => {
+    if (scrollFrame === null) {
+      scrollFrame = window.requestAnimationFrame(() => {
+        scrollFrame = null;
+        const previewIndex = getNearestPlanCardIndex();
+        if (previewIndex >= 0) updatePlanCarouselUi(plan, previewIndex);
+      });
+    }
     window.clearTimeout(scrollTimer);
     scrollTimer = window.setTimeout(() => {
-      const cards = Array.from(elements.weeklyPlan.querySelectorAll("[data-day-id]"));
-      const railRect = elements.weeklyPlan.getBoundingClientRect();
-      const railCenter = railRect.left + railRect.width / 2;
-      const nearestCard = cards.reduce((nearest, card) => {
-        const rect = card.getBoundingClientRect();
-        const distance = Math.abs(rect.left + rect.width / 2 - railCenter);
-        return !nearest || distance < nearest.distance ? { card, distance } : nearest;
-      }, null)?.card;
+      const nearestIndex = getNearestPlanCardIndex();
+      const nearestCard = elements.weeklyPlan.querySelectorAll("[data-day-id]")[nearestIndex];
       if (nearestCard && nearestCard.dataset.dayId !== activeDayId) {
         selectPlanDay(nearestCard.dataset.dayId, { scroll: false });
+      } else {
+        updatePlanCarouselUi(plan);
       }
-    }, 140);
-  }, { passive: true });
+    }, 110);
+  };
 
   updatePlanCarouselUi(plan);
   requestAnimationFrame(() => {
