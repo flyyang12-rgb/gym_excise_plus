@@ -2105,6 +2105,12 @@ p {
   margin-bottom: 12px;
 }
 
+@media (max-width: 480px) {
+  .workout-panel .tonight-meta {
+    margin-bottom: 6px;
+  }
+}
+
 .workout-panel .warmup-card {
   padding: 14px 16px;
   gap: 12px;

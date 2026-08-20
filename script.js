@@ -1,7 +1,7 @@
 const STORAGE_KEY = "fitness_helper_progress_v2";
 const TRAINING_NOTES_KEY = "fitness_helper_training_notes_v1";
 const AI_REQUEST_TIMEOUT_MS = 10000;
-const APP_VERSION = "2026.08.19.12";
+const APP_VERSION = "2026.08.20.13";
 const MODAL_EXIT_DURATION_MS = 180;
 const modalCloseTimers = new WeakMap();
 const modalPreviousFocus = new WeakMap();
@@ -581,8 +581,6 @@ const elements = {
   calendarStartWindow: document.querySelector("#calendarStartWindow"),
   tonightTitle: document.querySelector("#tonightTitle"),
   tonightMeta: document.querySelector("#tonightMeta"),
-  warmupTitle: document.querySelector("#warmupTitle"),
-  warmupText: document.querySelector("#warmupText"),
   exerciseList: document.querySelector("#exerciseList"),
   checkinButton: document.querySelector("#checkinButton"),
   todayProgress: document.querySelector("#todayProgress"),
@@ -592,7 +590,6 @@ const elements = {
   stretchText: document.querySelector("#stretchText"),
   recoveryText: document.querySelector("#recoveryText"),
   nutritionText: document.querySelector("#nutritionText"),
-  warmupActions: document.querySelector("#warmupActions"),
   appModules: document.querySelectorAll("[data-module]"),
   moduleButtons: document.querySelectorAll("[data-module-target]"),
   backToWorkoutButton: document.querySelector("#backToWorkoutButton"),
@@ -1443,24 +1440,6 @@ function renderGoalTabs() {
   });
 }
 
-function renderWarmupActions() {
-  if (!elements.warmupActions) return;
-  const buttons = state.goal === "fatLoss"
-    ? [
-        { target: "mat", label: "看瑜伽垫" },
-      ]
-    : [
-        { target: "treadmill", label: "看跑步机" },
-        { target: "elliptical", label: "看椭圆机" },
-        { target: "bike", label: "看单车" },
-      ];
-
-  elements.warmupActions.innerHTML = buttons
-    .map(({ target, label }) => `<button type="button" class="soft-button" data-equipment-target="${target}">${label}</button>`)
-    .join("");
-  bindEquipmentJumpButtons(elements.warmupActions);
-}
-
 function formatNoteDate(value) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "今天";
@@ -1664,8 +1643,6 @@ function renderWorkout() {
     <span class="pill">部位：${workout.focus}</span>
     <span class="pill">${workout.duration}</span>
   `;
-  elements.warmupTitle.textContent = workout.warmupTitle;
-  elements.warmupText.textContent = workout.warmupText;
   elements.todayProgress.textContent = `今日完成 ${progress.completed}/${progress.total}`;
   elements.checkinButton.textContent = isWorkoutComplete(workout) ? "今天已打卡" : "今日完成打卡";
   elements.checkinButton.disabled = isWorkoutComplete(workout);
@@ -2104,7 +2081,6 @@ function rerenderAll() {
   }
   renderOverview();
   renderProfileCalendar();
-  renderWarmupActions();
   renderFrequencyTabs();
   renderWeeklyPlan();
   renderWorkout();
@@ -2183,7 +2159,7 @@ function attachEvents() {
   if (elements.backToWorkoutButton) {
     elements.backToWorkoutButton.addEventListener("click", () => {
       setActiveModule("training", { scrollToTop: false });
-      const fallbackTarget = document.querySelector(".workout-panel") || document.querySelector(".warmup-card");
+      const fallbackTarget = document.querySelector(".workout-panel");
       const top = returnScrollY ?? (fallbackTarget ? fallbackTarget.offsetTop - 18 : 0);
       returnScrollY = null;
       updateBackToWorkoutButton();
