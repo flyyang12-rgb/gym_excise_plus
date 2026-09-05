@@ -4,6 +4,7 @@ desktop.ini
 *.log
 .env
 .env.*
+!.env.example
 .vscode/
 .idea/
 node_modules/
