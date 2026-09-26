@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="360" viewBox="0 0 1200 360" role="img" aria-labelledby="title desc">
+  <title id="title">健身小助手：选目标，看动作，完成训练</title>
+  <desc id="desc">面向晚间训练新手的中文健身网站，提供增肌与减脂计划、每周三四五练、动作教学和打卡。右侧以三个步骤表示实际使用流程。</desc>
+  <rect width="1200" height="360" rx="24" fill="#fff7f1"/>
+  <g font-family="Microsoft YaHei, PingFang SC, Segoe UI, sans-serif">
+    <g id="project-title">
+      <rect x="54" y="60" width="7" height="218" rx="3.5" fill="#ef6a2e"/>
+      <text x="86" y="90" fill="#bc4d18" font-size="25" font-weight="700" letter-spacing="2">给晚间训练新手</text>
+      <text x="80" y="185" fill="#071225" font-size="82" font-weight="800">健身小助手</text>
+      <text x="86" y="246" fill="#101827" font-size="35" font-weight="600">选目标，看动作，完成训练。</text>
+      <text x="86" y="299" fill="#667085" font-size="24">中文 · 手机可用 · 无需注册</text>
+    </g>
+    <g id="training-steps">
+      <path d="M756 90V271" stroke="#cfd5df" stroke-width="3"/>
+      <circle cx="756" cy="90" r="23" fill="#ef6a2e"/>
+      <circle cx="756" cy="181" r="23" fill="#071225"/>
+      <circle cx="756" cy="271" r="23" fill="#2f8f63"/>
+      <g fill="#ffffff" font-size="24" font-weight="700" text-anchor="middle">
+        <text x="756" y="99">1</text>
+        <text x="756" y="190">2</text>
+      </g>
+      <path d="m746 270 7 7 13-15" stroke="#ffffff" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="800" y="100" fill="#071225" font-size="34" font-weight="700">增肌 / 减脂</text>
+      <text x="800" y="191" fill="#071225" font-size="34" font-weight="700">每周 3 / 4 / 5 练</text>
+      <text x="800" y="281" fill="#2f8f63" font-size="34" font-weight="700">看教学，逐项打卡</text>
+    </g>
+  </g>
+</svg>

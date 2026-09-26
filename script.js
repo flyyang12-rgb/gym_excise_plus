@@ -1,7 +1,7 @@
 const STORAGE_KEY = "fitness_helper_progress_v2";
 const TRAINING_NOTES_KEY = "fitness_helper_training_notes_v1";
 const AI_REQUEST_TIMEOUT_MS = 10000;
-const APP_VERSION = "2026.08.20.14";
+const APP_VERSION = "2026.09.26.12";
 const MODAL_EXIT_DURATION_MS = 180;
 const modalCloseTimers = new WeakMap();
 const modalPreviousFocus = new WeakMap();
@@ -35,11 +35,11 @@ const goalConfig = {
   },
   fatLoss: {
     label: "减脂",
-    reason: "轻器械少，按瑜伽垫自重课来排更容易坚持",
-    durationText: "30-45 分钟",
-    stretch: "今天别求完美，先把动作做完。\n练 45-90 分钟，重量循序渐进。\n宁愿稳定多练，也别一上来拼废。",
-    recovery: "肌肉不是练出来的，是恢复出来的。\n训练后 1 小时内补充蛋白质 + 碳水。\n吃够，比硬撑更重要。",
-    nutrition: "睡眠是最便宜的增肌剂。\n每天尽量睡满 7-8 小时。\n恢复跟不上，训练白用功。",
+    reason: "每天两个不同的简单动作，最后以跑步或单车有氧为主",
+    durationText: "27-43 分钟",
+    stretch: "每天先做两个不同的简单动作，配重选轻。\n上器械先慢走或轻踩 5 分钟，再做正式有氧。\n结束前降速 5 分钟。",
+    recovery: "训练后正常吃饭，补充蛋白质和主食。\n疲劳时缩短有氧，或改成轻松走路。\n前面的动作轻松做，不练到疲劳。",
+    nutrition: "规律吃饭，少喝含糖饮料。\n每天尽量睡满 7-8 小时。\n先保持稳定的训练频率。",
   },
 };
 
@@ -47,7 +47,7 @@ const equipmentLibrary = {
   treadmill: {
     name: "跑步机",
     image: "images/treadmill.jpg",
-    useFor: ["热身快走", "训练后慢走", "恢复日有氧"],
+    useFor: ["热身快走", "定时慢跑", "训练后慢走", "恢复日有氧"],
     simple: "站上去先别跑，速度调到 4.5 到 6，先走 8 到 10 分钟，走到微微发热就够了。",
     standard: "能说话但有点喘，就是合适强度。",
   },
@@ -59,16 +59,16 @@ const equipmentLibrary = {
     standard: "全程肩膀放松，不耸肩，不弓背。",
   },
   bike: {
-    name: "单车",
+    name: "动感单车",
     image: "images/bike.jpg",
-    useFor: ["热身", "腿训练后放松"],
-    simple: "阻力放轻到中等，踩 8 到 10 分钟，先把腿转起来。",
-    standard: "膝盖不舒服就先调高座椅。",
+    useFor: ["轻阻力热身", "定时匀速骑行", "轻踩放松"],
+    simple: "先调整座椅，让踏板最低时膝盖仍微弯。坐姿轻踩 5 分钟，再按当天计划匀速骑行，结束前轻踩 5 分钟。",
+    standard: "上身稳定、膝盖朝前，阻力以能顺畅踩动为准，不站起来冲刺。",
   },
   cable: {
     name: "综合训练器",
     image: "images/cable.jpg",
-    useFor: ["夹胸", "高位下拉", "绳索直臂下压", "绳索下压"],
+    useFor: ["坐姿器械推胸", "高位下拉", "坐姿器械伸腿", "绳索直臂下压", "绳索下压"],
     simple: "看到可以拉钢丝绳、可以挂把手的那台大器械，基本就是它。",
     standard: "重量先轻一点，先把动作路线学会。",
   },
@@ -97,7 +97,7 @@ const equipmentLibrary = {
     name: "瑜伽垫",
     image: "images/yoga-mat.svg",
     useFor: ["垫上训练", "核心练习", "拉伸放松"],
-    simple: "一张防滑瑜伽垫就够了，所有减脂动作都在垫上完成。",
+    simple: "用于需要垫子的核心练习和拉伸。站姿热身在平整、防滑的地面上完成即可。",
     standard: "铺平、踩稳、不打滑，就是合适。",
   },
 };
@@ -172,88 +172,82 @@ const fatLossPlanTemplates = {
   ],
 };
 
+// 保留 matFlow* 键和原来的周安排，使已有计划 ID 不变。
+const fatLossExercisePairs = [
+  [
+  { name: "徒手浅蹲", sets: "热身 1 分钟 · 6-8 次", phase: "warmup", durationSeconds: 60, note: "不拿重量，只蹲一点；做完后轻松踏步，不做到腿酸。", stance: "双脚与肩同宽，脚掌完整踩地。", grip: "双手向前伸；需要时轻扶稳固支撑。", firstMove: "臀部稍向后，只做小幅下蹲，再踩稳站直。" },
+  { name: "站姿提踵", sets: "热身 1 分钟 · 8-10 次", phase: "warmup", durationSeconds: 60, note: "双手扶稳，双脚一起缓慢踮起、落下，不追求酸胀。", stance: "双脚与髋同宽站在平地，膝盖微弯，不站台阶。", grip: "双手轻扶墙面或稳固扶手，不拿哑铃。", firstMove: "两侧脚跟一起缓慢抬起，停一下，再轻轻落回地面。" },
+  ],
+  [
+    { name: "哑铃弯举", sets: "轻重量 · 2组 × 10次", phase: "strength", durationSeconds: 240, equipment: "dumbbell", note: "先选能稳稳做完的轻哑铃；组间休息 60-90 秒，不甩动身体。", stance: "双脚站稳，手肘贴近身体两侧。", grip: "双手各握一只轻哑铃，手腕保持直。", firstMove: "只弯曲手肘把哑铃举起，再缓慢放下。" },
+    { name: "绳索下压", sets: "轻重量 · 2组 × 10次", phase: "strength", durationSeconds: 240, equipment: "cable", note: "用轻配重，手肘固定；组间休息 60-90 秒，不压到手肘锁死。", stance: "面向综合训练器站稳，手肘夹在身体两侧。", grip: "双手握住上方滑轮的下压把手。", firstMove: "把手从胸前向下压，再慢慢回到起点。" },
+  ],
+  [
+    { name: "坐姿器械推胸", sets: "轻重量 · 2组 × 10次", phase: "strength", durationSeconds: 240, equipment: "cable", note: "调整座椅，让把手在胸旁；轻配重，组间休息 60-90 秒。", stance: "坐稳贴住靠垫，双脚踩地。", grip: "握住向前推的把手，不用夹胸臂。", firstMove: "把手向前推，再缓慢收回，身体不离开靠垫。" },
+    { name: "坐姿高位下拉", sets: "轻重量 · 2组 × 10次", phase: "strength", durationSeconds: 240, equipment: "cable", note: "面向器材坐稳，横杆拉到胸前；轻配重，组间休息 60-90 秒。", stance: "面向立柱和配重片坐稳，压腿垫固定大腿，双脚踩地。", grip: "双手略宽于肩握住横杆，肩膀放松。", firstMove: "手肘向下带动横杆到锁骨下方，再缓慢送回。" },
+  ],
+  [
+    { name: "坐姿器械伸腿", sets: "轻重量 · 2组 × 10次", phase: "strength", durationSeconds: 240, equipment: "cable", note: "用综合训练器的伸腿位置，配重选轻；组间休息 60-90 秒。", stance: "坐稳贴住靠垫，膝关节与伸腿转轴对齐，滚垫在小腿下端。", grip: "双手扶稳座椅侧边。", firstMove: "缓慢伸直小腿，不锁死膝盖，再慢慢放回。" },
+    { name: "站姿屈膝", sets: "轻活动 1 分钟 · 每侧 6-8 次", phase: "warmup", durationSeconds: 60, note: "扶稳，不加重量；脚跟向后抬一点即可，不踢得很高。", stance: "站在稳固支撑旁，身体直立。", grip: "双手轻扶稳固支撑。", firstMove: "一侧脚跟向臀部方向抬起，再放回地面，左右换边。" },
+  ],
+  [
+    { name: "站姿侧屈", sets: "轻活动 1 分钟 · 每侧 4-6 次", phase: "warmup", durationSeconds: 60, note: "不拿哑铃，只轻轻侧弯再回正，不停留在最大幅度。", stance: "双脚与髋同宽，膝盖微弯，骨盆保持稳定。", grip: "一手轻放头侧，另一手自然下垂，不拉扯头部。", firstMove: "上身向一侧小幅侧弯，再回正，左右交替。" },
+    { name: "扶稳踝绕环", sets: "轻活动 1 分钟 · 每侧每方向 4-6 圈", phase: "warmup", durationSeconds: 60, note: "扶稳，不加重量；只转脚踝，膝盖和身体不跟着转。", stance: "站在稳固支撑旁，一只脚稍微抬离地面。", grip: "双手扶稳支撑，另一脚踩稳。", firstMove: "脚踝缓慢画小圈，顺、逆时针各做几圈，再换脚。" },
+  ],
+];
+
+function createFatLossCardio(equipment, minutes, recovery = false, light = false) {
+  const isBike = equipment === "bike";
+  const name = isBike ? "动感单车匀速骑行" : recovery ? "跑步机快走" : "跑步机慢跑";
+  const activity = isBike ? (light ? "轻松骑" : "匀速骑") : recovery ? "轻松走" : "慢跑";
+  const warmup = isBike ? "轻踩热身" : "慢走热身";
+  const cooldown = isBike ? "轻踩放松" : "慢走放松";
+  return {
+    name, sets: `${minutes + 10} 分钟`, durationSeconds: (minutes + 10) * 60, phase: "cardio", equipment,
+    note: `热身 5 分钟 → ${activity} ${minutes} 分钟 → 放松 5 分钟。`,
+    timerSegments: [
+      { label: warmup, durationSeconds: 300 },
+      { label: activity, durationSeconds: minutes * 60 },
+      { label: cooldown, durationSeconds: 300 },
+    ],
+    stance: isBike ? "坐稳，踏板最低时膝盖仍微弯，膝盖朝前。" : "站上跑步机后夹好安全夹，身体直立，不趴扶手。",
+    grip: isBike ? "双手轻扶车把，肩膀放松。" : "双手自然摆动，调速时短暂扶稳。",
+    firstMove: isBike ? "从轻阻力慢踩开始，逐渐加快到能说完整句子的强度。" : recovery ? "从慢走开始，保持轻松走路的速度。" : "先慢走 5 分钟，再逐渐调到舒服的慢跑速度；吃力就改快走。",
+  };
+}
+
+function createFatLossWorkout(pairIndex, equipment, minutes, light = false) {
+  const equipmentName = equipmentLibrary[equipment].name;
+  const pair = fatLossExercisePairs[pairIndex];
+  const totalMinutes = pair.reduce((sum, exercise) => sum + exercise.durationSeconds / 60, minutes + 10);
+  return {
+    title: light ? "单车轻松骑" : equipment === "bike" ? "动感单车有氧" : "跑步机有氧",
+    focus: ["臀腿、心肺", "手臂、心肺", "胸背、心肺", "腿部、心肺", "轻活动、心肺"][pairIndex],
+    duration: `约 ${totalMinutes} 分钟`,
+    warmupTitle: "两个简单动作 → 最后定时有氧",
+    warmupText: "开始前先轻松踏步活动身体。每天两个动作不重复，徒手或用轻配重，不练到疲劳；最后按时间跑步或骑车。",
+    tags: [light ? "轻活动" : "两个简单动作", equipmentName],
+    exercises: [
+      ...pair,
+      createFatLossCardio(equipment, minutes, false, light),
+    ],
+  };
+}
+
 const fatLossWorkouts = {
-  matFlow1: {
-    title: "垫上燃脂 1",
-    focus: "全身激活、基础心肺、核心",
-    duration: "约 35-40 分钟",
-    warmupTitle: "热身先做：原地走 + 开合步 5 分钟",
-    warmupText: "全程只用瑜伽垫。先把身体热开，再进入动作循环。",
-    tags: ["瑜伽垫", "自重"],
-    exercises: [
-      { name: "原地高抬腿", sets: "3轮 x 40秒", note: "节奏稳一点，别一上来就冲。", stance: "站在垫子前半段，抬头挺胸。", grip: "双手自然摆动即可。", firstMove: "先慢抬腿，再逐渐提到舒服速度。" },
-      { name: "深蹲到伸展", sets: "3轮 x 12次", note: "蹲下去，站起来后顺手把身体伸直。", stance: "双脚踩在垫子上，脚跟别翘。", grip: "双手自然放在胸前或向上伸。", firstMove: "先坐髋，再站起并把手臂举高。" },
-      { name: "登山跑", sets: "3轮 x 30秒", note: "核心收紧，动作别散。", stance: "双手撑垫，肩膀在手腕正上方。", grip: "不用器械，手掌撑稳地面。", firstMove: "先把一条腿向前提，再左右交替。" },
-      { name: "平板支撑", sets: "3组 x 30-45秒", note: "腰别塌，肚子收住。", stance: "前臂撑垫，身体一条直线。", grip: "不用器械。", firstMove: "先收紧腹部，再保持稳定呼吸。" },
-    ],
-  },
-  matFlow2: {
-    title: "垫上燃脂 2",
-    focus: "下肢、臀腿、核心",
-    duration: "约 35-45 分钟",
-    warmupTitle: "热身先做：开合步 + 髋部活动 5 分钟",
-    warmupText: "还是只用瑜伽垫，今天重点放在腿和臀。",
-    tags: ["瑜伽垫", "自重"],
-    exercises: [
-      { name: "弓步蹲", sets: "3组 x 10次/侧", note: "身体直着下去，别往前扑。", stance: "前后站开在垫子上。", grip: "双手可叉腰或抱胸。", firstMove: "前腿踩稳，再慢慢下蹲。" },
-      { name: "臀桥", sets: "3组 x 15次", note: "顶到臀部发力，不是腰在顶。", stance: "仰躺在垫子上，屈膝踩地。", grip: "手臂放身体两侧。", firstMove: "先收紧臀部，再把髋抬起。" },
-      { name: "侧卧抬腿", sets: "3组 x 12次/侧", note: "动作慢一点，别甩腿。", stance: "侧躺在垫子上，身体拉直。", grip: "不用器械。", firstMove: "先抬上侧腿，再慢慢放下。" },
-      { name: "死虫", sets: "3组 x 10次/侧", note: "核心稳住，腰别拱。", stance: "仰躺，双腿抬起。", grip: "双手伸向天花板。", firstMove: "对侧手脚慢慢伸出去，再收回。" },
-    ],
-  },
-  matFlow3: {
-    title: "垫上燃脂 3",
-    focus: "上半身激活、核心耐力",
-    duration: "约 30-40 分钟",
-    warmupTitle: "热身先做：猫牛式 + 站姿绕肩 5 分钟",
-    warmupText: "动作都在垫上或垫边完成，不需要器械。",
-    tags: ["瑜伽垫", "自重"],
-    exercises: [
-      { name: "跪姿俯卧撑", sets: "3组 x 8-12次", note: "先把动作做标准，再谈次数。", stance: "双膝跪在垫子上，身体保持直线。", grip: "双手撑地，略宽于肩。", firstMove: "先稳住躯干，再往下压。", },
-      { name: "超人式", sets: "3组 x 12次", note: "背部和臀部一起发力。", stance: "俯卧在垫子上，双臂前伸。", grip: "不用器械。", firstMove: "四肢和胸口轻轻抬起，再放下。" },
-      { name: "俄罗斯转体", sets: "3组 x 20次", note: "转腰，不是甩手。", stance: "坐在垫子上，膝盖弯起。", grip: "双手在胸前合拢。", firstMove: "身体微微后仰后左右转动。" },
-      { name: "平板支撑交替抬手", sets: "3组 x 20次", note: "肩膀别晃太多。", stance: "高位平板撑在垫子上。", grip: "手掌撑地。", firstMove: "一只手慢慢抬起，再换边。" },
-    ],
-  },
-  matFlow4: {
-    title: "垫上燃脂 4",
-    focus: "全身循环、出汗节奏",
-    duration: "约 35-45 分钟",
-    warmupTitle: "热身先做：快走原地踏步 5 分钟",
-    warmupText: "今天还是只靠瑜伽垫完成整节课。",
-    tags: ["瑜伽垫", "自重"],
-    exercises: [
-      { name: "开合跳低冲击版", sets: "4轮 x 40秒", note: "不想跳就改成左右踏步。", stance: "站在垫子中央。", grip: "双手自然甩动。", firstMove: "先从慢节奏开始，再加快。" },
-      { name: "深蹲脉冲", sets: "3组 x 20次", note: "蹲在半程上下小幅发力。", stance: "脚踩稳垫子。", grip: "双手抱胸。", firstMove: "先下蹲到半程，再小幅起伏。" },
-      { name: "山地爬行", sets: "3组 x 30秒", note: "核心收紧，呼吸别乱。", stance: "双手撑地，身体拉平。", grip: "手掌压稳地面。", firstMove: "左右腿交替向前提。" },
-      { name: "仰卧卷腹", sets: "3组 x 15次", note: "收腹发力，不是脖子发力。", stance: "仰躺在垫上，屈膝。", grip: "双手轻放耳侧。", firstMove: "先呼气，再把肩膀带起来。" },
-    ],
-  },
-  matFlow5: {
-    title: "垫上燃脂 5",
-    focus: "拉伸、核心收尾、轻出汗",
-    duration: "约 30-35 分钟",
-    warmupTitle: "热身先做：关节活动 5 分钟",
-    warmupText: "这一练更轻，还是只需要瑜伽垫。",
-    tags: ["瑜伽垫", "自重"],
-    exercises: [
-      { name: "鸟狗式", sets: "3组 x 10次/侧", note: "慢一点，稳住身体。", stance: "四点跪姿撑在垫上。", grip: "手掌压稳地面。", firstMove: "对侧手脚同时伸出去，再收回。" },
-      { name: "臀腿拉伸", sets: "3组 x 30秒/侧", note: "今天把腿后侧放松一点。", stance: "坐姿或仰姿都可以。", grip: "不需要器械。", firstMove: "拉到有感觉就停住。" },
-      { name: "平板支撑", sets: "3组 x 20-30秒", note: "保持稳定，不追时长。", stance: "前臂撑地。", grip: "不用器械。", firstMove: "先收腹，再保持直线。" },
-      { name: "呼吸放松", sets: "2组 x 1分钟", note: "收尾降下来，别急着结束。", stance: "仰躺在垫上。", grip: "双手自然放松。", firstMove: "慢吸气、慢呼气。" },
-    ],
-  },
+  matFlow1: createFatLossWorkout(0, "treadmill", 20),
+  matFlow2: createFatLossWorkout(1, "bike", 20),
+  matFlow3: createFatLossWorkout(2, "treadmill", 25),
+  matFlow4: createFatLossWorkout(3, "bike", 20),
+  matFlow5: createFatLossWorkout(4, "bike", 15, true),
   matRecovery: {
     title: "恢复日",
-    focus: "轻拉伸、放松",
-    duration: "约 20-30 分钟",
-    warmupTitle: "恢复日也只用瑜伽垫",
-    warmupText: "不加器械，不加跳跃，轻轻松松就行。",
-    tags: ["瑜伽垫"],
-    exercises: [
-      { name: "全身拉伸", sets: "8-10 分钟", note: "胸、背、髋、腿后侧都松一松。", stance: "站姿或坐姿都行。", grip: "不需要器械。", firstMove: "每个部位停留到有拉开感。" },
-      { name: "猫牛式", sets: "2组 x 8次", note: "放松背部和脊柱。", stance: "四点跪姿。", grip: "手掌撑稳。", firstMove: "一弓一塌，慢慢呼吸。" },
-    ],
+    focus: "轻活动、放松",
+    duration: "约 20 分钟 · 可休息",
+    warmupTitle: "慢走 5 分钟 → 轻松走 10 分钟 → 降速 5 分钟",
+    warmupText: "轻松走路，疲劳时直接休息。",
+    tags: ["跑步机", "可休息"],
+    exercises: [createFatLossCardio("treadmill", 10, true)],
   },
 };
 
@@ -548,6 +542,11 @@ let stepMotion = "forward";
 let activeGuideTab = "steps";
 let restTimerId = null;
 let restState = null;
+let exerciseTimerState = null;
+let exerciseTimerId = null;
+let exerciseTimerSoundEnabled = false;
+let exerciseTimerAudioContext = null;
+let exerciseTimerSoundMessage = "";
 const EXERCISE_MEDIA_ENABLED = [
   "localhost",
   "127.0.0.1",
@@ -709,7 +708,7 @@ function getGoalSummary(goal) {
   if (goal === "muscleGain") {
     return "先稳住频率，再逐步加重量";
   }
-  return "按瑜伽垫自重课来排，节奏清楚更容易坚持";
+  return "每天两个不同的简单动作 → 跑步机 / 单车定时有氧";
 }
 
 function getOverviewHint(goal, bmiInfo) {
@@ -717,7 +716,7 @@ function getOverviewHint(goal, bmiInfo) {
     return "你现在更适合走稳一点的增肌路线：先把一周节奏固定，再把吃饭和睡眠跟上。";
   }
   if (goal === "fatLoss") {
-    return "减脂阶段就走简单路线：瑜伽垫、自重、规律频次，别把课表搞复杂。";
+    return "每天两个不同的简单动作，徒手或用轻配重，不练到疲劳；最后以跑步或单车有氧为主。跑不动就快走，按能坚持的时间完成。";
   }
   return "你现在更适合先把训练节奏固定下来，再慢慢加重量和动作熟练度。";
 }
@@ -800,8 +799,191 @@ function getActiveWorkout() {
 
 function resetExerciseStepper() {
   cancelRestTimer();
+  cancelExerciseTimer();
   activeExerciseIndex = 0;
   stepMotion = "forward";
+}
+
+function cancelExerciseTimer() {
+  if (exerciseTimerId !== null) window.clearInterval(exerciseTimerId);
+  exerciseTimerId = null;
+  exerciseTimerState = null;
+}
+
+function getExerciseTimerRemaining(exercise) {
+  if (!exerciseTimerState) return exercise.durationSeconds;
+  return exerciseTimerState.endAt === null
+    ? exerciseTimerState.remaining
+    : window.ExerciseGuides.getRemainingRestSeconds(exerciseTimerState.endAt);
+}
+
+function formatExerciseTime(seconds) {
+  return `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
+}
+
+function getExerciseTimerStageInfo(exercise, remaining) {
+  const segments = exercise.timerSegments || [];
+  if (remaining <= 0) {
+    return { index: segments.length, title: "本次有氧结束", label: "已结束", phase: "complete", remaining: 0 };
+  }
+  let elapsed = exercise.durationSeconds - Math.min(remaining, exercise.durationSeconds);
+  for (let index = 0; index < segments.length; index += 1) {
+    const segment = segments[index];
+    if (elapsed < segment.durationSeconds) {
+      const phase = index === 0 ? "warmup" : index === segments.length - 1 ? "cooldown" : "cardio";
+      const title = { warmup: "热身", cardio: "正式有氧", cooldown: "放松" }[phase];
+      return { index, title, label: segment.label, phase, remaining: segment.durationSeconds - elapsed };
+    }
+    elapsed -= segment.durationSeconds;
+  }
+  return { index: 0, title: "有氧", label: "有氧", phase: "cardio", remaining };
+}
+
+function getExerciseTimerStage(exercise, remaining) {
+  return getExerciseTimerStageInfo(exercise, remaining).label;
+}
+
+function updateExerciseTimerSoundDisplay() {
+  const button = elements.exerciseList.querySelector("[data-exercise-timer-sound]");
+  const note = elements.exerciseList.querySelector("[data-exercise-timer-sound-note]");
+  if (button) {
+    button.textContent = `声音提醒：${exerciseTimerSoundEnabled ? "开" : "关"}`;
+    button.setAttribute("aria-pressed", String(exerciseTimerSoundEnabled));
+  }
+  const message = exerciseTimerSoundMessage || (exerciseTimerSoundEnabled
+    ? "阶段切换和结束时短响；锁屏后提醒可能延迟。"
+    : "开启时会试听，阶段切换和结束时提醒。");
+  if (note && note.textContent !== message) note.textContent = message;
+}
+
+async function prepareExerciseTimerAudio() {
+  try {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) {
+      exerciseTimerSoundMessage = "当前浏览器不支持声音，仍可看阶段提示。";
+      exerciseTimerSoundEnabled = false;
+      updateExerciseTimerSoundDisplay();
+      return false;
+    }
+    // 只在用户点击声音开关、开始或继续时创建 / 恢复，遵循浏览器播放规则。
+    if (!exerciseTimerAudioContext || exerciseTimerAudioContext.state === "closed") {
+      exerciseTimerAudioContext = new AudioContextClass();
+    }
+    if (exerciseTimerAudioContext.state !== "running") await exerciseTimerAudioContext.resume();
+    if (exerciseTimerAudioContext.state !== "running") throw new Error("audio_not_running");
+    return true;
+  } catch {
+    exerciseTimerSoundEnabled = false;
+    exerciseTimerSoundMessage = "声音未开启，请再点一次。";
+    updateExerciseTimerSoundDisplay();
+    return false;
+  }
+}
+
+function playExerciseTimerSound(finished = false) {
+  if (!exerciseTimerSoundEnabled || exerciseTimerAudioContext?.state !== "running") return;
+  try {
+    const context = exerciseTimerAudioContext;
+    const frequencies = finished ? [660, 880, 1046] : [660, 880];
+    frequencies.forEach((frequency, index) => {
+      const startAt = context.currentTime + index * 0.2;
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
+      oscillator.type = "sine";
+      oscillator.frequency.setValueAtTime(frequency, startAt);
+      gain.gain.setValueAtTime(0, startAt);
+      gain.gain.linearRampToValueAtTime(0.06, startAt + 0.015);
+      gain.gain.linearRampToValueAtTime(0, startAt + 0.15);
+      oscillator.connect(gain);
+      gain.connect(context.destination);
+      oscillator.onended = () => { oscillator.disconnect(); gain.disconnect(); };
+      oscillator.start(startAt);
+      oscillator.stop(startAt + 0.17);
+    });
+  } catch {
+    exerciseTimerSoundEnabled = false;
+    exerciseTimerSoundMessage = "声音暂不可用，仍可看阶段提示。";
+    updateExerciseTimerSoundDisplay();
+  }
+}
+
+async function toggleExerciseTimerSound() {
+  exerciseTimerSoundEnabled = !exerciseTimerSoundEnabled;
+  exerciseTimerSoundMessage = "";
+  updateExerciseTimerSoundDisplay();
+  if (exerciseTimerSoundEnabled && await prepareExerciseTimerAudio()) playExerciseTimerSound();
+}
+
+function updateExerciseTimerDisplay() {
+  const exercise = getActiveWorkout()?.exercises[activeExerciseIndex];
+  if (!exercise?.timerSegments) return;
+  const remaining = getExerciseTimerRemaining(exercise);
+  const stage = getExerciseTimerStageInfo(exercise, remaining);
+  const wasRunning = exerciseTimerState?.endAt != null;
+  if (wasRunning && exerciseTimerState.stageIndex !== stage.index) {
+    exerciseTimerState.stageIndex = stage.index;
+    // 后台恢复后只提示当前阶段一次，不补播错过的阶段。
+    playExerciseTimerSound(remaining === 0);
+  }
+  if (exerciseTimerState && remaining === 0) {
+    window.clearInterval(exerciseTimerId);
+    exerciseTimerId = null;
+    exerciseTimerState.remaining = 0;
+    exerciseTimerState.endAt = null;
+  }
+  const running = exerciseTimerState?.endAt != null;
+  const number = elements.exerciseList.querySelector("[data-exercise-seconds]");
+  const button = elements.exerciseList.querySelector("[data-exercise-timer-toggle]");
+  const status = elements.exerciseList.querySelector("[data-exercise-timer-status]");
+  const timer = elements.exerciseList.querySelector("[data-exercise-timer]");
+  const title = elements.exerciseList.querySelector("[data-exercise-timer-phase]");
+  const stateBadge = elements.exerciseList.querySelector("[data-exercise-timer-state]");
+  const detail = elements.exerciseList.querySelector("[data-exercise-stage-remaining]");
+  if (number) number.textContent = formatExerciseTime(remaining);
+  if (button) button.textContent = running ? "暂停" : remaining === 0 ? "重来" : exerciseTimerState ? "继续" : "开始";
+  if (timer) timer.dataset.timerPhase = stage.phase;
+  if (title) title.textContent = stage.title;
+  if (stateBadge) stateBadge.textContent = remaining === 0 ? "已结束" : running ? "进行中" : exerciseTimerState ? "已暂停" : "未开始";
+  if (detail) detail.textContent = remaining === 0
+    ? "放慢速度，准备收尾；完成后勾选。"
+    : `${stage.label} · 本阶段剩余 ${formatExerciseTime(stage.remaining)}`;
+  elements.exerciseList.querySelectorAll("[data-exercise-stage]").forEach((item) => {
+    const index = Number(item.dataset.exerciseStage);
+    item.classList.toggle("is-active", index === stage.index);
+    item.classList.toggle("is-done", index < stage.index);
+    if (index === stage.index) item.setAttribute("aria-current", "step");
+    else item.removeAttribute("aria-current");
+  });
+  const statusText = remaining === 0
+    ? "时间到，勾选完成"
+    : `${running ? "正在" : exerciseTimerState ? "已暂停：" : "准备"}${stage.title} · ${stage.label}`;
+  if (status && status.textContent !== statusText) status.textContent = statusText;
+  updateExerciseTimerSoundDisplay();
+}
+
+function toggleExerciseTimer() {
+  const exercise = getActiveWorkout()?.exercises[activeExerciseIndex];
+  if (!exercise?.timerSegments) return;
+  const wasRunning = exerciseTimerState?.endAt != null;
+  updateExerciseTimerDisplay();
+  const remaining = getExerciseTimerRemaining(exercise);
+  // 若按钮点击前已到时，只更新结束提示，避免旧“暂停”点击意外重开。
+  if (wasRunning && remaining === 0) return;
+  if (exerciseTimerState?.endAt != null) {
+    window.clearInterval(exerciseTimerId);
+    exerciseTimerId = null;
+    exerciseTimerState = { ...exerciseTimerState, remaining, endAt: null };
+  } else {
+    const restartRemaining = remaining || exercise.durationSeconds;
+    exerciseTimerState = {
+      remaining: restartRemaining,
+      endAt: Date.now() + restartRemaining * 1000,
+      stageIndex: getExerciseTimerStageInfo(exercise, restartRemaining).index,
+    };
+    if (exerciseTimerSoundEnabled) void prepareExerciseTimerAudio();
+    exerciseTimerId = window.setInterval(updateExerciseTimerDisplay, 250);
+  }
+  updateExerciseTimerDisplay();
 }
 
 function cancelRestTimer() {
@@ -1673,13 +1855,9 @@ function renderWorkout() {
   const exercise = workout.exercises[activeExerciseIndex];
   const guide = window.ExerciseGuides.getExerciseGuide(exercise, { mediaEnabled: EXERCISE_MEDIA_ENABLED });
   const complete = !!checkedMap[exercise.name];
-  const equipmentTarget = state.goal === "fatLoss" ? "mat" : (exercise.equipment || "");
-  const equipmentJumpLabel = state.goal === "fatLoss"
-    ? "看瑜伽垫"
-    : (exercise.equipment ? `看${equipmentLibrary[exercise.equipment].name}` : "");
-  const equipmentLabel = state.goal === "fatLoss"
-    ? "瑜伽垫"
-    : (exercise.equipment ? equipmentLibrary[exercise.equipment].name : "徒手");
+  const equipmentTarget = exercise.equipment || "";
+  const equipmentJumpLabel = exercise.equipment ? `看${equipmentLibrary[exercise.equipment].name}` : "";
+  const equipmentLabel = exercise.equipment ? equipmentLibrary[exercise.equipment].name : "徒手";
   const nextExercise = workout.exercises[activeExerciseIndex + 1];
   const percent = totalExercises ? Math.round(((activeExerciseIndex + 1) / totalExercises) * 100) : 0;
   const completionPercent = progress.total ? Math.round((progress.completed / progress.total) * 100) : 0;
@@ -1776,14 +1954,12 @@ function renderWorkout() {
               <div class="exercise-demo-placeholder" aria-label="当前为文字指导模式">
                 <span>${String(activeExerciseIndex + 1).padStart(2, "0")}</span>
                 <strong>${guide.name}</strong>
-                <small>${guide.hasSpecificGuide ? "示范媒体授权后上线" : "跟随文字提示慢速练习"}</small>
+                <small>跟随文字提示练习</small>
               </div>
             `}
             <div class="exercise-demo-meta">
               <span>${exercise.sets}</span>
-              ${state.goal === "fatLoss"
-                ? `<span>只需瑜伽垫</span><button type="button" class="tutorial-link tutorial-jump" data-equipment-target="mat">${equipmentJumpLabel}</button>`
-                : (exercise.equipment
+              ${(exercise.equipment
                   ? `<span>优先器械：${equipmentLibrary[exercise.equipment].name}</span><button type="button" class="tutorial-link tutorial-jump" data-equipment-target="${equipmentTarget}">${equipmentJumpLabel}</button>`
                   : `<span>徒手动作</span>`)}
             </div>
@@ -1810,7 +1986,27 @@ function renderWorkout() {
             </div>
           </div>
         </div>
-        ${state.goal === "fatLoss" ? `<div class="exercise-actions"><span class="pill">只需瑜伽垫</span></div>` : ""}
+        ${exercise.timerSegments ? `
+          <div class="exercise-timer" data-exercise-timer aria-live="off" aria-label="有氧倒计时，含低速热身和放松">
+            <div class="exercise-timer-summary">
+              <div class="exercise-timer-phase">
+                <div class="exercise-timer-heading"><strong data-exercise-timer-phase>热身</strong><span data-exercise-timer-state>未开始</span></div>
+                <p data-exercise-stage-remaining></p>
+              </div>
+              <div class="exercise-timer-time"><span>总剩余</span><strong data-exercise-seconds>${formatExerciseTime(getExerciseTimerRemaining(exercise))}</strong></div>
+            </div>
+            <ol class="exercise-timer-stages" aria-label="有氧三个阶段">
+              ${exercise.timerSegments.map((segment, index) => `<li data-exercise-stage="${index}"><span>${["热身", "正式有氧", "放松"][index]}</span><small>${segment.durationSeconds / 60} 分钟</small></li>`).join("")}
+            </ol>
+            <div class="exercise-timer-controls">
+              <button type="button" class="step-nav-button step-nav-button-primary" data-exercise-timer-toggle>开始</button>
+              <button type="button" class="step-nav-button" data-exercise-timer-reset>重置</button>
+              <button type="button" class="exercise-timer-sound" data-exercise-timer-sound aria-pressed="false">声音提醒：关</button>
+            </div>
+            <p class="exercise-timer-sound-note" data-exercise-timer-sound-note role="status"></p>
+            <span class="exercise-timer-announcement" data-exercise-timer-status role="status" aria-live="polite" aria-atomic="true"></span>
+          </div>
+        ` : ""}
       </article>
 
       <div class="stepper-footer">
@@ -1822,10 +2018,17 @@ function renderWorkout() {
   `;
 
   bindWorkoutInteractions();
+  updateExerciseTimerDisplay();
 }
 
 function bindWorkoutInteractions() {
   bindEquipmentJumpButtons(elements.exerciseList);
+  elements.exerciseList.querySelector("[data-exercise-timer-toggle]")?.addEventListener("click", toggleExerciseTimer);
+  elements.exerciseList.querySelector("[data-exercise-timer-sound]")?.addEventListener("click", toggleExerciseTimerSound);
+  elements.exerciseList.querySelector("[data-exercise-timer-reset]")?.addEventListener("click", () => {
+    cancelExerciseTimer();
+    updateExerciseTimerDisplay();
+  });
 
   elements.exerciseList.querySelector("[data-open-tutorial]")?.addEventListener("click", openTutorialSheet);
 
@@ -1833,10 +2036,17 @@ function bindWorkoutInteractions() {
     checkbox.addEventListener("change", () => {
       const workout = getActiveWorkout();
       const lastIndex = workout ? workout.exercises.length - 1 : 0;
-      const shouldRest = checkbox.checked && activeExerciseIndex < lastIndex;
+      const shouldAdvance = checkbox.checked && activeExerciseIndex < lastIndex;
+      cancelExerciseTimer();
       setExerciseCompleted(checkbox.dataset.workoutId, checkbox.dataset.exerciseName, checkbox.checked);
       renderWeeklyPlan();
-      if (shouldRest) startRestTimer(activeExerciseIndex + 1);
+      if (shouldAdvance && state.goal === "fatLoss") {
+        activeExerciseIndex += 1;
+        activeGuideTab = "steps";
+        stepMotion = "forward";
+        renderWorkout();
+      }
+      else if (shouldAdvance) startRestTimer(activeExerciseIndex + 1);
       else renderWorkout();
     });
   });
@@ -1844,6 +2054,7 @@ function bindWorkoutInteractions() {
   elements.exerciseList.querySelectorAll("[data-step-index]").forEach((button) => {
     button.addEventListener("click", () => {
       const nextIndex = Number(button.dataset.stepIndex);
+      if (nextIndex !== activeExerciseIndex) cancelExerciseTimer();
       stepMotion = nextIndex >= activeExerciseIndex ? "forward" : "back";
       activeExerciseIndex = nextIndex;
       activeGuideTab = "steps";
@@ -1856,6 +2067,7 @@ function bindWorkoutInteractions() {
     button.addEventListener("click", () => {
       const workout = getActiveWorkout();
       if (!workout) return;
+      cancelExerciseTimer();
       const lastIndex = workout.exercises.length - 1;
       if (button.dataset.stepDirection === "prev") {
         stepMotion = "back";
@@ -1915,7 +2127,7 @@ function bindRestInteractions() {
 
 function renderEquipmentGuide() {
   const order = state.goal === "fatLoss"
-    ? ["mat"]
+    ? ["treadmill", "bike", "cable", "dumbbell"]
     : ["treadmill", "elliptical", "bike", "cable", "smith", "bench", "dumbbell"];
   elements.equipmentGrid.innerHTML = order.map((key) => {
     const item = equipmentLibrary[key];
@@ -2171,6 +2383,7 @@ function attachEvents() {
   elements.checkinButton.addEventListener("click", () => {
     const workout = getActiveWorkout();
     if (!workout) return;
+    cancelExerciseTimer();
     completeWorkout(workout);
     renderWeeklyPlan();
     renderWorkout();
