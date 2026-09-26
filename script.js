@@ -1,7 +1,7 @@
 const STORAGE_KEY = "fitness_helper_progress_v2";
 const TRAINING_NOTES_KEY = "fitness_helper_training_notes_v1";
 const AI_REQUEST_TIMEOUT_MS = 10000;
-const APP_VERSION = "2026.09.26.12";
+const APP_VERSION = "2026.09.26.13";
 const MODAL_EXIT_DURATION_MS = 180;
 const modalCloseTimers = new WeakMap();
 const modalPreviousFocus = new WeakMap();
@@ -105,7 +105,6 @@ const equipmentLibrary = {
 const tutorialLinks = {
   "平板卧推": "https://www.xiaohongshu.com/explore/684fd5020000000023013244?xsec_token=ABBEifVAJBlkEWQOYth_9ue8penPYDxvIlGg9UYbLfJWQ=&xsec_source=pc_search&source=web_explore_feed",
   "哑铃卧推": "https://www.xiaohongshu.com/discovery/item/679202130000000029036ca1?source=webshare&xhsshare=pc_web&xsec_token=ABaInPD7dtAZJgqAwYDCkbVzqY6QIs1VZuYM36KETGo_k=&xsec_source=pc_share",
-  "夹胸 / 飞鸟": "https://www.xiaohongshu.com/discovery/item/692278de000000001e039e0c?source=webshare&xhsshare=pc_web&xsec_token=ABLoBIR9UJvu_29AY0XkgTC-ABzorA63v67AnaKPd4eVc=&xsec_source=pc_share",
   "绳索下压": "https://www.xiaohongshu.com/discovery/item/6946a2c1000000001d03d823?source=webshare&xhsshare=pc_web&xsec_token=ABVIBRKeSeeFgmGjFfPIV8EeyfzlacCzXKlNajs4etG8E=&xsec_source=pc_share",
   "核心收尾": "https://www.xiaohongshu.com/discovery/item/6868fc5b0000000011003d77?source=webshare&xhsshare=pc_web&xsec_token=AB-jxwVW5NMjX44jVM8oSnWHpIS29GV3CyNjpQ74XbQAM=&xsec_source=pc_share",
   "高位下拉": "https://www.xiaohongshu.com/discovery/item/694f169b000000001e023f3a?source=webshare&xhsshare=pc_web&xsec_token=ABVdf03TJ0VOyFfwsXUyLuLjE2Du8hQjoyV2XXl4ciNWw=&xsec_source=pc_share",
@@ -281,14 +280,14 @@ const workoutLibrary = {
         firstMove: "哑铃先放胸旁边，再一起往上推到手快伸直的位置。",
       },
       {
-        name: "夹胸 / 飞鸟",
+        name: "哑铃飞鸟",
         sets: "3组 x 12次",
-        note: "优先用综合训练器做夹胸；不会钢丝绳，就做卧推凳上的哑铃飞鸟。",
-        equipment: "cable",
+        note: "用两只 5 kg 哑铃，在平卧推凳上做飞鸟。手肘微弯，慢慢打开，再合回胸口上方。",
+        equipment: "dumbbell",
         extraEquipment: "bench",
-        stance: "夹胸时站在综合训练器中间，一脚前一脚后更稳；飞鸟时躺在卧推凳上。",
-        grip: "夹胸时双手握住把手；飞鸟时双手各拿轻哑铃，手肘微弯。",
-        firstMove: "从两边打开的位置，像抱人一样把手往身体前方合起来。",
+        stance: "仰躺在平卧推凳上，双脚踩稳地面，肩胛保持稳定。",
+        grip: "双手各握一只 5 kg 哑铃，掌心相对，手肘保持微弯。",
+        firstMove: "从胸口上方沿弧线向两侧打开，再沿原路合拢；保持手肘角度，不做成卧推。",
       },
       {
         name: "绳索下压",
@@ -1033,7 +1032,12 @@ function adjustActiveRest(delta) {
 
 function getExerciseProgressMap(workout) {
   const dayStore = progressStore[todayKey()] || {};
-  return dayStore[workout.id] || {};
+  const saved = dayStore[workout.id] || {};
+  // 改名后沿用旧动作记录；新名称的明确勾选或取消优先。
+  if (saved["哑铃飞鸟"] === undefined && saved["夹胸 / 飞鸟"] !== undefined) {
+    return { ...saved, "哑铃飞鸟": saved["夹胸 / 飞鸟"] };
+  }
+  return saved;
 }
 
 function countCompletedExercises(workout) {

@@ -302,6 +302,30 @@ test("old removed exercise records stay stored and do not complete new cardio", 
   assert.equal(run('getExerciseProgressMap(getActiveWorkout())["跑步机快走"]'), undefined);
 });
 
+test("renamed dumbbell fly keeps old completion and explicit cancellation takes priority", () => {
+  const { run } = loadPageLogic();
+  for (const frequency of [3, 4, 5]) {
+    const plan = JSON.parse(run(`JSON.stringify(getPlanByFrequency(${frequency}, "muscleGain"))`));
+    const fly = plan[0].exercises[2];
+    assert.equal(fly.name, "哑铃飞鸟");
+    assert.equal(fly.equipment, "dumbbell");
+    assert.equal(fly.extraEquipment, "bench");
+    const guide = ExerciseGuides.getExerciseGuide(fly, { mediaEnabled: true });
+    assert.equal(guide.media.src, "exercise-media/0308-yz9nUhF.gif");
+  }
+  run('state.goal = "muscleGain"; activeDayId = "周一-push-0"; progressStore[todayKey()] = { [activeDayId]: { "夹胸 / 飞鸟": true } };');
+  assert.equal(run('getExerciseProgressMap(getActiveWorkout())["哑铃飞鸟"]'), true);
+  assert.equal(run("countCompletedExercises(getActiveWorkout()).completed"), 1);
+  run('setExerciseCompleted(activeDayId, "哑铃飞鸟", false)');
+  assert.equal(run('getExerciseProgressMap(getActiveWorkout())["哑铃飞鸟"]'), false);
+  assert.equal(run('progressStore[todayKey()][activeDayId]["夹胸 / 飞鸟"]'), true);
+  assert.equal(run("countCompletedExercises(getActiveWorkout()).completed"), 0);
+  run('setExerciseCompleted(activeDayId, "哑铃飞鸟", true)');
+  assert.equal(run("countCompletedExercises(getActiveWorkout()).completed"), 1);
+  run('activeDayId = "周二-pull-1";');
+  assert.equal(run('getExerciseProgressMap(getActiveWorkout())["哑铃飞鸟"]'), undefined);
+});
+
 test("checking both warmups advances straight to cardio without rest and final completion never wraps", () => {
   const { run, checkboxes, intervals } = loadPageLogic();
   let onChange;

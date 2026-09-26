@@ -42,7 +42,8 @@ test("maps common strength exercises to verified dataset media", () => {
     "单车冲刺": "2138-H1PESYI.gif",
     "弓步蹲": "3470-kMzUs9Y.gif",
     "箭步蹲": "0336-RRWFUcw.gif",
-    "夹胸 / 飞鸟": "0188-xLYSdtg.gif",
+    "夹胸 / 飞鸟": "0308-yz9nUhF.gif",
+    "哑铃飞鸟": "0308-yz9nUhF.gif",
   };
   Object.entries(expected).forEach(([name, file]) => {
     assert.match(getExerciseGuide({ name }, { mediaEnabled: true }).media.src, new RegExp(`${file}$`));
