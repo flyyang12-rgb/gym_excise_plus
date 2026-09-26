@@ -1,7 +1,7 @@
 const STORAGE_KEY = "fitness_helper_progress_v2";
 const TRAINING_NOTES_KEY = "fitness_helper_training_notes_v1";
 const AI_REQUEST_TIMEOUT_MS = 10000;
-const APP_VERSION = "2026.09.26.13";
+const APP_VERSION = "2026.09.26.14";
 const MODAL_EXIT_DURATION_MS = 180;
 const modalCloseTimers = new WeakMap();
 const modalPreviousFocus = new WeakMap();
@@ -319,9 +319,9 @@ const workoutLibrary = {
       {
         name: "高位下拉",
         sets: "4组 x 8-10次",
-        note: "就用现场这台综合训练器的上方横杆，始终拉向锁骨下方，不做颈后下拉。",
+        note: "面向综合训练器坐稳，握住上方横杆，拉向锁骨下方，只做胸前下拉。",
         equipment: "cable",
-        stance: "面朝前坐在自带座椅上，用前方泡棉滚轮压稳大腿，胸口打开。",
+        stance: "面向器材的立柱和配重片坐稳，按器材标识调整座椅和压腿垫，双脚踩地，胸口打开。",
         grip: "双手比肩略宽握住上方横杆，横杆保持在头部前方。",
         firstMove: "先沉肩，再把横杆拉到锁骨下方，回去时慢慢送到手臂接近伸直。",
       },
@@ -476,9 +476,9 @@ const workoutLibrary = {
       {
         name: "高位下拉",
         sets: "3组 x 10次",
-        note: "继续用现场综合训练器的上方横杆，只做胸前下拉。",
+        note: "面向综合训练器，继续用上方横杆，只做胸前下拉。",
         equipment: "cable",
-        stance: "坐上自带座椅，用泡棉滚轮压稳大腿，胸口打开。",
+        stance: "面向器材坐稳，按器材标识调整座椅和压腿垫，双脚踩地，胸口打开。",
         grip: "双手略宽握住横杆，横杆始终位于头部前方。",
         firstMove: "先沉肩，再把横杆拉到锁骨下方。",
       },

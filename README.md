@@ -335,6 +335,8 @@ Get-Content -Raw -LiteralPath edge-functions/api/ai-coach.js | node --input-type
 
 所有减脂动作沿用与增肌相同的灰色人体、红色肌肉 GIF。素材来自 [exercises-dataset](https://github.com/MrZaKaRiA/exercises-dataset)：浅蹲 `3119-75Bgtjy.gif`、提踵 `1373-bJYHBIN.gif`、弯举 `0294-NbVPDMW.gif`、下压 `0201-3ZflifB.gif`、坐姿推胸 `0577-T0yTjgW.gif`、坐姿下拉 `0198-RVwzP10.gif`、器械伸腿 `0585-my33uHU.gif`、站姿屈膝 `0795-C5jncD2.gif`、站姿侧屈 `0794-1jXLYEw.gif`、踝绕环 `1368-uL9CsKm.gif`。GIF 未修改，保留 Gym visual 署名；数据集声明仅供教育和非商业研究使用。浅蹲原素材为 `potty squat`，文字只做小幅度；推胸、下拉、伸腿展示同类器械，实际调整按现场器材标识，均保留近似标记。减脂坐姿下拉单独映射 GIF，增肌高位下拉的定制图片与说明保留。跑步机慢跑使用 `0684-y5p0H8a.gif`；恢复快走复用 `3666-rjiM4L3.gif`（图示为坡度走，保留近似标记，可用平坡）；单车复用 `2138-H1PESYI.gif`。图片沿用现有媒体域名开关，关闭或加载失败时仍可用文字教学。
 
+高位下拉说明明确采用面向器材的坐姿，配图为 `exercise-media/custom-lat-pulldown-facing.png`。图片由内置 imagegen 参考原定制图和器材照片修正，仅作姿势示意；实际座椅及压腿垫设置以器材标识为准。生成提示见 [素材说明](exercise-media/custom-lat-pulldown-facing.md)。常规动作方向参考 [PureGym 高位下拉指南](https://www.puregym.com/exercises/back/lat-exercises/)。
+
 哑铃飞鸟使用与现有动作一致的灰色人体、红色肌肉 GIF：`exercise-media/0308-yz9nUhF.gif`。原文件来自 [ExerciseDB 数据集的哑铃飞鸟素材](https://github.com/MrZaKaRiA/exercises-dataset/blob/main/videos/0308-yz9nUhF.gif)，未修改，页面保留 Gym visual 署名。该数据集声明仅供教育和非商业研究使用；商业复用须另行确认素材权利。示范图只展示动作，不表示图中重量为 5 kg。
 
 增肌胸部训练第三项明确使用两只哑铃和平卧推凳，页面显示“哑铃飞鸟”。改名前“夹胸 / 飞鸟”的同一计划打卡记录仍能读取；新名称下的明确勾选或取消优先，旧记录保留。
