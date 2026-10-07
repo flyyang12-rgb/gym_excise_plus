@@ -1,7 +1,7 @@
 const STORAGE_KEY = "fitness_helper_progress_v2";
 const TRAINING_NOTES_KEY = "fitness_helper_training_notes_v1";
 const AI_REQUEST_TIMEOUT_MS = 10000;
-const APP_VERSION = "2026.10.07.2";
+const APP_VERSION = "2026.10.07.3";
 const MODAL_EXIT_DURATION_MS = 180;
 const modalCloseTimers = new WeakMap();
 const modalPreviousFocus = new WeakMap();
@@ -2548,34 +2548,22 @@ function attachEvents() {
 }
 
 function initHeroMascot() {
-  const button = document.querySelector("#heroMascotButton");
-  if (!button) return;
-  const control = button.querySelector(".hero-mascot-control");
+  const mascot = document.querySelector("#heroMascot");
+  if (!mascot) return;
   const motionPreference = window.matchMedia?.("(prefers-reduced-motion: reduce)");
-  let pausedByUser = false;
   let inView = true;
 
   function syncPlayback() {
-    const reducedMotion = !!motionPreference?.matches;
-    const paused = pausedByUser || reducedMotion || !inView || document.hidden;
-    button.classList.toggle("is-paused", paused);
-    button.disabled = reducedMotion;
-    button.setAttribute("aria-pressed", String(pausedByUser));
-    button.setAttribute("aria-label", reducedMotion ? "静态训练小人" : pausedByUser ? "播放小人动画" : "暂停小人动画");
-    button.title = reducedMotion ? "已开启减少动态效果" : pausedByUser ? "点击播放动画" : "点击暂停动画";
-    if (control) control.textContent = reducedMotion ? "静态" : pausedByUser ? "播放" : "暂停";
+    const paused = !!motionPreference?.matches || !inView || document.hidden;
+    mascot.classList.toggle("is-paused", paused);
   }
 
-  button.addEventListener("click", () => {
-    pausedByUser = !pausedByUser;
-    syncPlayback();
-  });
   if (typeof IntersectionObserver === "function") {
     const observer = new IntersectionObserver(([entry]) => {
       inView = entry.isIntersecting;
       syncPlayback();
     });
-    observer.observe(button);
+    observer.observe(mascot);
   }
   motionPreference?.addEventListener?.("change", syncPlayback);
   document.addEventListener("visibilitychange", syncPlayback);
