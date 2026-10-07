@@ -6,7 +6,7 @@
   const configs = {
     muscleGain: {
       label: "增肌",
-      headline: "吃够，训练才有材料",
+      headline: "蛋白质充足，规律吃饭",
       intro: "不用追求复杂食谱，先保证每餐有蛋白质、主食和蔬菜。",
       principles: ["每餐安排蛋白质", "主食别省，保持训练状态", "训练后补蛋白质和碳水"],
       periods: [
@@ -19,7 +19,7 @@
     },
     fatLoss: {
       label: "减脂",
-      headline: "吃得清楚，比饿着更稳",
+      headline: "控制份量，保留主食",
       intro: "优先蛋白质和蔬菜，主食适量保留，减少高糖饮料和随手零食。",
       principles: ["蛋白质优先，增加饱腹感", "控制总量，不完全戒主食", "多喝水，多吃蔬菜"],
       periods: [

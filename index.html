@@ -3,20 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
-  <meta name="theme-color" content="#ef6a2e">
+  <meta name="theme-color" content="#c64e20">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>健身小助手</title>
-  <link rel="stylesheet" href="style.css?v=20260926-cardio-stages-v12">
+  <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+  <link rel="stylesheet" href="style.css?v=20261007-ui-v1">
 </head>
 <body>
   <div class="app-shell">
     <section class="app-module app-module-training is-active" data-module="training" aria-label="训练模块">
       <header class="hero">
-        <span id="versionBadge" class="version-badge" title="当前版本">v2026.09.26.14</span>
+        <span id="versionBadge" class="version-badge" title="当前版本">v2026.10.07.1</span>
         <div class="hero-main">
-          <p class="eyebrow">训练节奏</p>
-          <h1>按计划行事</h1>
-          <p class="hero-motto">简单的事情重复做，重复的事情一直做</p>
+          <p class="eyebrow">晚间训练 · 新手计划</p>
+          <h1>健身小助手</h1>
+          <p class="hero-motto">按顺序练动作，做完一项勾选一项。</p>
+          <div class="hero-current" aria-label="选中的训练计划">
+            <strong id="heroWorkoutTitle">正在载入计划</strong>
+            <span id="heroWorkoutDuration"></span>
+          </div>
+          <button class="primary-button hero-start" type="button" data-scroll-target=".workout-panel">开始本次训练 <span aria-hidden="true">→</span></button>
         </div>
 
         <aside class="hero-side" aria-label="当前训练概览">
@@ -24,22 +30,19 @@
             <aside class="profile-calendar profile-calendar-hero" aria-label="训练周历">
               <div class="profile-calendar-head">
                 <div>
-                  <h3>本周小日历</h3>
+                  <h3>目标与周历</h3>
                 </div>
                 <span class="profile-calendar-badge">
                   <small>每周</small>
                   <strong id="calendarFrequency">4练</strong>
                 </span>
               </div>
-              <div class="goal-tabs" id="goalTabs" role="tablist" aria-label="训练目标">
+              <div class="goal-tabs" id="goalTabs" role="group" aria-label="训练目标">
                 <button type="button" data-goal="muscleGain">增肌</button>
                 <button type="button" data-goal="fatLoss">减脂</button>
               </div>
               <div class="calendar-strip" id="calendarStrip"></div>
             </aside>
-            <div class="hero-art">
-              <img src="images/激励图.png" alt="训练激励图" class="hero-art-image">
-            </div>
           </div>
           <div class="profile-controls-hidden" hidden aria-hidden="true">
             <div class="profile-bmi">
@@ -81,9 +84,10 @@
           <div class="section-head section-head-split">
             <div>
               <p class="panel-tag">本周安排</p>
-              <h2>今天练哪天，点一下就行</h2>
+              <h2>选择训练日</h2>
+              <p class="section-description">左右滑动，或点击周历切换</p>
             </div>
-            <div class="frequency-tabs" id="frequencyTabs">
+            <div class="frequency-tabs" id="frequencyTabs" role="group" aria-label="每周训练次数">
               <button type="button" data-frequency="3">3 练</button>
               <button type="button" data-frequency="4" class="is-active">4 练</button>
               <button type="button" data-frequency="5">5 练</button>
@@ -109,53 +113,23 @@
           <div id="exerciseList" class="exercise-list"></div>
         </section>
 
-        <section class="motivation-panel motivation-panel-stream" aria-label="激励弹幕">
-          <div class="motivation-marquee">
-            <div class="marquee-line marquee-line-a">
-              <div class="marquee-track">
-                <span>没有争强好胜的性格 所有的温柔和善良都是软弱</span>
-                <span>你说你佛系，镜子只看到你在摆烂。</span>
-                <span>别把“我尽力了”当成没结果的遮羞布。</span>
-                <span>没有争强好胜的性格 所有的温柔和善良都是软弱</span>
-                <span>你说你佛系，镜子只看到你在摆烂。</span>
-                <span>别把“我尽力了”当成没结果的遮羞布。</span>
-              </div>
-            </div>
-            <div class="marquee-line marquee-line-b">
-              <div class="marquee-track">
-                <span>一个向上的灵魂 怎么能有一个下坠的身体</span>
-                <span>嘴上说自律，动作做到一半就想撤退。</span>
-                <span>连这组都不敢扛，你凭什么要更好的自己。</span>
-                <span>一个向上的灵魂 怎么能有一个下坠的身体</span>
-                <span>嘴上说自律，动作做到一半就想撤退。</span>
-                <span>连这组都不敢扛，你凭什么要更好的自己。</span>
-              </div>
-            </div>
-            <div class="marquee-line marquee-line-c">
-              <div class="marquee-track">
-                <span>你羡慕的线条，不会长在偷懒的人身上。</span>
-                <span>怕累就永远普通，怕痛就永远原地。</span>
-                <span>今天放过自己一次，明天就会放过自己一辈子。</span>
-                <span>你羡慕的线条，不会长在偷懒的人身上。</span>
-                <span>怕累就永远普通，怕痛就永远原地。</span>
-                <span>今天放过自己一次，明天就会放过自己一辈子。</span>
-              </div>
-            </div>
-          </div>
-        </section>
+        <aside class="training-reminder" aria-label="训练提示">
+          <span>训练提示</span>
+          <p>每组做稳，组间按需休息。</p>
+        </aside>
         <section class="training-notes-panel training-notes-merged" aria-labelledby="trainingNotesTitle">
           <div class="training-notes-head">
             <div>
-              <p class="panel-tag">小记一下</p>
-              <h3 id="trainingNotesTitle">近 5 天心得</h3>
+              <p class="panel-tag">训练记录</p>
+              <h3 id="trainingNotesTitle">近 5 天小记</h3>
             </div>
-            <button id="noteAddButton" class="note-add-button" type="button" aria-label="小记一下" aria-expanded="false" aria-controls="noteForm">
-              <span aria-hidden="true">+</span>
+            <button id="noteAddButton" class="note-add-button" type="button" aria-expanded="false" aria-controls="noteForm">
+              <span aria-hidden="true">+</span> 写小记
             </button>
           </div>
           <form id="noteForm" class="note-form" hidden>
-            <label for="noteInput">今天的训练心得</label>
-            <textarea id="noteInput" rows="3" maxlength="120" placeholder="比如：深蹲膝盖舒服多了，明天继续轻重量。"></textarea>
+            <label for="noteInput">今天的训练记录</label>
+            <textarea id="noteInput" rows="3" maxlength="120" placeholder="比如：深蹲用了多少重量，完成了几组。"></textarea>
             <div class="note-form-actions">
               <button id="noteCancelButton" class="note-ghost-button" type="button">取消</button>
               <button class="note-save-button" type="submit">保存</button>
@@ -172,7 +146,8 @@
         <div class="section-head module-page-head">
           <div>
             <p class="panel-tag">器械说明</p>
-            <h2>不懂这个动作要用什么，就点“看器械”</h2>
+            <h2>认识训练器械</h2>
+            <p class="section-description">查看用途和操作要点，也可从动作卡直接跳转</p>
           </div>
         </div>
         <div id="equipmentGrid" class="equipment-grid"></div>
@@ -185,8 +160,8 @@
         <section class="recovery-panel diet-recovery" aria-labelledby="recoveryTitle">
           <div class="section-head recovery-merged-head">
             <div>
-              <p class="panel-tag">练完记得</p>
-              <h2 id="recoveryTitle">吃、睡、稳</h2>
+              <p class="panel-tag">恢复建议</p>
+              <h2 id="recoveryTitle">训练后怎么恢复</h2>
             </div>
           </div>
           <div class="recovery-grid">
@@ -194,29 +169,29 @@
               <div class="recovery-card-icon" aria-hidden="true">吃</div>
               <div class="recovery-card-copy">
                 <span>蛋白 + 碳水</span>
-                <h3>吃（饮食）</h3>
-                <p id="recoveryText">训练后及时补充蛋白质和碳水，正常吃饭比硬撑更重要。</p>
+                <h3>饮食</h3>
+                <p id="recoveryText">训练后正常吃饭，补充蛋白质和主食。</p>
               </div>
             </article>
             <article class="mini-card recovery-card recovery-card-food">
               <div class="recovery-card-icon" aria-hidden="true">睡</div>
               <div class="recovery-card-copy">
                 <span>7-8 小时</span>
-                <h3>睡（恢复）</h3>
-                <p id="nutritionText">每天尽量睡满 7-8 小时，恢复跟不上，训练效果也会打折。</p>
+                <h3>睡眠</h3>
+                <p id="nutritionText">规律作息，每天尽量睡满 7-8 小时。</p>
               </div>
             </article>
             <article class="mini-card recovery-card recovery-card-safe">
               <div class="recovery-card-icon" aria-hidden="true">稳</div>
               <div class="recovery-card-copy">
-                <span>长期主义</span>
-                <h3>稳（坚持）</h3>
-                <p>状态差也做一点，不靠极端饮食。能一直执行的方案，才是适合你的方案。</p>
+                <span>按状态调整</span>
+                <h3>训练强度</h3>
+                <p>状态差时减量或休息，按身体情况调整训练。</p>
               </div>
             </article>
           </div>
           <div class="recovery-actions">
-            <button id="bmiOpenButton" class="module-action-button module-action-button-light" type="button"><span>BM</span>BMI 身体数据</button>
+            <button id="bmiOpenButton" class="module-action-button module-action-button-light" type="button"><span>BM</span>BMI 数据</button>
             <button id="aiObserveButton" class="module-action-button" type="button"><span>AI</span>AI 问答</button>
           </div>
         </section>
@@ -226,15 +201,15 @@
 
   <nav class="app-tabbar" aria-label="模块导航">
     <button type="button" class="is-active" data-module-target="training" aria-current="page">
-      <span>训</span>
+      <span aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 12h10M3 10v4M21 10v4"/><rect x="4" y="6" width="3" height="12" rx="1"/><rect x="17" y="6" width="3" height="12" rx="1"/></svg></span>
       训练
     </button>
     <button type="button" data-module-target="equipment">
-      <span>械</span>
+      <span aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V4h14v16M8 4v5h8V4M9 13h6M12 13v7M8 20h8"/></svg></span>
       器械
     </button>
     <button type="button" data-module-target="diet">
-      <span>食</span>
+      <span aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16a8 8 0 0 1-16 0ZM8 21h8M12 4v4M7 5v3M17 5v3"/></svg></span>
       饮食
     </button>
   </nav>
@@ -367,7 +342,7 @@
   </div>
 
   <script src="exercise-guides.js?v=20260926-lat-facing-v14"></script>
-  <script src="diet-guide.js?v=20260712-diet"></script>
-  <script src="script.js?v=20260926-lat-facing-v14"></script>
+  <script src="diet-guide.js?v=20261007-copy-v1"></script>
+  <script src="script.js?v=20261007-ui-v1"></script>
 </body>
 </html>

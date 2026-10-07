@@ -1,7 +1,7 @@
 const STORAGE_KEY = "fitness_helper_progress_v2";
 const TRAINING_NOTES_KEY = "fitness_helper_training_notes_v1";
 const AI_REQUEST_TIMEOUT_MS = 10000;
-const APP_VERSION = "2026.09.26.14";
+const APP_VERSION = "2026.10.07.1";
 const MODAL_EXIT_DURATION_MS = 180;
 const modalCloseTimers = new WeakMap();
 const modalPreviousFocus = new WeakMap();
@@ -29,9 +29,9 @@ const goalConfig = {
     label: "增肌",
     reason: "当前默认以增肌新手节奏安排",
     durationText: "50-70 分钟",
-    stretch: "今天别求完美，先把动作做完。\n练 45-90 分钟，重量循序渐进。\n宁愿稳定多练，也别一上来拼废。",
-    recovery: "肌肉不是练出来的，是恢复出来的。\n训练后 1 小时内补充蛋白质 + 碳水。\n吃够，比硬撑更重要。",
-    nutrition: "睡眠是最便宜的增肌剂。\n每天尽量睡满 7-8 小时。\n恢复跟不上，训练白用功。",
+    stretch: "先用轻重量熟悉动作，再逐步增加重量。\n每组按计划完成，动作保持稳定。",
+    recovery: "训练后正常吃饭，补充蛋白质和主食。",
+    nutrition: "规律作息，每天尽量睡满 7-8 小时。",
   },
   fatLoss: {
     label: "减脂",
@@ -566,6 +566,8 @@ const elements = {
   resetButton: document.querySelector("#resetButton"),
   heroFrequency: document.querySelector("#heroFrequency"),
   heroDuration: document.querySelector("#heroDuration"),
+  heroWorkoutTitle: document.querySelector("#heroWorkoutTitle"),
+  heroWorkoutDuration: document.querySelector("#heroWorkoutDuration"),
   bmiValue: document.querySelector("#bmiValue"),
   bmiLabel: document.querySelector("#bmiLabel"),
   recommendedStart: document.querySelector("#recommendedStart"),
@@ -1600,7 +1602,7 @@ function renderProfileCalendar() {
     ].filter(Boolean).join(" ");
 
     return `
-      <button type="button" class="${classes}" data-calendar-day-id="${item.id}">
+      <button type="button" class="${classes}" data-calendar-day-id="${item.id}" aria-label="${item.day}，${item.title}" aria-pressed="${!!isCurrent}">
         <span class="calendar-day-label">${item.day.replace("周", "")}</span>
         <span class="calendar-day-dot">${index + 1}</span>
       </button>
@@ -1622,7 +1624,9 @@ function renderProfileCalendar() {
 function renderGoalTabs() {
   if (!elements.goalTabs) return;
   elements.goalTabs.querySelectorAll("[data-goal]").forEach((button) => {
-    button.classList.toggle("is-active", button.dataset.goal === state.goal);
+    const selected = button.dataset.goal === state.goal;
+    button.classList.toggle("is-active", selected);
+    button.setAttribute("aria-pressed", String(selected));
   });
 }
 
@@ -1644,7 +1648,7 @@ function renderTrainingNotes() {
     .slice(0, 5);
 
   if (!recentNotes.length) {
-    elements.noteList.innerHTML = `<p class="note-empty">还没有心得，训练完写一句就够。</p>`;
+    elements.noteList.innerHTML = `<p class="note-empty">还没有训练小记。可以记录今天的重量、组数或感受。</p>`;
     return;
   }
 
@@ -1686,7 +1690,9 @@ function saveTrainingNote() {
 
 function renderFrequencyTabs() {
   elements.frequencyTabs.querySelectorAll("button").forEach((button) => {
-    button.classList.toggle("is-active", Number(button.dataset.frequency) === state.trainDaysPerWeek);
+    const selected = Number(button.dataset.frequency) === state.trainDaysPerWeek;
+    button.classList.toggle("is-active", selected);
+    button.setAttribute("aria-pressed", String(selected));
   });
 }
 
@@ -1844,6 +1850,8 @@ function renderWorkout() {
   const progress = countCompletedExercises(workout);
 
   elements.tonightTitle.textContent = `${workout.day} · ${workout.title}`;
+  if (elements.heroWorkoutTitle) elements.heroWorkoutTitle.textContent = `${workout.day} · ${workout.title}`;
+  if (elements.heroWorkoutDuration) elements.heroWorkoutDuration.textContent = workout.duration;
   elements.tonightMeta.innerHTML = `
     <span class="pill">目标：${goalInfo.label}</span>
     <span class="pill">部位：${workout.focus}</span>
@@ -1934,6 +1942,7 @@ function renderWorkout() {
               <div class="exercise-title">
                 <span>${complete ? "已完成" : "当前动作"}</span>
                 <strong>${exercise.name}</strong>
+                <small class="exercise-prescription">${exercise.sets}</small>
               </div>
               <div class="exercise-head-actions">
                 ${guide.hasSpecificGuide ? `<button type="button" class="tutorial-link" data-open-tutorial>看教学</button>` : ""}
@@ -1962,7 +1971,6 @@ function renderWorkout() {
               </div>
             `}
             <div class="exercise-demo-meta">
-              <span>${exercise.sets}</span>
               ${(exercise.equipment
                   ? `<span>优先器械：${equipmentLibrary[exercise.equipment].name}</span><button type="button" class="tutorial-link tutorial-jump" data-equipment-target="${equipmentTarget}">${equipmentJumpLabel}</button>`
                   : `<span>徒手动作</span>`)}
@@ -1971,7 +1979,7 @@ function renderWorkout() {
           <div class="exercise-guide-panel">
             <div class="muscle-summary">
               <div><span>主要练这里</span><strong>${guide.target}</strong></div>
-              <div><span>顺便练到</span><strong>${guide.secondary.join(" · ")}</strong></div>
+              <div><span>顺便练到</span><strong>${guide.secondary.map((muscle) => `<span class="muscle-term">${muscle}</span>`).join(" · ")}</strong></div>
             </div>
             <div class="exercise-memory-cue"><span>看图记</span><strong>${guide.memoryCue}</strong></div>
             <div class="guide-tabs" role="tablist" aria-label="动作指导分类">
@@ -2014,9 +2022,9 @@ function renderWorkout() {
       </article>
 
       <div class="stepper-footer">
-        <button type="button" class="step-nav-button" data-step-direction="prev" ${activeExerciseIndex === 0 ? "disabled" : ""}>上一条</button>
-        <span>${nextExercise ? `下一条 · ${nextExercise.name}` : "全部动作都看完了，可以收尾恢复"}</span>
-        <button type="button" class="step-nav-button step-nav-button-primary" data-step-direction="next" ${activeExerciseIndex === totalExercises - 1 ? "disabled" : ""}>下一条</button>
+        <button type="button" class="step-nav-button" data-step-direction="prev" ${activeExerciseIndex === 0 ? "disabled" : ""}>上一动作</button>
+        <span>${nextExercise ? `接下来 · ${nextExercise.name}` : "已到最后一项，完成后勾选打卡"}</span>
+        <button type="button" class="step-nav-button step-nav-button-primary" data-step-direction="next" ${activeExerciseIndex === totalExercises - 1 ? "disabled" : ""}>下一动作</button>
       </div>
     </div>
   `;
@@ -2177,7 +2185,7 @@ function renderDietGuide() {
     </div>
     <section class="diet-schedule" aria-labelledby="dietScheduleTitle">
       <div class="section-head diet-section-head">
-        <div><p class="panel-tag">一天怎么吃</p><h3 id="dietScheduleTitle">按时间滑着选就行</h3></div>
+        <div><p class="panel-tag">一天怎么吃</p><h3 id="dietScheduleTitle">分时段饮食</h3></div>
         <div class="diet-carousel-controls" aria-label="切换饮食建议">
           <button type="button" data-diet-direction="prev" aria-label="上一张饮食卡">←</button>
           <span><strong data-diet-current>1</strong> / ${guide.periods.length}</span>
@@ -2288,7 +2296,8 @@ function bindScrollTargetButtons(scope = document) {
     button.addEventListener("click", () => {
       const target = document.querySelector(button.dataset.scrollTarget);
       if (!target) return;
-      target.scrollIntoView({ behavior: "smooth", block: "start" });
+      const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+      target.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
     });
   });
 }
