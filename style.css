@@ -5938,7 +5938,49 @@ body.has-modal-open {
 }
 
 /* Shared interface refinement: warm surfaces, clear controls, readable teaching. */
-.hero-main { min-width: 0; }
+.hero-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 112px;
+  align-items: center;
+  column-gap: 20px;
+  min-width: 0;
+}
+.hero-copy { min-width: 0; }
+.hero-copy .hero-motto > span { display: inline-block; }
+.hero-mascot {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  align-self: center;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  color: var(--muted);
+  background: transparent;
+  cursor: pointer;
+}
+.hero-mascot-sprite {
+  display: block;
+  width: 100%;
+  aspect-ratio: 150 / 170;
+  background-image: url("images/激励图.png");
+  background-size: 400% auto;
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  image-rendering: pixelated;
+  filter: contrast(1.12) brightness(1.02);
+  animation: heroMascotPoses 5.6s steps(1, end) infinite;
+}
+.hero-mascot-control { font-size: 11px; line-height: 1.4; }
+.hero-mascot.is-paused .hero-mascot-sprite { animation-play-state: paused; }
+.hero-mascot:disabled { cursor: default; }
+@keyframes heroMascotPoses {
+  0% { background-position: 0% 0; }
+  20% { background-position: 33.333333% 0; }
+  40% { background-position: 66.666667% 0; }
+  60%, 100% { background-position: 100% 0; }
+}
 .hero-current {
   display: flex;
   align-items: center;
@@ -5950,6 +5992,8 @@ body.has-modal-open {
 }
 .hero-current strong { color: var(--text); font-size: 18px; }
 .hero-start {
+  grid-column: 1 / -1;
+  justify-self: start;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -6198,16 +6242,22 @@ body.has-modal-open {
   .hero { grid-template-columns: minmax(0, 1fr) minmax(260px, 340px); align-items: center; }
 }
 
+@media (min-width: 720px) and (max-width: 1023px) {
+  .hero { grid-template-columns: minmax(0, 1fr) 260px; }
+  .hero-main { grid-template-columns: minmax(0, 1fr) 88px; column-gap: 12px; }
+}
+
 @media (max-width: 760px) {
   .app-module.is-active { animation: moduleFlowIn var(--motion-slow) var(--motion-ease-out) both; }
   body { background: var(--bg); padding-bottom: 0; }
   .app-shell { padding: 12px 12px calc(92px + env(safe-area-inset-bottom)); }
   .hero { gap: 18px; padding: 30px 20px 18px; }
+  .hero-main { grid-template-columns: minmax(0, 1fr) 88px; column-gap: 12px; }
   .hero h1 { font-size: 32px; line-height: 1.25; }
   .hero-motto { margin-top: 6px; padding-left: 0; border: 0; font-size: 14px; font-weight: 400; }
   .hero-current { margin: 14px 0 12px; gap: 2px 10px; font-size: 13px; }
   .hero-current strong { font-size: 16px; }
-  .hero-start { min-height: 44px; padding: 10px 16px; }
+  .hero-start { justify-self: stretch; min-height: 44px; padding: 10px 16px; }
   .hero-overview { padding: 0; }
   .profile-calendar-hero { padding: 10px 12px; }
   .hero-art { display: none; }
@@ -6264,6 +6314,7 @@ body.has-modal-open {
   .action-dock { bottom: calc(80px + env(safe-area-inset-bottom)); }
 }
 @media (max-width: 359px) {
+  .hero-main { grid-template-columns: minmax(0, 1fr) 72px; column-gap: 8px; }
   .plan-panel .section-head { flex-direction: column; align-items: stretch; }
   .plan-panel .section-description { max-width: none; }
   .frequency-tabs { width: 100%; }
@@ -6272,4 +6323,5 @@ body.has-modal-open {
 }
 @media (prefers-reduced-motion: reduce) {
   .weekly-plan .day-card-shell { transition: none; }
+  .hero-mascot-sprite { animation: none !important; background-position: 100% 0; }
 }

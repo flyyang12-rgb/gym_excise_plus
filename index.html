@@ -7,21 +7,27 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>健身小助手</title>
   <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
-  <link rel="stylesheet" href="style.css?v=20261007-ui-v1">
+  <link rel="stylesheet" href="style.css?v=20261007-mascot-v2">
 </head>
 <body>
   <div class="app-shell">
     <section class="app-module app-module-training is-active" data-module="training" aria-label="训练模块">
       <header class="hero">
-        <span id="versionBadge" class="version-badge" title="当前版本">v2026.10.07.1</span>
+        <span id="versionBadge" class="version-badge" title="当前版本">v2026.10.07.2</span>
         <div class="hero-main">
-          <p class="eyebrow">晚间训练 · 新手计划</p>
-          <h1>健身小助手</h1>
-          <p class="hero-motto">按顺序练动作，做完一项勾选一项。</p>
-          <div class="hero-current" aria-label="选中的训练计划">
-            <strong id="heroWorkoutTitle">正在载入计划</strong>
-            <span id="heroWorkoutDuration"></span>
+          <div class="hero-copy">
+            <p class="eyebrow">晚间训练 · 新手计划</p>
+            <h1>健身小助手</h1>
+            <p class="hero-motto"><span>按顺序练动作，</span><span>做完一项勾选一项。</span></p>
+            <div class="hero-current" aria-label="选中的训练计划">
+              <strong id="heroWorkoutTitle">正在载入计划</strong>
+              <span id="heroWorkoutDuration"></span>
+            </div>
           </div>
+          <button id="heroMascotButton" class="hero-mascot" type="button" aria-label="暂停小人动画" aria-pressed="false" title="点击暂停动画">
+            <span class="hero-mascot-sprite" aria-hidden="true"></span>
+            <span class="hero-mascot-control" aria-hidden="true">暂停</span>
+          </button>
           <button class="primary-button hero-start" type="button" data-scroll-target=".workout-panel">开始本次训练 <span aria-hidden="true">→</span></button>
         </div>
 
@@ -343,6 +349,6 @@
 
   <script src="exercise-guides.js?v=20260926-lat-facing-v14"></script>
   <script src="diet-guide.js?v=20261007-copy-v1"></script>
-  <script src="script.js?v=20261007-ui-v1"></script>
+  <script src="script.js?v=20261007-mascot-v2"></script>
 </body>
 </html>
