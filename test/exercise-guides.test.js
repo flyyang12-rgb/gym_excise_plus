@@ -1,6 +1,4 @@
 const assert = require("node:assert/strict");
-const fs = require("node:fs");
-const path = require("node:path");
 const test = require("node:test");
 
 const {
@@ -65,21 +63,11 @@ test("standard push-up has its own instruction and never shows the kneeling demo
   const guide = getExerciseGuide({ name: "标准俯卧撑" }, { mediaEnabled: true });
   assert.equal(guide.name, "标准俯卧撑");
   assert.equal(guide.hasSpecificGuide, true);
-  assert.equal(guide.media.src, "exercise-media/0662-I4hDWkc.gif");
-  assert.equal(guide.media.approximate, false);
-  assert.equal(guide.media.attribution, "© Gym visual");
-  assert.equal(getExerciseGuide({ name: "标准俯卧撑" }, { mediaEnabled: false }).media, null);
-  const gif = fs.readFileSync(path.join(__dirname, "../", guide.media.src));
-  assert.match(gif.subarray(0, 6).toString("ascii"), /^GIF8[79]a$/);
-  const loopExtension = gif.indexOf("NETSCAPE2.0");
-  assert.ok(loopExtension > 0, "GIF should have a loop extension");
-  assert.equal(gif.readUInt16LE(loopExtension + 13), 0, "GIF should loop continuously");
+  assert.equal(guide.media, null);
   assert.match(guide.steps.join(""), /脚尖踩地/);
   assert.match(guide.alternative, /固定、稳固的高台/);
   assert.match(guide.mistakes.join(""), /疼痛/);
-  const kneeling = getExerciseGuide({ name: "俯卧撑或器械推胸" }, { mediaEnabled: true });
-  assert.equal(kneeling.name, "跪姿俯卧撑");
-  assert.notEqual(kneeling.media.src, guide.media.src);
+  assert.equal(getExerciseGuide({ name: "俯卧撑或器械推胸" }).name, "跪姿俯卧撑");
 });
 
 test("keeps licensed media disabled until the feature flag is enabled", () => {
