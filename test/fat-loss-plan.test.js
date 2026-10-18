@@ -4,6 +4,7 @@ const path = require("node:path");
 const test = require("node:test");
 const vm = require("node:vm");
 const ExerciseGuides = require("../exercise-guides.js");
+const StretchGuide = require("../stretch-guide.js");
 
 function loadPageLogic(windowOverrides = {}) {
   let now = 1_000_000;
@@ -75,66 +76,313 @@ function createAudioMock({ rejectResume = false, throwOnPlayback = false } = {})
   return { AudioContext, stats };
 }
 
-test("lean-cut plans keep three spaced full-body days, two push-up sessions and separate legacy records", () => {
+test("warmups and post-workout stretches cover every training day with two or three items without changing plans", () => {
   const { run } = loadPageLogic();
-  assert.equal(run("defaultState.goal"), "leanCut");
-  assert.equal(run("defaultState.trainDaysPerWeek"), 3);
-  const weekdayIndex = { "周一": 1, "周二": 2, "周三": 3, "周四": 4, "周五": 5, "周六": 6 };
-  for (const frequency of [3, 4, 5]) {
-    const plan = JSON.parse(run(`JSON.stringify(getPlanByFrequency(${frequency}, "leanCut"))`));
-    const training = plan.filter((day) => day.type === "train");
-    const strength = training.filter((day) => day.exercises.length > 1);
-    assert.equal(training.length, frequency);
-    assert.equal(strength.length, 3);
-    assert.equal(strength.filter((day) => day.exercises.some((exercise) => exercise.name === "标准俯卧撑")).length, 2);
-    const days = strength.map((day) => weekdayIndex[day.day]);
-    assert.ok(days[1] - days[0] >= 2 && days[2] - days[1] >= 2 && 7 + days[0] - days[2] >= 2);
-    strength.forEach((day) => {
-      assert.equal(day.exercises.length, 5);
-      assert.ok(day.exercises.some((exercise) => /深蹲|硬拉/.test(exercise.name)));
-      assert.ok(day.exercises.some((exercise) => /划船|下拉/.test(exercise.name)));
-      assert.ok(day.exercises.at(-1).timerSegments);
-      assert.equal(day.exercises.filter((exercise) => exercise.timerSegments).length, 1);
-      day.exercises.forEach((exercise) => assert.equal(ExerciseGuides.getExerciseGuide(exercise).hasSpecificGuide, true, exercise.name));
-    });
-    const legacy = ["muscleGain", "fatLoss"].flatMap((goal) => JSON.parse(run(`JSON.stringify(getPlanByFrequency(${frequency}, "${goal}"))`)));
-    assert.ok(plan.every((day) => !legacy.some((old) => old.id === day.id)));
+  for (const goal of ["muscleGain", "fatLoss"]) {
+    for (const frequency of [3, 4, 5]) {
+      const plan = JSON.parse(run(`JSON.stringify(getPlanByFrequency(${frequency}, "${goal}"))`));
+      for (const day of plan) {
+        const original = JSON.stringify(day);
+        const items = StretchGuide.getWorkoutStretches(day, { mediaEnabled: true });
+        const warmups = StretchGuide.getWorkoutWarmups(day, { mediaEnabled: true });
+        if (day.type === "recovery") assert.equal(warmups.length, 0);
+        else {
+          assert.ok(warmups.length >= 2 && warmups.length <= 3, `${goal}/${frequency}/${day.title} warmup: ${warmups.length}`);
+          assert.ok(warmups.every(item => item.media?.src && item.media.poster));
+          assert.equal(warmups.length, new Set(warmups.map(item => item.id)).size);
+        }
+        if (day.type === "recovery") assert.equal(items.length, 0, `${goal}/${frequency}/recovery`);
+        else {
+          assert.ok(items.length >= 2 && items.length <= 3, `${goal}/${frequency}/${day.title}: ${items.length}`);
+          assert.ok(items.every(item => item.media?.src.endsWith(item.media.type === "video" ? ".mp4" : ".gif") && item.media.poster.endsWith(".jpg")));
+        }
+        assert.equal(items.length, new Set(items.map((item) => item.id)).size);
+        assert.equal(JSON.stringify(day), original);
+      }
+    }
   }
-  run('activeDayId = "周一-cutA-0"; progressStore[todayKey()] = { "周一-push-0": { "平板卧推": true }, "周一-matFlow1-0": { "徒手浅蹲": true } };');
-  assert.equal(run("countCompletedExercises(getActiveWorkout()).completed"), 0);
-  run('setExerciseCompleted(activeDayId, "标准俯卧撑", true)');
-  assert.equal(run("countCompletedExercises(getActiveWorkout()).completed"), 1);
-  assert.equal(run('progressStore[todayKey()]["周一-push-0"]["平板卧推"]'), true);
-  assert.match(run("getAiCoachContext().profile.goal"), /减脂保肌/);
-  assert.equal(run("getAiCoachContext().todayWorkout.currentExercise"), "标准俯卧撑");
 });
 
-test("lean-cut completion rests then advances, cardio pauses and switching clears timers", () => {
+test("stretch module replaces the removed diet route and renders the selected workout guides", () => {
+  const { run } = loadPageLogic({ StretchGuide });
+  run(`activeDayId = "周一-push-0"; updateBackToTopButton = () => {};
+    elements.stretchPageList = { innerHTML: "", querySelectorAll: () => [] };
+    elements.stretchPageContext = {}; elements.stretchPageSummary = {};`);
+  run('setActiveModule("stretch", { scrollToTop: false })');
+  assert.equal(run("activeModule"), "stretch");
+  assert.equal(run('(elements.stretchPageList.innerHTML.match(/data-stretch-media/g) || []).length'), 3);
+  assert.match(run("elements.stretchPageContext.textContent"), /周一/);
+  assert.match(run("elements.stretchPageList.innerHTML"), /prefers-reduced-motion/);
+  run('setActiveModule("diet", { scrollToTop: false })');
+  assert.equal(run("activeModule"), "stretch", "a removed route cannot hide every module");
+});
+
+test("warmup and post-workout blocks show together and both follow the selected training day", () => {
+  const { run } = loadPageLogic({ StretchGuide });
+  run(`elements.warmupList = { innerHTML: "", querySelectorAll: () => [] };
+    elements.stretchPageList = { innerHTML: "", querySelectorAll: () => [] };
+    elements.warmupSection = {}; elements.warmupSummary = {}; elements.stretchDayDivider = {}; elements.postWorkoutStretchHead = {};
+    elements.stretchPageContext = {}; elements.stretchPageSummary = {}; elements.stretchPageSafety = {};`);
+  for (const [id, expected] of [
+    ["周一-push-0", ["动态扩胸", "招财猫（空手）"]],
+    ["周二-pull-1", ["屈臂肩部绕环", "招财猫（空手）"]],
+    ["周四-legs-2", ["徒手小幅蹲起", "站姿提踵", "扶稳踝绕环"]],
+  ]) {
+    run(`activeDayId = "${id}"; renderStretchPage()`);
+    const titles = JSON.parse(run('JSON.stringify([...elements.warmupList.innerHTML.matchAll(/<strong>([^<]+)/g)].map(match => match[1]))'));
+    assert.deepEqual(titles, expected);
+    assert.equal(run("elements.warmupSection.hidden"), false);
+    assert.equal(run("elements.postWorkoutStretchHead.hidden"), false);
+    assert.equal(run("elements.stretchDayDivider.hidden"), false);
+    assert.match(run("elements.warmupSummary.textContent"), /^[23] 项/);
+    const html = run("elements.warmupList.innerHTML");
+    assert.doesNotMatch(html, /保持约|<video[^>]*\ssrc=/);
+    assert.equal((html.match(/<details[^>]*\sopen/g) || []).length, 1);
+    assert.doesNotMatch(run("elements.stretchPageList.innerHTML"), /动态扩胸|招财猫|徒手小幅蹲起|站姿提踵|扶稳踝绕环|屈臂肩部绕环/);
+  }
+  assert.match(run("elements.warmupList.innerHTML"), /每侧顺逆各 5 圈/);
+  assert.match(run("elements.warmupList.innerHTML"), /近似示范：动图演示蹲起路线/);
+});
+
+test("warmup video waits for an open card and pauses on reduced motion, hidden page or module changes", () => {
+  const { run } = loadPageLogic();
+  run(`let warmupCardOpen = false; let warmupReduceMotion = false;
+    window.matchMedia = () => ({ matches: warmupReduceMotion }); updateBackToTopButton = () => {};
+    const warmupVideo = { src: "", paused: true, dataset: { src: "https://example.invalid/demo.mp4" },
+      closest: () => ({ open: warmupCardOpen }), getAttribute: () => warmupVideo.src || null,
+      play() { this.paused = false; return Promise.resolve(); }, pause() { this.paused = true; } };
+    elements.warmupList = { querySelectorAll: () => [warmupVideo] };
+    setActiveModule("stretch", { scrollToTop: false });`);
+  assert.equal(run("warmupVideo.src"), "");
+  assert.equal(run("warmupVideo.paused"), true);
+  run("warmupCardOpen = true; syncStretchVideoPlayback()");
+  assert.equal(run("warmupVideo.paused"), false);
+  run("warmupReduceMotion = true; syncStretchVideoPlayback()");
+  assert.equal(run("warmupVideo.paused"), true);
+  run("warmupReduceMotion = false; document.hidden = true; syncStretchVideoPlayback()");
+  assert.equal(run("warmupVideo.paused"), true);
+  run('document.hidden = false; syncStretchVideoPlayback(); setActiveModule("equipment", { scrollToTop: false })');
+  assert.equal(run("warmupVideo.paused"), true);
+});
+
+test("post-stretch video plays only in the visible open page or popup and preserves a reduced-motion poster", () => {
+  const { run } = loadPageLogic();
+  run(`let stretchCardOpen = true; let stretchReduceMotion = false; let stretchModalClosing = false;
+    window.matchMedia = () => ({ matches: stretchReduceMotion });
+    function makeStretchVideo() {
+      return { src: "", poster: "", paused: true, dataset: { src: "https://example.invalid/demo.mp4", poster: "https://example.invalid/poster.jpg" },
+        closest: () => ({ open: stretchCardOpen }), getAttribute(key) { return this[key] || null; },
+        play() { this.paused = false; return Promise.resolve(); }, pause() { this.paused = true; } };
+    }
+    const pageStretchVideo = makeStretchVideo(); const popupStretchVideo = makeStretchVideo();
+    elements.stretchPageList = { querySelectorAll: () => [pageStretchVideo] };
+    elements.stretchList = { querySelectorAll: () => [popupStretchVideo] };
+    elements.stretchModal = { hidden: true, classList: { contains: () => stretchModalClosing } };
+    syncStretchVideoPlayback();`);
+  assert.equal(run("pageStretchVideo.src"), "");
+  assert.equal(run("popupStretchVideo.src"), "");
+  run('activeModule = "stretch"; stretchReduceMotion = true; syncStretchVideoPlayback()');
+  assert.equal(run("pageStretchVideo.src"), "");
+  assert.match(run("pageStretchVideo.poster"), /poster.jpg$/);
+  run("stretchReduceMotion = false; syncStretchVideoPlayback()");
+  assert.equal(run("pageStretchVideo.paused"), false);
+  run("elements.stretchModal.hidden = false; syncStretchVideoPlayback()");
+  assert.equal(run("pageStretchVideo.paused"), true);
+  assert.equal(run("popupStretchVideo.paused"), false);
+  run("stretchModalClosing = true; syncStretchVideoPlayback()");
+  assert.equal(run("popupStretchVideo.paused"), true, "pause immediately during the exit animation");
+  assert.equal(run("pageStretchVideo.paused"), true, "keep the underlying page paused until the popup is hidden");
+  run("stretchModalClosing = false; syncStretchVideoPlayback()");
+  run("stretchCardOpen = false; syncStretchVideoPlayback()");
+  assert.equal(run("popupStretchVideo.paused"), true);
+  run('stretchCardOpen = true; activeModule = "training"; syncStretchVideoPlayback()');
+  assert.equal(run("popupStretchVideo.paused"), false);
+  run("document.hidden = true; syncStretchVideoPlayback()");
+  assert.equal(run("popupStretchVideo.paused"), true);
+  run("document.hidden = false; elements.stretchModal.hidden = true; syncStretchVideoPlayback()");
+  assert.equal(run("popupStretchVideo.paused"), true);
+});
+
+test("recovery days show only the rest message and training days restore guides and safety text", () => {
+  for (const goal of ["muscleGain", "fatLoss"]) {
+    for (const frequency of [3, 4, 5]) {
+      const { run } = loadPageLogic({ StretchGuide });
+      run(`state.goal = "${goal}"; state.trainDaysPerWeek = ${frequency};
+        elements.stretchPageList = { innerHTML: "", querySelectorAll: () => [] };
+        elements.stretchList = { innerHTML: "", querySelectorAll: () => [] };
+        elements.stretchPageContext = {}; elements.stretchPageSummary = {}; elements.stretchSummary = {};
+        elements.stretchPageSafety = {}; elements.stretchSafety = {};
+        elements.warmupList = { innerHTML: "", querySelectorAll: () => [] }; elements.warmupSection = {}; elements.warmupSummary = {};
+        elements.stretchDayDivider = {}; elements.postWorkoutStretchHead = {};
+        activeDayId = getCurrentPlan().find(day => day.type === "recovery").id;
+        renderStretchPage(); stretchWorkout = getActiveWorkout(); renderStretchList();`);
+      assert.equal(run("elements.warmupList.innerHTML"), "");
+      assert.equal(run("elements.warmupSection.hidden"), true);
+      assert.equal(run("elements.stretchDayDivider.hidden"), true);
+      assert.equal(run("elements.postWorkoutStretchHead.hidden"), true);
+      for (const prefix of ["stretchPage", "stretch"]) {
+        assert.match(run(`elements.${prefix}List.innerHTML`), /休息是为了更好的下一次全神贯注/);
+        assert.doesNotMatch(run(`elements.${prefix}List.innerHTML`), /stretch-item|data-stretch-media/);
+        assert.equal(run(`elements.${prefix}Summary.hidden`), true);
+        assert.equal(run(`elements.${prefix}Summary.textContent`), "");
+        assert.equal(run(`elements.${prefix}Safety.hidden`), true);
+      }
+      run('activeDayId = getCurrentPlan().find(day => day.type === "train").id; renderStretchPage(); stretchWorkout = getActiveWorkout(); renderStretchList();');
+      assert.equal(run("elements.warmupSection.hidden"), false);
+      assert.equal(run("elements.stretchDayDivider.hidden"), false);
+      assert.equal(run("elements.postWorkoutStretchHead.hidden"), false);
+      assert.match(run("elements.warmupList.innerHTML"), /stretch-item/);
+      for (const prefix of ["stretchPage", "stretch"]) {
+        assert.match(run(`elements.${prefix}List.innerHTML`), /data-stretch-media/);
+        assert.doesNotMatch(run(`elements.${prefix}List.innerHTML`), /stretch-rest-message/);
+        assert.equal(run(`elements.${prefix}Summary.hidden`), false);
+        assert.equal(run(`elements.${prefix}Safety.hidden`), false);
+      }
+    }
+  }
+});
+
+test("page and popup show the same two or three stretches for the selected training day", () => {
+  const { run } = loadPageLogic({ StretchGuide });
+  run(`elements.stretchPageList = { innerHTML: "", querySelectorAll: () => [] };
+    elements.stretchList = { innerHTML: "", querySelectorAll: () => [] };
+    elements.stretchPageContext = {}; elements.stretchPageSummary = {}; elements.stretchSummary = {};`);
+  for (const [dayId, expected] of [
+    ["周一-push-0", ["扶凳开胸拉伸", "横抱臂拉伸", "头顶屈肘拉伸"]],
+    ["周二-pull-1", ["站姿前伸拉背", "横抱臂拉伸"]],
+    ["周四-legs-2", ["扶椅腿前侧拉伸", "坐姿腿后侧拉伸", "坐姿搭腿拉臀"]],
+    ["周六-shoulder-3", ["横抱臂拉伸", "头顶屈肘拉伸"]],
+  ]) {
+    run(`activeDayId = "${dayId}"; renderStretchPage(); stretchWorkout = getActiveWorkout(); renderStretchList();`);
+    const titles = JSON.parse(run('JSON.stringify([...elements.stretchList.innerHTML.matchAll(/<strong>([^<]+)/g)].map(match => match[1]))'));
+    assert.deepEqual(titles, expected, dayId);
+    assert.equal(run("elements.stretchList.innerHTML"), run("elements.stretchPageList.innerHTML"), dayId);
+  }
+});
+
+test("failed stretch GIF hides only the picture and retains text instruction fallback", () => {
+  const { run } = loadPageLogic();
+  run(`let onStretchMediaError;
+    const failedPicture = { hidden: false };
+    const stretchFallback = { hidden: true };
+    const failedFigure = { querySelector: selector => selector === "picture" ? failedPicture : stretchFallback };
+    const failedImage = { addEventListener: (event, callback) => { onStretchMediaError = callback; }, closest: () => failedFigure };
+    bindStretchMedia({ querySelectorAll: selector => selector === "[data-stretch-media]" ? [failedImage] : [] }); onStretchMediaError();`);
+  assert.equal(run("failedPicture.hidden"), true);
+  assert.equal(run("stretchFallback.hidden"), false);
+});
+
+test("failed stretch video retains text fallback and cannot resume after later playback updates", () => {
+  const { run } = loadPageLogic();
+  run(`let onStretchVideoError; const videoFallback = { hidden: true };
+    const failedVideo = { hidden: false, pause() {}, play() { throw new Error("failed video resumed"); },
+      addEventListener: (event, callback) => { onStretchVideoError = callback; },
+      closest: () => ({ querySelector: () => videoFallback, open: true }) };
+    const failedVideoScope = { querySelectorAll: selector => selector === "[data-stretch-video]" ? [failedVideo] : [] };
+    bindStretchMedia(failedVideoScope); onStretchVideoError();
+    elements.stretchPageList = failedVideoScope; activeModule = "stretch"; syncStretchVideoPlayback();`);
+  assert.equal(run("failedVideo.hidden"), true);
+  assert.equal(run("videoFallback.hidden"), false);
+});
+
+test("stretch popup waits for the whole workout, supports out-of-order completion and prompts once", () => {
+  for (const goal of ["muscleGain", "fatLoss"]) {
+    for (const frequency of [3, 4, 5]) {
+      const { run, checkboxes, intervals } = loadPageLogic();
+      let onChange;
+      const checkbox = { checked: true, dataset: {}, addEventListener(type, callback) { if (type === "change") onChange = callback; } };
+      checkboxes.push(checkbox);
+      run(`state.goal = "${goal}"; state.trainDaysPerWeek = ${frequency}; activeDayId = getPlanByFrequency(${frequency}, state.goal).find(day => day.type === "train").id;
+        renderWorkout = () => {}; renderWeeklyPlan = () => {};
+        let prompts = []; openStretchModal = (workout, options) => { prompts.push({ id: workout.id, automatic: options.automatic }); return true; };
+        activeExerciseIndex = getActiveWorkout().exercises.length - 1; bindWorkoutInteractions();`);
+      checkbox.dataset = { workoutId: run("activeDayId"), exerciseName: run("getActiveWorkout().exercises.at(-1).name") };
+      onChange();
+      assert.equal(run("prompts.length"), 0, "checking the last card alone is not a completed workout");
+      run("getActiveWorkout().exercises.slice(1, -1).forEach(exercise => setExerciseCompleted(activeDayId, exercise.name, true)); activeExerciseIndex = 0;");
+      checkbox.dataset.exerciseName = run("getActiveWorkout().exercises[0].name");
+      onChange();
+      assert.equal(run("prompts.length"), 1);
+      assert.equal(run("prompts[0].automatic"), true);
+      assert.equal(run("prompts[0].id === activeDayId"), true);
+      assert.equal(run("restState"), null);
+      assert.equal(intervals.size, 0);
+      assert.equal(run("activeExerciseIndex"), 0, "the final remaining card does not start another rest or advance");
+      checkbox.checked = false; onChange();
+      checkbox.checked = true; onChange();
+      assert.equal(run("prompts.length"), 1, "unchecking and rechecking does not interrupt the user again");
+    }
+  }
+});
+
+test("whole-workout check-in clears rest, opens stretches once and leaves legacy history intact", () => {
+  const { run, intervals } = loadPageLogic();
+  run(`activeDayId = "周一-push-0"; renderWorkout = () => {}; renderWeeklyPlan = () => {};
+    let prompts = 0; openStretchModal = () => { prompts += 1; return true; };
+    progressStore[todayKey()] = { "周一-cutA-0": { "标准俯卧撑": true } };
+    startRestTimer(1);`);
+  assert.equal(intervals.size, 1);
+  run("finishActiveWorkout()");
+  assert.equal(run("prompts"), 1);
+  assert.equal(run("isWorkoutComplete(getActiveWorkout())"), true);
+  assert.equal(run("restState"), null);
+  assert.equal(intervals.size, 0);
+  assert.equal(run('progressStore[todayKey()]["周一-cutA-0"]["标准俯卧撑"]'), true);
+  run("finishActiveWorkout()");
+  assert.equal(run("prompts"), 1);
+});
+
+test("cardio expiry never opens stretches until the last unchecked exercise is marked complete", () => {
+  const { run, checkboxes, advance } = loadPageLogic();
+  let onChange;
+  const checkbox = { checked: true, dataset: {}, addEventListener(type, callback) { if (type === "change") onChange = callback; } };
+  checkboxes.push(checkbox);
+  run(`state.goal = "fatLoss"; activeDayId = getPlanByFrequency(3, state.goal).find(day => day.type === "train").id;
+    renderWorkout = () => {}; renderWeeklyPlan = () => {};
+    let prompts = 0; openStretchModal = () => { prompts += 1; return true; };
+    getActiveWorkout().exercises.slice(0, -1).forEach(exercise => setExerciseCompleted(activeDayId, exercise.name, true));
+    activeExerciseIndex = getActiveWorkout().exercises.length - 1; toggleExerciseTimer(); bindWorkoutInteractions();`);
+  advance(4_000_000);
+  run("updateExerciseTimerDisplay()");
+  assert.equal(run("prompts"), 0);
+  assert.equal(run("isWorkoutComplete(getActiveWorkout())"), false);
+  checkbox.dataset = { workoutId: run("activeDayId"), exerciseName: run("getActiveWorkout().exercises.at(-1).name") };
+  onChange();
+  assert.equal(run("prompts"), 1);
+  assert.equal(run("exerciseTimerState"), null);
+});
+
+test("only the original two goals are available and older goal records remain untouched", () => {
+  const { run } = loadPageLogic();
+  assert.equal(run("defaultState.goal"), "muscleGain");
+  assert.equal(run("defaultState.trainDaysPerWeek"), 4);
+  assert.equal(run('JSON.stringify(Object.keys(goalConfig))'), '["muscleGain","fatLoss"]');
+  run('activeDayId = "周一-push-0"; progressStore[todayKey()] = { "周一-cutA-0": { "标准俯卧撑": true }, "周一-matFlow1-0": { "徒手浅蹲": true } };');
+  assert.equal(run("countCompletedExercises(getActiveWorkout()).completed"), 0);
+  run('setExerciseCompleted(activeDayId, "平板卧推", true)');
+  assert.equal(run("countCompletedExercises(getActiveWorkout()).completed"), 1);
+  assert.equal(run('progressStore[todayKey()]["周一-cutA-0"]["标准俯卧撑"]'), true);
+  assert.equal(run('progressStore[todayKey()]["周一-matFlow1-0"]["徒手浅蹲"]'), true);
+  assert.match(run("getAiCoachContext().profile.goal"), /增肌/);
+  assert.equal(run("getAiCoachContext().todayWorkout.currentExercise"), "平板卧推");
+});
+
+test("muscle-gain completion keeps its 60-second rest and switching clears timers", () => {
   const { run, checkboxes, advance, intervals } = loadPageLogic();
   let onChange;
-  const checkbox = { checked: true, dataset: { workoutId: "周一-cutA-0", exerciseName: "标准俯卧撑" }, addEventListener(type, callback) { if (type === "change") onChange = callback; } };
-  checkboxes.push(checkbox);
-  run('activeDayId = "周一-cutA-0"; renderWorkout = () => {}; renderWeeklyPlan = () => {};');
-  run("bindWorkoutInteractions()");
+  checkboxes.push({ checked: true, dataset: { workoutId: "周一-push-0", exerciseName: "平板卧推" }, addEventListener(type, callback) { if (type === "change") onChange = callback; } });
+  run('activeDayId = "周一-push-0"; renderWorkout = () => {}; renderWeeklyPlan = () => {}; bindWorkoutInteractions();');
   onChange();
-  assert.equal(run("restState.duration"), 120);
+  assert.equal(run("restState.duration"), 60);
   assert.equal(run("activeExerciseIndex"), 0);
-  advance(120_000);
+  advance(60_000);
   run("updateRestTimerDisplay()");
   assert.equal(run("activeExerciseIndex"), 1);
   assert.equal(run("restState"), null);
-  run("activeExerciseIndex = 4; toggleExerciseTimer()");
-  advance(15_000);
-  run("toggleExerciseTimer()");
-  assert.equal(run("exerciseTimerState.remaining"), 1185);
-  assert.equal(run("exerciseTimerState.endAt"), null);
-  checkbox.dataset.exerciseName = "动感单车匀速骑行";
-  onChange();
-  assert.equal(run("activeExerciseIndex"), 4);
-  assert.equal(run("restState"), null);
-  assert.equal(run("exerciseTimerState"), null);
-  run("toggleExerciseTimer(); resetExerciseStepper()");
+  run("startRestTimer(2); resetExerciseStepper()");
   assert.equal(run("activeExerciseIndex"), 0);
+  assert.equal(intervals.size, 0);
+  run('state.goal = "fatLoss"; activeDayId = getPlanByFrequency(4, state.goal)[0].id; activeExerciseIndex = 2; toggleExerciseTimer(); resetExerciseStepper();');
   assert.equal(run("exerciseTimerState"), null);
   assert.equal(intervals.size, 0);
 });

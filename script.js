@@ -1,7 +1,7 @@
 const STORAGE_KEY = "fitness_helper_progress_v2";
 const TRAINING_NOTES_KEY = "fitness_helper_training_notes_v1";
 const AI_REQUEST_TIMEOUT_MS = 10000;
-const APP_VERSION = "2026.10.18.1";
+const APP_VERSION = "2026.10.18.13";
 const MODAL_EXIT_DURATION_MS = 180;
 const modalCloseTimers = new WeakMap();
 const modalPreviousFocus = new WeakMap();
@@ -20,34 +20,20 @@ const defaultState = {
   weightKg: 70,
   workStartTime: "08:30",
   workEndTime: "17:30",
-  goal: "leanCut",
-  trainDaysPerWeek: 3,
+  goal: "muscleGain",
+  trainDaysPerWeek: 4,
 };
 
 const goalConfig = {
-  leanCut: {
-    label: "减脂保肌",
-    reason: "保留力量训练，逐步减脂，让线条更清楚",
-    durationText: "30-60 分钟",
-    stretch: "每周 3 次全身力量，俯卧撑安排在 A、C 两天。\n做完全部组数再勾选；次数做不稳时减少次数或改上斜俯卧撑。",
-    recovery: "力量动作组间休息约 2 分钟，不必每组做到极限。\n力量日之间留恢复时间，疲劳时缩短有氧或休息。",
-    nutrition: "每餐保留蛋白质、蔬菜和适量主食，减少饮料与零食。\n观察腰围、体重周平均和训练表现，再小幅调整份量。\n结合日常快走，逐步累计每周约 150 分钟中等强度有氧。",
-  },
   muscleGain: {
     label: "增肌",
     reason: "当前默认以增肌新手节奏安排",
     durationText: "50-70 分钟",
-    stretch: "先用轻重量熟悉动作，再逐步增加重量。\n每组按计划完成，动作保持稳定。",
-    recovery: "训练后正常吃饭，补充蛋白质和主食。",
-    nutrition: "规律作息，每天尽量睡满 7-8 小时。",
   },
   fatLoss: {
     label: "减脂",
     reason: "每天两个不同的简单动作，最后以跑步或单车有氧为主",
     durationText: "27-43 分钟",
-    stretch: "每天先做两个不同的简单动作，配重选轻。\n上器械先慢走或轻踩 5 分钟，再做正式有氧。\n结束前降速 5 分钟。",
-    recovery: "训练后正常吃饭，补充蛋白质和主食。\n疲劳时缩短有氧，或改成轻松走路。\n前面的动作轻松做，不练到疲劳。",
-    nutrition: "规律吃饭，少喝含糖饮料。\n每天尽量睡满 7-8 小时。\n先保持稳定的训练频率。",
   },
 };
 
@@ -540,104 +526,6 @@ const workoutLibrary = {
   },
 };
 
-// 使用独立计划键，旧增肌、入门减脂的打卡不会误算到新计划。
-const leanCutPlanTemplates = {
-  3: [
-    { day: "周一", type: "train", key: "cutA" },
-    { day: "周三", type: "train", key: "cutB" },
-    { day: "周五", type: "train", key: "cutC" },
-    { day: "周日", type: "recovery", key: "cutRecovery" },
-  ],
-  4: [
-    { day: "周一", type: "train", key: "cutA" },
-    { day: "周二", type: "train", key: "cutWalk" },
-    { day: "周四", type: "train", key: "cutB" },
-    { day: "周六", type: "train", key: "cutC" },
-    { day: "周日", type: "recovery", key: "cutRecovery" },
-  ],
-  5: [
-    { day: "周一", type: "train", key: "cutA" },
-    { day: "周二", type: "train", key: "cutWalk" },
-    { day: "周四", type: "train", key: "cutB" },
-    { day: "周五", type: "train", key: "cutRide" },
-    { day: "周六", type: "train", key: "cutC" },
-    { day: "周日", type: "recovery", key: "cutRecovery" },
-  ],
-};
-
-function leanCutStrength(name, sets, note) {
-  const source = Object.values(workoutLibrary).flatMap((workout) => workout.exercises).find((exercise) => exercise.name === name);
-  return { ...source, name, sets, note };
-}
-
-function leanCutPushUp() {
-  return {
-    name: "标准俯卧撑", sets: "3组 × 8-10次 · 组间约2分钟",
-    note: "先按每组 8-10 次练习，不必做到极限；后几组做不稳就减少次数。3 组都能稳定做满 12 次后再提高难度。肩腕疼痛时停止。",
-    stance: "双手撑在肩膀下方略宽处，脚尖踩地，头、背、髋和脚跟成直线。",
-    grip: "手指张开，手掌压稳防滑地面，手肘朝后外侧。",
-    firstMove: "收紧腹部和臀部，胸口与髋部一起缓慢下降，再推地回到起点。",
-  };
-}
-
-function leanCutCardio(equipment, minutes, recovery = false) {
-  const exercise = createFatLossCardio(equipment, minutes, equipment === "treadmill", recovery);
-  if (equipment === "treadmill" && !recovery) {
-    exercise.timerSegments[1].label = "快走";
-    exercise.note = `慢走热身 5 分钟 → 快走 ${minutes} 分钟 → 慢走放松 5 分钟。以能说完整句子为准，疲劳时缩短时间。`;
-    exercise.firstMove = "先慢走 5 分钟，再逐渐加快步频；保持能说完整句子，不必跑步。";
-  }
-  return exercise;
-}
-
-function leanCutStrengthDay(title, exercises, equipment) {
-  return {
-    title, focus: "胸背、臀腿、核心", duration: "约 55-60 分钟",
-    warmupTitle: "先热身 5-8 分钟 → 全身力量 → 定时有氧",
-    warmupText: "先轻松走路并活动肩、髋，负重动作先做轻重量热身组。每项做完全部组数再勾选，组间约休息 2 分钟；最后有氧可按疲劳程度缩短。",
-    tags: ["保留力量", "适量有氧"],
-    exercises: [...exercises, leanCutCardio(equipment, 10)],
-  };
-}
-
-const leanCutWorkouts = {
-  cutA: leanCutStrengthDay("全身 A · 俯卧撑", [
-    leanCutPushUp(),
-    leanCutStrength("哑铃杯式深蹲", "3组 × 8-12次", "选择能稳定完成的重量，组间约休息 2 分钟；保留余力，不追求每组极限。"),
-    leanCutStrength("单臂哑铃划船", "3组 × 每侧10-12次", "左右都完成才算一组；背部保持稳定，组间约休息 2 分钟。"),
-    { name: "平板支撑", sets: "2组 × 30-45秒", note: "保持正常呼吸；开始塌腰就结束这一组，不必每次撑到两分钟。组间休息 60-90 秒。" },
-  ], "bike"),
-  cutB: leanCutStrengthDay("全身 B · 保留力量", [
-    leanCutStrength("罗马尼亚硬拉", "3组 × 8-10次", "用熟悉、能控制的重量，哑铃贴近腿部；组间约休息 2 分钟。"),
-    leanCutStrength("哑铃卧推", "3组 × 8-12次", "本次只保留一种卧推，不再叠加飞鸟；组间约休息 2 分钟。"),
-    leanCutStrength("高位下拉", "3组 × 10-12次", "面向器材坐稳，只拉到胸前，不甩动身体；组间约休息 2 分钟。"),
-    leanCutStrength("侧平举", "2组 × 12-15次", "轻重量、慢速完成，不耸肩；组间休息 60-90 秒。"),
-  ], "treadmill"),
-  cutC: leanCutStrengthDay("全身 C · 俯卧撑", [
-    leanCutPushUp(),
-    leanCutStrength("哑铃杯式深蹲", "2组 × 10-12次", "以动作稳定为准，组间约休息 2 分钟；腿部疲劳时减轻重量。"),
-    leanCutStrength("单臂哑铃划船", "3组 × 每侧10-12次", "左右都完成才算一组；组间约休息 2 分钟。"),
-    { name: "死虫", sets: "2组 × 每侧8次", note: "下背贴垫，对侧手脚慢慢伸远；组间休息 60-90 秒。" },
-  ], "bike"),
-  cutWalk: {
-    title: "快走有氧", focus: "心肺、日常活动", duration: "约 30 分钟",
-    warmupTitle: "慢走 5 分钟 → 快走 20 分钟 → 放松 5 分钟",
-    warmupText: "这一天不加胸部或腿部力量训练。能说完整句子即可，疲劳时缩短时间。",
-    tags: ["有氧日", "跑步机"], exercises: [leanCutCardio("treadmill", 20)],
-  },
-  cutRide: {
-    title: "匀速骑车", focus: "心肺、日常活动", duration: "约 30 分钟",
-    warmupTitle: "轻踩 5 分钟 → 匀速骑 20 分钟 → 放松 5 分钟",
-    warmupText: "坐姿匀速骑行，不站起来冲刺；保持能说完整句子的强度，疲劳时缩短时间。",
-    tags: ["有氧日", "动感单车"], exercises: [leanCutCardio("bike", 20)],
-  },
-  cutRecovery: {
-    title: "恢复日 · 可休息", focus: "轻活动、恢复", duration: "约 20 分钟 · 可休息",
-    warmupTitle: "轻松走路，或直接休息", warmupText: "今天不补做力量训练，不用追赶漏掉的次数。",
-    tags: ["恢复日"], exercises: [leanCutCardio("treadmill", 10, true)],
-  },
-};
-
 let state = { ...defaultState };
 let progressStore = loadProgressStore();
 let trainingNotes = loadTrainingNotes();
@@ -659,6 +547,8 @@ const EXERCISE_MEDIA_ENABLED = [
 ].includes(window.location.hostname);
 let activeModule = "training";
 let returnScrollY = null;
+let stretchWorkout = null;
+const stretchPromptedWorkouts = new Set();
 
 const elements = {
   heightCm: document.querySelector("#heightCm"),
@@ -688,18 +578,31 @@ const elements = {
   calendarStartWindow: document.querySelector("#calendarStartWindow"),
   tonightTitle: document.querySelector("#tonightTitle"),
   tonightMeta: document.querySelector("#tonightMeta"),
-  workoutGuidance: document.querySelector("#workoutGuidance"),
-  workoutWarmupTitle: document.querySelector("#workoutWarmupTitle"),
-  workoutWarmupText: document.querySelector("#workoutWarmupText"),
   exerciseList: document.querySelector("#exerciseList"),
   checkinButton: document.querySelector("#checkinButton"),
   todayProgress: document.querySelector("#todayProgress"),
   equipmentGrid: document.querySelector("#equipmentGrid"),
-  dietGuide: document.querySelector("#dietGuide"),
   versionBadge: document.querySelector("#versionBadge"),
-  stretchText: document.querySelector("#stretchText"),
-  recoveryText: document.querySelector("#recoveryText"),
-  nutritionText: document.querySelector("#nutritionText"),
+  stretchOpenButton: document.querySelector("#stretchOpenButton"),
+  stretchModal: document.querySelector("#stretchModal"),
+  stretchModalBackdrop: document.querySelector("#stretchModalBackdrop"),
+  stretchModalClose: document.querySelector("#stretchModalClose"),
+  stretchModalDone: document.querySelector("#stretchModalDone"),
+  stretchContext: document.querySelector("#stretchContext"),
+  stretchTitle: document.querySelector("#stretchTitle"),
+  stretchSummary: document.querySelector("#stretchSummary"),
+  stretchSafety: document.querySelector("#stretchSafety"),
+  stretchList: document.querySelector("#stretchList"),
+  stretchPageContext: document.querySelector("#stretchPageContext"),
+  stretchPageSummary: document.querySelector("#stretchPageSummary"),
+  stretchPageSafety: document.querySelector("#stretchPageSafety"),
+  stretchPageList: document.querySelector("#stretchPageList"),
+  warmupList: document.querySelector("#warmupList"),
+  warmupSection: document.querySelector("#warmupSection"),
+  warmupSummary: document.querySelector("#warmupSummary"),
+  stretchDayDivider: document.querySelector("#stretchDayDivider"),
+  postWorkoutStretchHead: document.querySelector("#postWorkoutStretchHead"),
+  stretchChangeDay: document.querySelector("#stretchChangeDay"),
   appModules: document.querySelectorAll("[data-module]"),
   moduleButtons: document.querySelectorAll("[data-module-target]"),
   backToWorkoutButton: document.querySelector("#backToWorkoutButton"),
@@ -802,8 +705,8 @@ function getBmiInfo(heightCm, weightKg) {
   return { bmi: bmi.toFixed(1), label, status };
 }
 
-function getRecommendedFrequency(goal) {
-  return goal === "leanCut" ? 3 : 4;
+function getRecommendedFrequency() {
+  return 4;
 }
 
 function escapeHtml(value) {
@@ -816,7 +719,6 @@ function escapeHtml(value) {
 }
 
 function getGoalSummary(goal) {
-  if (goal === "leanCut") return "每周 3 次全身力量，配合适量有氧，逐步减脂";
   if (goal === "muscleGain") {
     return "先稳住频率，再逐步加重量";
   }
@@ -824,7 +726,6 @@ function getGoalSummary(goal) {
 }
 
 function getOverviewHint(goal, bmiInfo) {
-  if (goal === "leanCut") return "保留背、腿和推的训练，俯卧撑每周两次。先稳定完成组次，再根据腰围、体重周平均和恢复情况调整饮食与有氧。";
   if (bmiInfo.label === "偏轻" && goal === "muscleGain") {
     return "你现在更适合走稳一点的增肌路线：先把一周节奏固定，再把吃饭和睡眠跟上。";
   }
@@ -846,7 +747,6 @@ function getStartWindow(workEndTime) {
 }
 
 function cloneWorkout(key, goal) {
-  if (goal === "leanCut") return { ...JSON.parse(JSON.stringify(leanCutWorkouts[key])), goal };
   if (goal === "fatLoss") {
     const workout = JSON.parse(JSON.stringify(fatLossWorkouts[key]));
     workout.goal = goal;
@@ -857,7 +757,7 @@ function cloneWorkout(key, goal) {
 }
 
 function getPlanByFrequency(frequency, goal) {
-  const sourceTemplates = goal === "leanCut" ? leanCutPlanTemplates : goal === "fatLoss" ? fatLossPlanTemplates : planTemplates;
+  const sourceTemplates = goal === "fatLoss" ? fatLossPlanTemplates : planTemplates;
   return sourceTemplates[frequency].map((item, index) => {
     const workout = cloneWorkout(item.key, goal);
     return {
@@ -1129,7 +1029,7 @@ function updateRestTimerDisplay() {
 
 function startRestTimer(nextIndex) {
   cancelRestTimer();
-  const duration = state.goal === "leanCut" ? 120 : 60;
+  const duration = 60;
   restState = { duration, remaining: duration, endAt: Date.now() + duration * 1000, nextIndex };
   renderWorkout();
   restTimerId = window.setInterval(updateRestTimerDisplay, 250);
@@ -1515,11 +1415,12 @@ function hideModal(modal) {
     modal.hidden = true;
     modal.classList.remove("is-closing");
     modalCloseTimers.delete(modal);
-    const hasOpenModal = [elements.bmiModal, elements.aiModal, elements.tutorialSheet].some((item) => item && !item.hidden);
+    const hasOpenModal = [elements.bmiModal, elements.aiModal, elements.tutorialSheet, elements.stretchModal].some((item) => item && !item.hidden);
     document.body.classList.toggle("has-modal-open", hasOpenModal);
     const previousFocus = modalPreviousFocus.get(modal);
     if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true });
     modalPreviousFocus.delete(modal);
+    if (modal === elements.stretchModal) syncStretchVideoPlayback();
   }, MODAL_EXIT_DURATION_MS);
   modalCloseTimers.set(modal, timeoutId);
 }
@@ -1551,6 +1452,172 @@ function openAiModal() {
 
 function closeAiModal() {
   hideModal(elements.aiModal);
+}
+
+function getStretchSummary(items) {
+  const seconds = window.StretchGuide.getHoldSeconds(items);
+  const minutes = Math.floor(seconds / 60);
+  const duration = minutes ? `${minutes} 分${seconds % 60 ? ` ${seconds % 60} 秒` : "钟"}` : `${seconds} 秒`;
+  return items.length
+    ? `${items.length} 项 · 保持约 ${duration}`
+    : "暂未匹配到拉伸，请按今天练到的部位选择。";
+}
+
+function renderStretchCards(items, { warmup = false } = {}) {
+  return items.map((item, index) => `
+    <details class="stretch-item" ${index === 0 ? "open" : ""}>
+      <summary>
+        <span class="stretch-number" aria-hidden="true">${String(index + 1).padStart(2, "0")}</span>
+        <span class="stretch-item-heading"><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.area)}</small></span>
+        <span class="stretch-time">${warmup ? escapeHtml(item.repetitions) : `${item.sides === 2 ? "每侧 " : ""}${item.seconds} 秒`}</span>
+      </summary>
+      <div class="stretch-item-content">
+        ${item.media ? `
+          <figure class="stretch-media" data-stretch-figure>
+            ${item.media.type === "video" ? `
+              <video data-stretch-video data-src="${escapeHtml(item.media.src)}" data-poster="${escapeHtml(item.media.poster)}" aria-label="${escapeHtml(item.media.alt)}" muted loop playsinline preload="none"></video>
+            ` : `<picture>
+              <source media="(prefers-reduced-motion: reduce)" srcset="${escapeHtml(item.media.poster)}">
+              <img src="${escapeHtml(item.media.src)}" alt="${escapeHtml(item.media.alt)}" width="180" height="180" loading="lazy" decoding="async" data-stretch-media>
+            </picture>`}
+            <div class="stretch-media-fallback" hidden>示范暂时无法加载，请按文字步骤做。</div>
+            <figcaption>
+              <a href="${escapeHtml(item.media.attributionUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.media.attribution)}</a>
+              ${item.media.approximate ? `<small>近似示范：${escapeHtml(item.media.note)}</small>` : ""}
+              <small>${warmup ? "动态热身，慢速重复，不用长时间停住。" : `看清姿势后保持约 ${item.seconds} 秒，不用跟着反复做。`}</small>
+            </figcaption>
+          </figure>
+        ` : ""}
+        <div class="stretch-instructions">
+          <p class="stretch-cue">${escapeHtml(item.cue)}</p>
+          <ol>${item.steps.map((step) => `<li>${escapeHtml(step)}</li>`).join("")}</ol>
+          <p class="stretch-avoid">${escapeHtml(item.avoid)}</p>
+        </div>
+      </div>
+    </details>
+  `).join("");
+}
+
+function syncStretchVideoPlayback() {
+  const modalVisible = elements.stretchModal?.hidden === false;
+  const modalOpen = modalVisible && !elements.stretchModal.classList?.contains("is-closing");
+  const scopes = [
+    { list: elements.warmupList, visible: activeModule === "stretch" && !modalVisible },
+    { list: elements.stretchPageList, visible: activeModule === "stretch" && !modalVisible },
+    { list: elements.stretchList, visible: modalOpen },
+  ];
+  scopes.forEach(({ list, visible }) => list?.querySelectorAll("[data-stretch-video]").forEach((video) => {
+    const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+    const isOpen = visible && !document.hidden && !video.hidden && video.closest("details").open;
+    if (isOpen && video.dataset.poster && !video.getAttribute("poster")) video.poster = video.dataset.poster;
+    if (isOpen && !reduceMotion) {
+      if (!video.getAttribute("src")) video.src = video.dataset.src;
+      video.play()?.catch(() => {});
+    } else video.pause();
+  }));
+}
+
+function renderWarmupGuide(workout = getActiveWorkout()) {
+  if (!workout || !elements.warmupList || !window.StretchGuide) return;
+  const items = window.StretchGuide.getWorkoutWarmups(workout, { mediaEnabled: EXERCISE_MEDIA_ENABLED });
+  elements.warmupSummary.textContent = items.length ? `${items.length} 项 · 动态活动` : "";
+  elements.warmupList.innerHTML = renderStretchCards(items, { warmup: true });
+  bindStretchMedia(elements.warmupList);
+}
+
+function bindStretchMedia(scope) {
+  scope.querySelectorAll("details").forEach((details) => details.addEventListener("toggle", syncStretchVideoPlayback));
+  scope.querySelectorAll("[data-stretch-video]").forEach((video) => {
+    video.addEventListener("error", () => {
+      video.hidden = true;
+      video.closest("figure").querySelector(".stretch-media-fallback").hidden = false;
+    }, { once: true });
+  });
+  scope.querySelectorAll("[data-stretch-media]").forEach((img) => {
+    img.addEventListener("error", () => {
+      const figure = img.closest("[data-stretch-figure]");
+      if (!figure) return;
+      figure.querySelector("picture").hidden = true;
+      figure.querySelector(".stretch-media-fallback").hidden = false;
+    }, { once: true });
+  });
+}
+
+function renderStretchContent(workout, { summary, safety, list }) {
+  const isRecovery = workout.type === "recovery";
+  const items = window.StretchGuide.getWorkoutStretches(workout, {
+    mediaEnabled: EXERCISE_MEDIA_ENABLED,
+  });
+  summary.hidden = isRecovery;
+  safety.hidden = isRecovery;
+  summary.textContent = isRecovery ? "" : getStretchSummary(items);
+  list.innerHTML = isRecovery
+    ? '<p class="stretch-rest-message">休息是为了更好的下一次全神贯注</p>'
+    : renderStretchCards(items);
+  bindStretchMedia(list);
+}
+
+function renderStretchList() {
+  if (!stretchWorkout || !window.StretchGuide) return;
+  renderStretchContent(stretchWorkout, {
+    summary: elements.stretchSummary, safety: elements.stretchSafety, list: elements.stretchList,
+  });
+}
+
+function renderStretchPage() {
+  if (!elements.stretchPageList || !window.StretchGuide) return;
+  const workout = getActiveWorkout();
+  if (!workout) return;
+  const isRecovery = workout.type === "recovery";
+  elements.stretchPageContext.textContent = `${workout.day} · ${workout.title}`;
+  elements.warmupSection.hidden = isRecovery;
+  elements.stretchDayDivider.hidden = isRecovery;
+  elements.postWorkoutStretchHead.hidden = isRecovery;
+  renderWarmupGuide(workout);
+  renderStretchContent(workout, {
+    summary: elements.stretchPageSummary, safety: elements.stretchPageSafety, list: elements.stretchPageList,
+  });
+  syncStretchVideoPlayback();
+}
+
+function openStretchModal(workout = getActiveWorkout(), { automatic = false } = {}) {
+  if (!workout || !elements.stretchModal || !window.StretchGuide) return false;
+  stretchWorkout = workout;
+  elements.stretchContext.textContent = `${workout.day} · ${workout.title}`;
+  elements.stretchTitle.textContent = workout.type === "recovery" ? "恢复日" : automatic ? "训练完成，拉伸一下" : "练后拉伸";
+  elements.stretchModal.querySelector("[role='dialog']").setAttribute("aria-describedby", workout.type === "recovery" ? "stretchList" : "stretchSafety");
+  renderStretchList();
+  elements.stretchModal.querySelector(".stretch-modal-scroll").scrollTop = 0;
+  showModal(elements.stretchModal);
+  syncStretchVideoPlayback();
+  // 动作卡会重渲染；用常驻入口接回焦点，避免返回已移除的复选框。
+  modalPreviousFocus.set(elements.stretchModal, elements.stretchOpenButton);
+  elements.stretchModalClose.focus({ preventScroll: true });
+  return true;
+}
+
+function closeStretchModal() {
+  hideModal(elements.stretchModal);
+  syncStretchVideoPlayback();
+}
+
+function promptPostWorkoutStretch(workout, wasComplete) {
+  if (!workout || wasComplete || !isWorkoutComplete(workout)) return;
+  const key = `${todayKey()}:${workout.id}`;
+  if (stretchPromptedWorkouts.has(key)) return;
+  if (openStretchModal(workout, { automatic: true })) stretchPromptedWorkouts.add(key);
+}
+
+function finishActiveWorkout() {
+  const workout = getActiveWorkout();
+  if (!workout) return;
+  const wasComplete = isWorkoutComplete(workout);
+  cancelExerciseTimer();
+  cancelRestTimer();
+  completeWorkout(workout);
+  renderWeeklyPlan();
+  renderWorkout();
+  promptPostWorkoutStretch(workout, wasComplete);
 }
 
 function renderTutorialSheet(exercise, guide, tutorialUrl) {
@@ -1599,11 +1666,11 @@ function closeTutorialSheet() {
 
 function keepFocusInsideModal(event) {
   if (event.key !== "Tab") return;
-  const modal = [elements.tutorialSheet, elements.aiModal, elements.bmiModal]
+  const modal = [elements.stretchModal, elements.tutorialSheet, elements.aiModal, elements.bmiModal]
     .find((item) => item && !item.hidden && !item.classList.contains("is-closing"));
   if (!modal) return;
   const focusable = Array.from(modal.querySelectorAll(
-    'button:not([disabled]):not([hidden]), a[href]:not([hidden]), input:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+    'button:not([disabled]):not([hidden]), a[href]:not([hidden]), input:not([disabled]), textarea:not([disabled]), summary, [tabindex]:not([tabindex="-1"])',
   )).filter((item) => item.getClientRects().length > 0);
   if (!focusable.length) return;
   const first = focusable[0];
@@ -1697,9 +1764,6 @@ function renderOverview() {
     elements.calendarStartWindow.textContent = getStartWindow(state.workEndTime);
   }
   renderGoalTabs();
-  if (elements.stretchText) elements.stretchText.textContent = goalInfo.stretch;
-  if (elements.recoveryText) elements.recoveryText.textContent = goalInfo.recovery;
-  if (elements.nutritionText) elements.nutritionText.textContent = goalInfo.nutrition;
 }
 
 function renderProfileCalendar() {
@@ -1962,11 +2026,6 @@ function renderWorkout() {
 
   const goalInfo = goalConfig[state.goal];
   const progress = countCompletedExercises(workout);
-  if (elements.workoutGuidance) {
-    elements.workoutGuidance.hidden = state.goal !== "leanCut";
-    elements.workoutWarmupTitle.textContent = workout.warmupTitle;
-    elements.workoutWarmupText.textContent = workout.warmupText;
-  }
 
   elements.tonightTitle.textContent = `${workout.day} · ${workout.title}`;
   if (elements.heroWorkoutTitle) elements.heroWorkoutTitle.textContent = `${workout.day} · ${workout.title}`;
@@ -2166,12 +2225,18 @@ function bindWorkoutInteractions() {
   elements.exerciseList.querySelectorAll("input[type='checkbox']").forEach((checkbox) => {
     checkbox.addEventListener("change", () => {
       const workout = getActiveWorkout();
+      const wasComplete = workout ? isWorkoutComplete(workout) : false;
       const lastIndex = workout ? workout.exercises.length - 1 : 0;
       const shouldAdvance = checkbox.checked && activeExerciseIndex < lastIndex;
       cancelExerciseTimer();
       setExerciseCompleted(checkbox.dataset.workoutId, checkbox.dataset.exerciseName, checkbox.checked);
       renderWeeklyPlan();
-      if (shouldAdvance && state.goal === "fatLoss") {
+      if (workout && isWorkoutComplete(workout)) {
+        cancelRestTimer();
+        renderWorkout();
+        promptPostWorkoutStretch(workout, wasComplete);
+      }
+      else if (shouldAdvance && state.goal === "fatLoss") {
         activeExerciseIndex += 1;
         activeGuideTab = "steps";
         stepMotion = "forward";
@@ -2287,80 +2352,6 @@ function renderEquipmentGuide() {
   }).join("");
 }
 
-function renderDietGuide() {
-  if (!elements.dietGuide) return;
-  const guide = window.DietGuide.getDietGuide(state.goal);
-  elements.dietGuide.innerHTML = `
-    <header class="diet-hero">
-      <div>
-        <p class="panel-tag">${guide.label}饮食</p>
-        <h2>${guide.headline}</h2>
-        <p>${guide.intro}</p>
-      </div>
-      <span class="diet-goal-badge">当前目标 · ${guide.label}</span>
-    </header>
-    <div class="diet-principles" aria-label="饮食核心原则">
-      ${guide.principles.map((item, index) => `<div><span>0${index + 1}</span><strong>${item}</strong></div>`).join("")}
-    </div>
-    <section class="diet-schedule" aria-labelledby="dietScheduleTitle">
-      <div class="section-head diet-section-head">
-        <div><p class="panel-tag">一天怎么吃</p><h3 id="dietScheduleTitle">分时段饮食</h3></div>
-        <div class="diet-carousel-controls" aria-label="切换饮食建议">
-          <button type="button" data-diet-direction="prev" aria-label="上一张饮食卡">←</button>
-          <span><strong data-diet-current>1</strong> / ${guide.periods.length}</span>
-          <button type="button" data-diet-direction="next" aria-label="下一张饮食卡">→</button>
-        </div>
-      </div>
-      <div class="diet-period-grid" data-diet-carousel tabindex="0" aria-label="分时段饮食建议">
-        ${guide.periods.map((period, index) => `
-          <article class="diet-period-card" data-diet-card data-diet-index="${index}">
-            <div class="diet-period-head"><div><strong>${period.title}</strong><span>${period.timing}</span></div><span class="diet-period-dot" aria-hidden="true"></span></div>
-            <ul>${period.options.map((option) => `<li>${option}</li>`).join("")}</ul>
-          </article>
-        `).join("")}
-      </div>
-    </section>
-    <p class="diet-disclaimer">以上为健康成年人的通用入门建议。如有疾病、食物过敏、孕期或特殊饮食要求，请咨询医生或营养师。</p>
-  `;
-  bindDietCarousel();
-}
-
-function bindDietCarousel() {
-  const carousel = elements.dietGuide?.querySelector("[data-diet-carousel]");
-  if (!carousel) return;
-  const cards = Array.from(carousel.querySelectorAll("[data-diet-card]"));
-  const currentLabel = elements.dietGuide.querySelector("[data-diet-current]");
-
-  function getCurrentIndex() {
-    if (!cards.length) return 0;
-    return cards.reduce((nearest, card, index) => (
-      Math.abs(card.offsetLeft - carousel.scrollLeft) < Math.abs(cards[nearest].offsetLeft - carousel.scrollLeft) ? index : nearest
-    ), 0);
-  }
-
-  function updateCurrentLabel() {
-    if (currentLabel) currentLabel.textContent = String(getCurrentIndex() + 1);
-  }
-
-  function scrollToIndex(index) {
-    const target = cards[Math.min(cards.length - 1, Math.max(0, index))];
-    target?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "start" });
-  }
-
-  elements.dietGuide.querySelectorAll("[data-diet-direction]").forEach((button) => {
-    button.addEventListener("click", () => {
-      const offset = button.dataset.dietDirection === "next" ? 1 : -1;
-      scrollToIndex(getCurrentIndex() + offset);
-    });
-  });
-  carousel.addEventListener("scroll", updateCurrentLabel, { passive: true });
-  carousel.addEventListener("keydown", (event) => {
-    if (!["ArrowLeft", "ArrowRight"].includes(event.key)) return;
-    event.preventDefault();
-    scrollToIndex(getCurrentIndex() + (event.key === "ArrowRight" ? 1 : -1));
-  });
-}
-
 function bindEquipmentJumpButtons(scope = document) {
   scope.querySelectorAll("[data-equipment-target]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -2380,6 +2371,7 @@ function bindEquipmentJumpButtons(scope = document) {
 }
 
 function setActiveModule(moduleName, options = {}) {
+  if (!["training", "equipment", "stretch"].includes(moduleName)) return;
   if (!moduleName || activeModule === moduleName) {
     if (options.scrollToTop) {
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -2388,6 +2380,7 @@ function setActiveModule(moduleName, options = {}) {
   }
 
   activeModule = moduleName;
+  if (moduleName === "stretch") renderStretchPage();
   elements.appModules.forEach((module) => {
     const isActive = module.dataset.module === moduleName;
     module.classList.toggle("is-active", isActive);
@@ -2404,6 +2397,7 @@ function setActiveModule(moduleName, options = {}) {
     }
   });
 
+  syncStretchVideoPlayback();
   updateBackToTopButton();
   if (options.scrollToTop !== false) {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -2449,7 +2443,7 @@ function rerenderAll() {
   renderWeeklyPlan();
   renderWorkout();
   renderEquipmentGuide();
-  renderDietGuide();
+  renderStretchPage();
   renderTrainingNotes();
 }
 
@@ -2512,14 +2506,14 @@ function attachEvents() {
   bindEquipmentJumpButtons(document);
   bindScrollTargetButtons(document);
 
-  elements.checkinButton.addEventListener("click", () => {
-    const workout = getActiveWorkout();
-    if (!workout) return;
-    cancelExerciseTimer();
-    completeWorkout(workout);
-    renderWeeklyPlan();
-    renderWorkout();
-  });
+  elements.checkinButton.addEventListener("click", finishActiveWorkout);
+  elements.stretchOpenButton?.addEventListener("click", () => openStretchModal());
+  elements.stretchModalBackdrop?.addEventListener("click", closeStretchModal);
+  elements.stretchModalClose?.addEventListener("click", closeStretchModal);
+  elements.stretchModalDone?.addEventListener("click", closeStretchModal);
+  window.matchMedia?.("(prefers-reduced-motion: reduce)")?.addEventListener?.("change", syncStretchVideoPlayback);
+  document.addEventListener("visibilitychange", syncStretchVideoPlayback);
+  elements.stretchChangeDay?.addEventListener("click", () => setActiveModule("training"));
 
   if (elements.backToWorkoutButton) {
     elements.backToWorkoutButton.addEventListener("click", () => {
@@ -2647,6 +2641,7 @@ function attachEvents() {
       closeBmiModal();
       closeAiModal();
       closeTutorialSheet();
+      closeStretchModal();
     }
     keepFocusInsideModal(event);
   });

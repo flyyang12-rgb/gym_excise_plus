@@ -7,16 +7,16 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>健身小助手</title>
   <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
-  <link rel="stylesheet" href="style.css?v=20261018-leancut-v1">
+  <link rel="stylesheet" href="style.css?v=20261018-warmup-v3">
 </head>
 <body>
   <div class="app-shell">
     <section class="app-module app-module-training is-active" data-module="training" aria-label="训练模块">
       <header class="hero">
-        <span id="versionBadge" class="version-badge" title="当前版本">v2026.10.18.1</span>
+        <span id="versionBadge" class="version-badge" title="当前版本">v2026.10.18.13</span>
         <div class="hero-main">
           <div class="hero-copy">
-            <p class="eyebrow" id="heroGoalLabel">晚间训练 · 减脂保肌</p>
+            <p class="eyebrow" id="heroGoalLabel">晚间训练 · 增肌</p>
             <h1>健身小助手</h1>
             <p class="hero-motto"><span>按顺序练动作，</span><span>做完一项勾选一项。</span></p>
             <div class="hero-current" aria-label="选中的训练计划">
@@ -43,7 +43,6 @@
                 </span>
               </div>
               <div class="goal-tabs" id="goalTabs" role="group" aria-label="训练目标">
-                <button type="button" data-goal="leanCut">减脂保肌</button>
                 <button type="button" data-goal="muscleGain">增肌</button>
                 <button type="button" data-goal="fatLoss">减脂</button>
               </div>
@@ -68,7 +67,6 @@
               <label>
                 <span>训练目标</span>
                 <select id="goal">
-                  <option value="leanCut">减脂保肌</option>
                   <option value="muscleGain">增肌</option>
                   <option value="fatLoss">减脂</option>
                 </select>
@@ -117,11 +115,11 @@
           </div>
 
           <div class="tonight-meta" id="tonightMeta"></div>
-          <details id="workoutGuidance" class="workout-guidance" hidden>
-            <summary id="workoutWarmupTitle"></summary>
-            <p id="workoutWarmupText"></p>
-          </details>
           <div id="exerciseList" class="exercise-list"></div>
+          <div class="workout-stretch-entry">
+            <span>练完后，放松今天练到的部位。</span>
+            <button id="stretchOpenButton" class="soft-button" type="button">查看拉伸安排</button>
+          </div>
         </section>
 
         <aside class="training-reminder" aria-label="训练提示">
@@ -147,6 +145,9 @@
             </div>
           </form>
           <div id="noteList" class="note-list" aria-live="polite"></div>
+          <div class="training-tools" aria-label="训练工具">
+            <button id="bmiOpenButton" class="module-action-button module-action-button-light" type="button"><span>BM</span>BMI 数据</button>
+          </div>
         </section>
 
       </main>
@@ -160,51 +161,40 @@
             <h2>认识训练器械</h2>
             <p class="section-description">查看用途和操作要点，也可从动作卡直接跳转</p>
           </div>
+          <button id="aiObserveButton" class="module-action-button" type="button"><span>AI</span>AI 问答</button>
         </div>
         <div id="equipmentGrid" class="equipment-grid"></div>
       </section>
     </section>
 
-    <section class="app-module app-module-page" data-module="diet" aria-label="饮食模块" hidden>
-      <section class="diet-panel secondary-section">
-        <div id="dietGuide"></div>
-        <section class="recovery-panel diet-recovery" aria-labelledby="recoveryTitle">
-          <div class="section-head recovery-merged-head">
-            <div>
-              <p class="panel-tag">恢复建议</p>
-              <h2 id="recoveryTitle">训练后怎么恢复</h2>
-            </div>
+    <section class="app-module app-module-page" data-module="stretch" aria-label="拉伸模块" hidden>
+      <section class="stretch-page secondary-section" aria-labelledby="stretchPageTitle">
+        <header class="section-head module-page-head stretch-page-head">
+          <div>
+            <p class="panel-tag">训练前后</p>
+            <h2 id="stretchPageTitle">热身与拉伸</h2>
           </div>
-          <div class="recovery-grid">
-            <article class="mini-card recovery-card recovery-card-rest">
-              <div class="recovery-card-icon" aria-hidden="true">吃</div>
-              <div class="recovery-card-copy">
-                <span>蛋白 + 碳水</span>
-                <h3>饮食</h3>
-                <p id="recoveryText">训练后正常吃饭，补充蛋白质和主食。</p>
-              </div>
-            </article>
-            <article class="mini-card recovery-card recovery-card-food">
-              <div class="recovery-card-icon" aria-hidden="true">睡</div>
-              <div class="recovery-card-copy">
-                <span>7-8 小时</span>
-                <h3>睡眠</h3>
-                <p id="nutritionText">规律作息，每天尽量睡满 7-8 小时。</p>
-              </div>
-            </article>
-            <article class="mini-card recovery-card recovery-card-safe">
-              <div class="recovery-card-icon" aria-hidden="true">稳</div>
-              <div class="recovery-card-copy">
-                <span>按状态调整</span>
-                <h3>训练强度</h3>
-                <p>状态差时减量或休息，按身体情况调整训练。</p>
-              </div>
-            </article>
+          <button id="stretchChangeDay" class="soft-button" type="button">换训练日</button>
+        </header>
+        <div class="stretch-page-plan">
+          <strong id="stretchPageContext"></strong>
+        </div>
+        <section id="warmupSection" class="warmup-section" aria-labelledby="warmupTitle">
+          <div class="stretch-section-head">
+            <h3 id="warmupTitle">练前热身</h3>
+            <span id="warmupSummary" class="stretch-summary"></span>
           </div>
-          <div class="recovery-actions">
-            <button id="bmiOpenButton" class="module-action-button module-action-button-light" type="button"><span>BM</span>BMI 数据</button>
-            <button id="aiObserveButton" class="module-action-button" type="button"><span>AI</span>AI 问答</button>
+          <p class="stretch-safety">先快走或轻松踏步约 6 分钟，再做下面的动态活动，不练到累。</p>
+          <div id="warmupList" class="stretch-list"></div>
+        </section>
+        <hr id="stretchDayDivider" class="stretch-day-divider">
+        <section class="post-workout-stretch" aria-labelledby="postWorkoutStretchTitle">
+          <div id="postWorkoutStretchHead" class="stretch-section-head">
+            <h3 id="postWorkoutStretchTitle">练后拉伸</h3>
+            <span id="stretchPageSummary" class="stretch-summary" role="status"></span>
           </div>
+          <p id="stretchPageSafety" class="stretch-safety">练完再拉伸，先做 1 轮。正常呼吸，不弹震；只到轻微牵拉感，疼痛或麻木就停止。</p>
+          <div id="stretchPageList" class="stretch-list"></div>
         </section>
       </section>
     </section>
@@ -219,9 +209,9 @@
       <span aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V4h14v16M8 4v5h8V4M9 13h6M12 13v7M8 20h8"/></svg></span>
       器械
     </button>
-    <button type="button" data-module-target="diet">
-      <span aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16a8 8 0 0 1-16 0ZM8 21h8M12 4v4M7 5v3M17 5v3"/></svg></span>
-      饮食
+    <button type="button" data-module-target="stretch">
+      <span aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4" r="2"/><path d="m4 8 8 3 8-3M12 11v5m0 0-5 5m5-5 5 5"/></svg></span>
+      拉伸
     </button>
   </nav>
 
@@ -282,6 +272,27 @@
         <button id="tutorialSheetContinue" class="primary-button" type="button">看懂了，继续练</button>
         <a id="tutorialSheetExternal" class="soft-button" href="#" target="_blank" rel="noopener noreferrer">打开完整视频 ↗</a>
       </div>
+    </section>
+  </div>
+
+  <div id="stretchModal" class="bmi-modal stretch-modal" aria-hidden="true" hidden>
+    <div id="stretchModalBackdrop" class="bmi-modal-backdrop"></div>
+    <section class="bmi-modal-panel stretch-modal-panel" role="dialog" aria-modal="true" aria-labelledby="stretchTitle" aria-describedby="stretchSafety">
+      <header class="bmi-modal-head stretch-modal-head">
+        <div>
+          <p class="panel-tag" id="stretchContext">练后放松</p>
+          <h2 id="stretchTitle">练后拉伸</h2>
+          <p id="stretchSummary" class="stretch-summary"></p>
+        </div>
+        <button id="stretchModalClose" class="bmi-modal-close" type="button" aria-label="关闭拉伸安排">关闭</button>
+      </header>
+      <div class="stretch-modal-scroll">
+        <p id="stretchSafety" class="stretch-safety">先做 1 轮，正常呼吸、不弹震；轻微牵拉即可，疼痛或麻木就停止。</p>
+        <div id="stretchList" class="stretch-list"></div>
+      </div>
+      <footer class="stretch-modal-footer">
+        <button id="stretchModalDone" class="primary-button" type="button">知道了</button>
+      </footer>
     </section>
   </div>
 
@@ -352,8 +363,8 @@
     </section>
   </div>
 
-  <script src="exercise-guides.js?v=20261018-pushup-v1"></script>
-  <script src="diet-guide.js?v=20261018-leancut-v1"></script>
-  <script src="script.js?v=20261018-leancut-v1"></script>
+  <script src="exercise-guides.js?v=20261018-stretch-v1"></script>
+  <script src="stretch-guide.js?v=20261018-no-mat-v1"></script>
+  <script src="script.js?v=20261018-no-mat-v1"></script>
 </body>
 </html>
