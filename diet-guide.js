@@ -32,6 +32,14 @@
     },
   };
 
+  configs.leanCut = {
+    ...configs.fatLoss,
+    label: "减脂保肌",
+    headline: "小幅控制份量，保留训练状态",
+    intro: "每餐安排蛋白质、蔬菜和适量主食，减少含糖饮料与零食。结合腰围、体重周平均和力量表现调整，不用靠饿肚子赶进度。",
+    principles: ["每餐保留蛋白质", "适量主食，支持力量训练", "小幅调整份量，观察恢复"],
+  };
+
   function period(key, title, timing, options) {
     return { key, title, timing, options };
   }

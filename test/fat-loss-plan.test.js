@@ -75,6 +75,70 @@ function createAudioMock({ rejectResume = false, throwOnPlayback = false } = {})
   return { AudioContext, stats };
 }
 
+test("lean-cut plans keep three spaced full-body days, two push-up sessions and separate legacy records", () => {
+  const { run } = loadPageLogic();
+  assert.equal(run("defaultState.goal"), "leanCut");
+  assert.equal(run("defaultState.trainDaysPerWeek"), 3);
+  const weekdayIndex = { "周一": 1, "周二": 2, "周三": 3, "周四": 4, "周五": 5, "周六": 6 };
+  for (const frequency of [3, 4, 5]) {
+    const plan = JSON.parse(run(`JSON.stringify(getPlanByFrequency(${frequency}, "leanCut"))`));
+    const training = plan.filter((day) => day.type === "train");
+    const strength = training.filter((day) => day.exercises.length > 1);
+    assert.equal(training.length, frequency);
+    assert.equal(strength.length, 3);
+    assert.equal(strength.filter((day) => day.exercises.some((exercise) => exercise.name === "标准俯卧撑")).length, 2);
+    const days = strength.map((day) => weekdayIndex[day.day]);
+    assert.ok(days[1] - days[0] >= 2 && days[2] - days[1] >= 2 && 7 + days[0] - days[2] >= 2);
+    strength.forEach((day) => {
+      assert.equal(day.exercises.length, 5);
+      assert.ok(day.exercises.some((exercise) => /深蹲|硬拉/.test(exercise.name)));
+      assert.ok(day.exercises.some((exercise) => /划船|下拉/.test(exercise.name)));
+      assert.ok(day.exercises.at(-1).timerSegments);
+      assert.equal(day.exercises.filter((exercise) => exercise.timerSegments).length, 1);
+      day.exercises.forEach((exercise) => assert.equal(ExerciseGuides.getExerciseGuide(exercise).hasSpecificGuide, true, exercise.name));
+    });
+    const legacy = ["muscleGain", "fatLoss"].flatMap((goal) => JSON.parse(run(`JSON.stringify(getPlanByFrequency(${frequency}, "${goal}"))`)));
+    assert.ok(plan.every((day) => !legacy.some((old) => old.id === day.id)));
+  }
+  run('activeDayId = "周一-cutA-0"; progressStore[todayKey()] = { "周一-push-0": { "平板卧推": true }, "周一-matFlow1-0": { "徒手浅蹲": true } };');
+  assert.equal(run("countCompletedExercises(getActiveWorkout()).completed"), 0);
+  run('setExerciseCompleted(activeDayId, "标准俯卧撑", true)');
+  assert.equal(run("countCompletedExercises(getActiveWorkout()).completed"), 1);
+  assert.equal(run('progressStore[todayKey()]["周一-push-0"]["平板卧推"]'), true);
+  assert.match(run("getAiCoachContext().profile.goal"), /减脂保肌/);
+  assert.equal(run("getAiCoachContext().todayWorkout.currentExercise"), "标准俯卧撑");
+});
+
+test("lean-cut completion rests then advances, cardio pauses and switching clears timers", () => {
+  const { run, checkboxes, advance, intervals } = loadPageLogic();
+  let onChange;
+  const checkbox = { checked: true, dataset: { workoutId: "周一-cutA-0", exerciseName: "标准俯卧撑" }, addEventListener(type, callback) { if (type === "change") onChange = callback; } };
+  checkboxes.push(checkbox);
+  run('activeDayId = "周一-cutA-0"; renderWorkout = () => {}; renderWeeklyPlan = () => {};');
+  run("bindWorkoutInteractions()");
+  onChange();
+  assert.equal(run("restState.duration"), 120);
+  assert.equal(run("activeExerciseIndex"), 0);
+  advance(120_000);
+  run("updateRestTimerDisplay()");
+  assert.equal(run("activeExerciseIndex"), 1);
+  assert.equal(run("restState"), null);
+  run("activeExerciseIndex = 4; toggleExerciseTimer()");
+  advance(15_000);
+  run("toggleExerciseTimer()");
+  assert.equal(run("exerciseTimerState.remaining"), 1185);
+  assert.equal(run("exerciseTimerState.endAt"), null);
+  checkbox.dataset.exerciseName = "动感单车匀速骑行";
+  onChange();
+  assert.equal(run("activeExerciseIndex"), 4);
+  assert.equal(run("restState"), null);
+  assert.equal(run("exerciseTimerState"), null);
+  run("toggleExerciseTimer(); resetExerciseStepper()");
+  assert.equal(run("activeExerciseIndex"), 0);
+  assert.equal(run("exerciseTimerState"), null);
+  assert.equal(intervals.size, 0);
+});
+
 test("fat-loss plans have two different simple exercises each day before final cardio and keep legacy IDs", () => {
   const { run } = loadPageLogic();
   const expectedCardio = [["treadmill", 20], ["bike", 20], ["treadmill", 25], ["bike", 20], ["bike", 15]];

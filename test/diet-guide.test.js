@@ -18,3 +18,12 @@ test("returns a distinct fat loss guide and defaults safely", () => {
   assert.match(fatLoss.principles.join(""), /蛋白质/);
   assert.equal(fallback.label, "增肌");
 });
+
+test("lean-cut nutrition keeps its goal label and all five meal periods", () => {
+  const guide = getDietGuide("leanCut");
+  assert.equal(guide.label, "减脂保肌");
+  assert.match(guide.principles.join(""), /蛋白质/);
+  assert.match(guide.principles.join(""), /力量训练/);
+  assert.equal(guide.periods.length, 5);
+  assert.equal(getDietGuide("fatLoss").label, "减脂");
+});

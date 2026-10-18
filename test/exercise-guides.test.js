@@ -59,6 +59,17 @@ test("returns a complete fallback guide for an unmatched exercise", () => {
   assert.ok(guide.alternative);
 });
 
+test("standard push-up has its own instruction and never shows the kneeling demonstration", () => {
+  const guide = getExerciseGuide({ name: "标准俯卧撑" }, { mediaEnabled: true });
+  assert.equal(guide.name, "标准俯卧撑");
+  assert.equal(guide.hasSpecificGuide, true);
+  assert.equal(guide.media, null);
+  assert.match(guide.steps.join(""), /脚尖踩地/);
+  assert.match(guide.alternative, /固定、稳固的高台/);
+  assert.match(guide.mistakes.join(""), /疼痛/);
+  assert.equal(getExerciseGuide({ name: "俯卧撑或器械推胸" }).name, "跪姿俯卧撑");
+});
+
 test("keeps licensed media disabled until the feature flag is enabled", () => {
   const disabled = getExerciseGuide({ name: "登山跑" }, { mediaEnabled: false });
   const enabled = getExerciseGuide({ name: "登山跑" }, { mediaEnabled: true });

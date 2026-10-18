@@ -5946,6 +5946,9 @@ body.has-modal-open {
   min-width: 0;
 }
 .hero-copy { min-width: 0; }
+.workout-guidance { margin: 0 0 16px; color: var(--muted); font-size: 14px; line-height: 1.7; }
+.workout-guidance summary { padding-block: 10px; cursor: pointer; color: var(--text); }
+.workout-guidance p { margin: 4px 0 12px; }
 .hero-copy .hero-motto > span { display: inline-block; }
 .hero-mascot {
   display: grid;
@@ -6016,8 +6019,8 @@ body.has-modal-open {
 .profile-calendar-badge strong { color: var(--text); font-size: 15px; }
 .hero-art { padding: 0; background: transparent; }
 .hero-art-image { height: 54px; aspect-ratio: auto; }
-.goal-tabs { margin-top: 10px; border-radius: 12px; background: #edeeea; }
-.goal-tabs button { min-height: 40px; border-radius: 8px; }
+.goal-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 10px; border-radius: 12px; background: #edeeea; }
+.goal-tabs button { min-height: 40px; padding-inline: 6px; border-radius: 8px; font-size: 13px; }
 .goal-tabs button.is-active,
 .frequency-tabs button.is-active {
   background: var(--surface);

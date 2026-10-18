@@ -1,7 +1,7 @@
 const STORAGE_KEY = "fitness_helper_progress_v2";
 const TRAINING_NOTES_KEY = "fitness_helper_training_notes_v1";
 const AI_REQUEST_TIMEOUT_MS = 10000;
-const APP_VERSION = "2026.10.07.3";
+const APP_VERSION = "2026.10.18.1";
 const MODAL_EXIT_DURATION_MS = 180;
 const modalCloseTimers = new WeakMap();
 const modalPreviousFocus = new WeakMap();
@@ -20,11 +20,19 @@ const defaultState = {
   weightKg: 70,
   workStartTime: "08:30",
   workEndTime: "17:30",
-  goal: "muscleGain",
-  trainDaysPerWeek: 4,
+  goal: "leanCut",
+  trainDaysPerWeek: 3,
 };
 
 const goalConfig = {
+  leanCut: {
+    label: "减脂保肌",
+    reason: "保留力量训练，逐步减脂，让线条更清楚",
+    durationText: "30-60 分钟",
+    stretch: "每周 3 次全身力量，俯卧撑安排在 A、C 两天。\n做完全部组数再勾选；次数做不稳时减少次数或改上斜俯卧撑。",
+    recovery: "力量动作组间休息约 2 分钟，不必每组做到极限。\n力量日之间留恢复时间，疲劳时缩短有氧或休息。",
+    nutrition: "每餐保留蛋白质、蔬菜和适量主食，减少饮料与零食。\n观察腰围、体重周平均和训练表现，再小幅调整份量。\n结合日常快走，逐步累计每周约 150 分钟中等强度有氧。",
+  },
   muscleGain: {
     label: "增肌",
     reason: "当前默认以增肌新手节奏安排",
@@ -532,6 +540,104 @@ const workoutLibrary = {
   },
 };
 
+// 使用独立计划键，旧增肌、入门减脂的打卡不会误算到新计划。
+const leanCutPlanTemplates = {
+  3: [
+    { day: "周一", type: "train", key: "cutA" },
+    { day: "周三", type: "train", key: "cutB" },
+    { day: "周五", type: "train", key: "cutC" },
+    { day: "周日", type: "recovery", key: "cutRecovery" },
+  ],
+  4: [
+    { day: "周一", type: "train", key: "cutA" },
+    { day: "周二", type: "train", key: "cutWalk" },
+    { day: "周四", type: "train", key: "cutB" },
+    { day: "周六", type: "train", key: "cutC" },
+    { day: "周日", type: "recovery", key: "cutRecovery" },
+  ],
+  5: [
+    { day: "周一", type: "train", key: "cutA" },
+    { day: "周二", type: "train", key: "cutWalk" },
+    { day: "周四", type: "train", key: "cutB" },
+    { day: "周五", type: "train", key: "cutRide" },
+    { day: "周六", type: "train", key: "cutC" },
+    { day: "周日", type: "recovery", key: "cutRecovery" },
+  ],
+};
+
+function leanCutStrength(name, sets, note) {
+  const source = Object.values(workoutLibrary).flatMap((workout) => workout.exercises).find((exercise) => exercise.name === name);
+  return { ...source, name, sets, note };
+}
+
+function leanCutPushUp() {
+  return {
+    name: "标准俯卧撑", sets: "3组 × 8-10次 · 组间约2分钟",
+    note: "先按每组 8-10 次练习，不必做到极限；后几组做不稳就减少次数。3 组都能稳定做满 12 次后再提高难度。肩腕疼痛时停止。",
+    stance: "双手撑在肩膀下方略宽处，脚尖踩地，头、背、髋和脚跟成直线。",
+    grip: "手指张开，手掌压稳防滑地面，手肘朝后外侧。",
+    firstMove: "收紧腹部和臀部，胸口与髋部一起缓慢下降，再推地回到起点。",
+  };
+}
+
+function leanCutCardio(equipment, minutes, recovery = false) {
+  const exercise = createFatLossCardio(equipment, minutes, equipment === "treadmill", recovery);
+  if (equipment === "treadmill" && !recovery) {
+    exercise.timerSegments[1].label = "快走";
+    exercise.note = `慢走热身 5 分钟 → 快走 ${minutes} 分钟 → 慢走放松 5 分钟。以能说完整句子为准，疲劳时缩短时间。`;
+    exercise.firstMove = "先慢走 5 分钟，再逐渐加快步频；保持能说完整句子，不必跑步。";
+  }
+  return exercise;
+}
+
+function leanCutStrengthDay(title, exercises, equipment) {
+  return {
+    title, focus: "胸背、臀腿、核心", duration: "约 55-60 分钟",
+    warmupTitle: "先热身 5-8 分钟 → 全身力量 → 定时有氧",
+    warmupText: "先轻松走路并活动肩、髋，负重动作先做轻重量热身组。每项做完全部组数再勾选，组间约休息 2 分钟；最后有氧可按疲劳程度缩短。",
+    tags: ["保留力量", "适量有氧"],
+    exercises: [...exercises, leanCutCardio(equipment, 10)],
+  };
+}
+
+const leanCutWorkouts = {
+  cutA: leanCutStrengthDay("全身 A · 俯卧撑", [
+    leanCutPushUp(),
+    leanCutStrength("哑铃杯式深蹲", "3组 × 8-12次", "选择能稳定完成的重量，组间约休息 2 分钟；保留余力，不追求每组极限。"),
+    leanCutStrength("单臂哑铃划船", "3组 × 每侧10-12次", "左右都完成才算一组；背部保持稳定，组间约休息 2 分钟。"),
+    { name: "平板支撑", sets: "2组 × 30-45秒", note: "保持正常呼吸；开始塌腰就结束这一组，不必每次撑到两分钟。组间休息 60-90 秒。" },
+  ], "bike"),
+  cutB: leanCutStrengthDay("全身 B · 保留力量", [
+    leanCutStrength("罗马尼亚硬拉", "3组 × 8-10次", "用熟悉、能控制的重量，哑铃贴近腿部；组间约休息 2 分钟。"),
+    leanCutStrength("哑铃卧推", "3组 × 8-12次", "本次只保留一种卧推，不再叠加飞鸟；组间约休息 2 分钟。"),
+    leanCutStrength("高位下拉", "3组 × 10-12次", "面向器材坐稳，只拉到胸前，不甩动身体；组间约休息 2 分钟。"),
+    leanCutStrength("侧平举", "2组 × 12-15次", "轻重量、慢速完成，不耸肩；组间休息 60-90 秒。"),
+  ], "treadmill"),
+  cutC: leanCutStrengthDay("全身 C · 俯卧撑", [
+    leanCutPushUp(),
+    leanCutStrength("哑铃杯式深蹲", "2组 × 10-12次", "以动作稳定为准，组间约休息 2 分钟；腿部疲劳时减轻重量。"),
+    leanCutStrength("单臂哑铃划船", "3组 × 每侧10-12次", "左右都完成才算一组；组间约休息 2 分钟。"),
+    { name: "死虫", sets: "2组 × 每侧8次", note: "下背贴垫，对侧手脚慢慢伸远；组间休息 60-90 秒。" },
+  ], "bike"),
+  cutWalk: {
+    title: "快走有氧", focus: "心肺、日常活动", duration: "约 30 分钟",
+    warmupTitle: "慢走 5 分钟 → 快走 20 分钟 → 放松 5 分钟",
+    warmupText: "这一天不加胸部或腿部力量训练。能说完整句子即可，疲劳时缩短时间。",
+    tags: ["有氧日", "跑步机"], exercises: [leanCutCardio("treadmill", 20)],
+  },
+  cutRide: {
+    title: "匀速骑车", focus: "心肺、日常活动", duration: "约 30 分钟",
+    warmupTitle: "轻踩 5 分钟 → 匀速骑 20 分钟 → 放松 5 分钟",
+    warmupText: "坐姿匀速骑行，不站起来冲刺；保持能说完整句子的强度，疲劳时缩短时间。",
+    tags: ["有氧日", "动感单车"], exercises: [leanCutCardio("bike", 20)],
+  },
+  cutRecovery: {
+    title: "恢复日 · 可休息", focus: "轻活动、恢复", duration: "约 20 分钟 · 可休息",
+    warmupTitle: "轻松走路，或直接休息", warmupText: "今天不补做力量训练，不用追赶漏掉的次数。",
+    tags: ["恢复日"], exercises: [leanCutCardio("treadmill", 10, true)],
+  },
+};
+
 let state = { ...defaultState };
 let progressStore = loadProgressStore();
 let trainingNotes = loadTrainingNotes();
@@ -568,6 +674,7 @@ const elements = {
   heroDuration: document.querySelector("#heroDuration"),
   heroWorkoutTitle: document.querySelector("#heroWorkoutTitle"),
   heroWorkoutDuration: document.querySelector("#heroWorkoutDuration"),
+  heroGoalLabel: document.querySelector("#heroGoalLabel"),
   bmiValue: document.querySelector("#bmiValue"),
   bmiLabel: document.querySelector("#bmiLabel"),
   recommendedStart: document.querySelector("#recommendedStart"),
@@ -581,6 +688,9 @@ const elements = {
   calendarStartWindow: document.querySelector("#calendarStartWindow"),
   tonightTitle: document.querySelector("#tonightTitle"),
   tonightMeta: document.querySelector("#tonightMeta"),
+  workoutGuidance: document.querySelector("#workoutGuidance"),
+  workoutWarmupTitle: document.querySelector("#workoutWarmupTitle"),
+  workoutWarmupText: document.querySelector("#workoutWarmupText"),
   exerciseList: document.querySelector("#exerciseList"),
   checkinButton: document.querySelector("#checkinButton"),
   todayProgress: document.querySelector("#todayProgress"),
@@ -693,7 +803,7 @@ function getBmiInfo(heightCm, weightKg) {
 }
 
 function getRecommendedFrequency(goal) {
-  return goal === "fatLoss" ? 4 : 4;
+  return goal === "leanCut" ? 3 : 4;
 }
 
 function escapeHtml(value) {
@@ -706,6 +816,7 @@ function escapeHtml(value) {
 }
 
 function getGoalSummary(goal) {
+  if (goal === "leanCut") return "每周 3 次全身力量，配合适量有氧，逐步减脂";
   if (goal === "muscleGain") {
     return "先稳住频率，再逐步加重量";
   }
@@ -713,6 +824,7 @@ function getGoalSummary(goal) {
 }
 
 function getOverviewHint(goal, bmiInfo) {
+  if (goal === "leanCut") return "保留背、腿和推的训练，俯卧撑每周两次。先稳定完成组次，再根据腰围、体重周平均和恢复情况调整饮食与有氧。";
   if (bmiInfo.label === "偏轻" && goal === "muscleGain") {
     return "你现在更适合走稳一点的增肌路线：先把一周节奏固定，再把吃饭和睡眠跟上。";
   }
@@ -734,6 +846,7 @@ function getStartWindow(workEndTime) {
 }
 
 function cloneWorkout(key, goal) {
+  if (goal === "leanCut") return { ...JSON.parse(JSON.stringify(leanCutWorkouts[key])), goal };
   if (goal === "fatLoss") {
     const workout = JSON.parse(JSON.stringify(fatLossWorkouts[key]));
     workout.goal = goal;
@@ -744,7 +857,7 @@ function cloneWorkout(key, goal) {
 }
 
 function getPlanByFrequency(frequency, goal) {
-  const sourceTemplates = goal === "fatLoss" ? fatLossPlanTemplates : planTemplates;
+  const sourceTemplates = goal === "leanCut" ? leanCutPlanTemplates : goal === "fatLoss" ? fatLossPlanTemplates : planTemplates;
   return sourceTemplates[frequency].map((item, index) => {
     const workout = cloneWorkout(item.key, goal);
     return {
@@ -1016,7 +1129,7 @@ function updateRestTimerDisplay() {
 
 function startRestTimer(nextIndex) {
   cancelRestTimer();
-  const duration = 60;
+  const duration = state.goal === "leanCut" ? 120 : 60;
   restState = { duration, remaining: duration, endAt: Date.now() + duration * 1000, nextIndex };
   renderWorkout();
   restTimerId = window.setInterval(updateRestTimerDisplay, 250);
@@ -1544,6 +1657,7 @@ function bindTutorialSheetDrag() {
 
 function renderOverview() {
   const goalInfo = goalConfig[state.goal];
+  if (elements.heroGoalLabel) elements.heroGoalLabel.textContent = `晚间训练 · ${goalInfo.label}`;
   const bmiInfo = getBmiInfo(Number(state.heightCm), Number(state.weightKg));
   const recommendedFrequency = getRecommendedFrequency(state.goal);
 
@@ -1848,6 +1962,11 @@ function renderWorkout() {
 
   const goalInfo = goalConfig[state.goal];
   const progress = countCompletedExercises(workout);
+  if (elements.workoutGuidance) {
+    elements.workoutGuidance.hidden = state.goal !== "leanCut";
+    elements.workoutWarmupTitle.textContent = workout.warmupTitle;
+    elements.workoutWarmupText.textContent = workout.warmupText;
+  }
 
   elements.tonightTitle.textContent = `${workout.day} · ${workout.title}`;
   if (elements.heroWorkoutTitle) elements.heroWorkoutTitle.textContent = `${workout.day} · ${workout.title}`;
@@ -1981,7 +2100,7 @@ function renderWorkout() {
               <div><span>主要练这里</span><strong>${guide.target}</strong></div>
               <div><span>顺便练到</span><strong>${guide.secondary.map((muscle) => `<span class="muscle-term">${muscle}</span>`).join(" · ")}</strong></div>
             </div>
-            <div class="exercise-memory-cue"><span>看图记</span><strong>${guide.memoryCue}</strong></div>
+            <div class="exercise-memory-cue"><span>${guide.media ? "看图记" : "动作要点"}</span><strong>${guide.memoryCue}</strong></div>
             <div class="guide-tabs" role="tablist" aria-label="动作指导分类">
               ${[
                 ["steps", "怎么做"],
@@ -2571,8 +2690,8 @@ function initHeroMascot() {
 }
 
 function init() {
-  if (!["muscleGain", "fatLoss"].includes(state.goal)) {
-    state.goal = "muscleGain";
+  if (!Object.hasOwn(goalConfig, state.goal)) {
+    state.goal = defaultState.goal;
   }
   populateInputs();
   syncStateFromInputs();
