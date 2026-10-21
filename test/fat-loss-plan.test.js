@@ -129,7 +129,7 @@ test("warmup and post-workout blocks show together and both follow the selected 
     ["周四-legs-2", ["徒手小幅蹲起", "站姿提踵", "扶稳踝绕环"]],
   ]) {
     run(`activeDayId = "${id}"; renderStretchPage()`);
-    const titles = JSON.parse(run('JSON.stringify([...elements.warmupList.innerHTML.matchAll(/<strong>([^<]+)/g)].map(match => match[1]))'));
+    const titles = JSON.parse(run('JSON.stringify([...elements.warmupList.innerHTML.matchAll(/<h3>([^<]+)/g)].map(match => match[1]))'));
     assert.deepEqual(titles, expected);
     assert.equal(run("elements.warmupSection.hidden"), false);
     assert.equal(run("elements.postWorkoutStretchHead.hidden"), false);
@@ -137,7 +137,8 @@ test("warmup and post-workout blocks show together and both follow the selected 
     assert.match(run("elements.warmupSummary.textContent"), /^[23] 项/);
     const html = run("elements.warmupList.innerHTML");
     assert.doesNotMatch(html, /保持约|<video[^>]*\ssrc=/);
-    assert.equal((html.match(/<details[^>]*\sopen/g) || []).length, 1);
+    assert.equal((html.match(/<details[^>]*\sopen/g) || []).length, 0);
+    assert.equal((html.match(/data-carousel-slide/g) || []).length, expected.length);
     assert.doesNotMatch(run("elements.stretchPageList.innerHTML"), /动态扩胸|招财猫|徒手小幅蹲起|站姿提踵|扶稳踝绕环|屈臂肩部绕环/);
   }
   assert.match(run("elements.warmupList.innerHTML"), /每侧顺逆各 5 圈/);
@@ -149,7 +150,7 @@ test("warmup video waits for an open card and pauses on reduced motion, hidden p
   run(`let warmupCardOpen = false; let warmupReduceMotion = false;
     window.matchMedia = () => ({ matches: warmupReduceMotion }); updateBackToTopButton = () => {};
     const warmupVideo = { src: "", paused: true, dataset: { src: "https://example.invalid/demo.mp4" },
-      closest: () => ({ open: warmupCardOpen }), getAttribute: () => warmupVideo.src || null,
+      closest: selector => selector === "details" ? { open: warmupCardOpen } : null, getAttribute: () => warmupVideo.src || null,
       play() { this.paused = false; return Promise.resolve(); }, pause() { this.paused = true; } };
     elements.warmupList = { querySelectorAll: () => [warmupVideo] };
     setActiveModule("stretch", { scrollToTop: false });`);
@@ -171,7 +172,7 @@ test("post-stretch video plays only in the visible open page or popup and preser
     window.matchMedia = () => ({ matches: stretchReduceMotion });
     function makeStretchVideo() {
       return { src: "", poster: "", paused: true, dataset: { src: "https://example.invalid/demo.mp4", poster: "https://example.invalid/poster.jpg" },
-        closest: () => ({ open: stretchCardOpen }), getAttribute(key) { return this[key] || null; },
+        closest: selector => selector === "details" ? { open: stretchCardOpen } : null, getAttribute(key) { return this[key] || null; },
         play() { this.paused = false; return Promise.resolve(); }, pause() { this.paused = true; } };
     }
     const pageStretchVideo = makeStretchVideo(); const popupStretchVideo = makeStretchVideo();
@@ -231,7 +232,7 @@ test("recovery days show only the rest message and training days restore guides 
       assert.equal(run("elements.warmupSection.hidden"), false);
       assert.equal(run("elements.stretchDayDivider.hidden"), false);
       assert.equal(run("elements.postWorkoutStretchHead.hidden"), false);
-      assert.match(run("elements.warmupList.innerHTML"), /stretch-item/);
+      assert.match(run("elements.warmupList.innerHTML"), /stretch-slide/);
       for (const prefix of ["stretchPage", "stretch"]) {
         assert.match(run(`elements.${prefix}List.innerHTML`), /data-stretch-media/);
         assert.doesNotMatch(run(`elements.${prefix}List.innerHTML`), /stretch-rest-message/);
@@ -254,10 +255,172 @@ test("page and popup show the same two or three stretches for the selected train
     ["周六-shoulder-3", ["横抱臂拉伸", "头顶屈肘拉伸"]],
   ]) {
     run(`activeDayId = "${dayId}"; renderStretchPage(); stretchWorkout = getActiveWorkout(); renderStretchList();`);
-    const titles = JSON.parse(run('JSON.stringify([...elements.stretchList.innerHTML.matchAll(/<strong>([^<]+)/g)].map(match => match[1]))'));
+    const titles = JSON.parse(run('JSON.stringify([...elements.stretchList.innerHTML.matchAll(/<h3>([^<]+)/g)].map(match => match[1]))'));
     assert.deepEqual(titles, expected, dayId);
-    assert.equal(run("elements.stretchList.innerHTML"), run("elements.stretchPageList.innerHTML"), dayId);
+    const pageTitles = JSON.parse(run('JSON.stringify([...elements.stretchPageList.innerHTML.matchAll(/<h3>([^<]+)/g)].map(match => match[1]))'));
+    assert.deepEqual(titles, pageTitles, dayId);
+    const popupMedia = JSON.parse(run('JSON.stringify([...elements.stretchList.innerHTML.matchAll(/(?:data-src|src)="([^"]+)"/g)].map(match => match[1]))'));
+    const pageMedia = JSON.parse(run('JSON.stringify([...elements.stretchPageList.innerHTML.matchAll(/(?:data-src|src)="([^"]+)"/g)].map(match => match[1]))'));
+    assert.deepEqual(popupMedia, pageMedia, dayId);
   }
+});
+
+test("stretch carousel follows native scrolling, bounds navigation and moves focus off hidden content", () => {
+  const { run } = loadPageLogic();
+  run(`const carouselFocus = {};
+    const slideDetails = [{ open: true }, { open: true }, { open: false }];
+    const carouselSlides = slideDetails.map((details, index) => ({
+      offsetLeft: index * 416, attributes: {}, inert: index > 0,
+      setAttribute(key, value) { this.attributes[key] = value; },
+      querySelectorAll: () => [details], contains: node => index === 0 && node === carouselFocus,
+    }));
+    function carouselControl() { return { focus() { document.activeElement = this; } }; }
+    elements.stretchPrevious = carouselControl(); elements.stretchNext = carouselControl();
+    elements.stretchModalDone = carouselControl(); elements.stretchNavigation = {}; elements.stretchPosition = {};
+    elements.stretchDots = { querySelectorAll: () => [] };
+    elements.warmupList = elements.stretchPageList = { querySelectorAll: () => [] };
+    elements.stretchList = { scrollLeft: 0, querySelectorAll: selector => selector === "[data-stretch-slide]" ? carouselSlides : [],
+      scrollTo(options) { this.scrollOptions = options; this.scrollLeft = options.left; },
+      focus() { document.activeElement = this; } };
+    const modalScroll = { scrollTop: 200 };
+    elements.stretchModal = { hidden: false, classList: { contains: () => false }, querySelector: () => modalScroll };
+    stretchSlideCount = 3; updateStretchNavigation();`);
+  assert.equal(run("elements.stretchPrevious.disabled"), true);
+  assert.equal(run("elements.stretchModalDone.hidden"), true);
+  run("document.activeElement = carouselFocus; goToStretchSlide(1); syncStretchSlideFromScroll()");
+  assert.equal(run("stretchSlideIndex"), 1);
+  assert.equal(run("elements.stretchList.scrollOptions.left"), 416);
+  assert.equal(run("elements.stretchList.scrollOptions.behavior"), "smooth");
+  assert.equal(run("document.activeElement === elements.stretchList"), true);
+  assert.equal(run("carouselSlides[0].inert"), true);
+  assert.equal(run("carouselSlides[1].inert"), false);
+  assert.equal(run("slideDetails[0].open"), false);
+  assert.equal(run("modalScroll.scrollTop"), 0);
+  run("document.activeElement = elements.stretchNext; goToStretchSlide(99); syncStretchSlideFromScroll()");
+  assert.equal(run("stretchSlideIndex"), 2);
+  assert.equal(run("elements.stretchPosition.textContent"), "3 / 3");
+  assert.equal(run("elements.stretchNext.hidden"), true);
+  assert.equal(run("elements.stretchModalDone.hidden"), false);
+  assert.equal(run("document.activeElement === elements.stretchModalDone"), true);
+  run("window.matchMedia = () => ({ matches: true }); goToStretchSlide(-99); syncStretchSlideFromScroll()");
+  assert.equal(run("stretchSlideIndex"), 0);
+  assert.equal(run("elements.stretchList.scrollOptions.behavior"), "instant");
+  run("elements.stretchList.scrollLeft = 620; syncStretchSlideFromScroll()");
+  assert.equal(run("stretchSlideIndex"), 1, "a gesture updates the index at the nearest card");
+});
+
+test("stretch carousel pauses inactive videos and only loads the selected visible slide", () => {
+  const { run } = loadPageLogic();
+  run(`let reduceCarouselMotion = false;
+    window.matchMedia = () => ({ matches: reduceCarouselMotion });
+    function carouselVideo(index) {
+      return { hidden: false, paused: true, dataset: { src: "demo.mp4", poster: "poster.jpg" },
+        closest: selector => selector === "[data-stretch-slide]" ? { dataset: { stretchSlide: String(index) } } : null,
+        getAttribute(key) { return this[key] || null; },
+        play() { this.paused = false; return Promise.resolve(); }, pause() { this.paused = true; } };
+    }
+    const firstCarouselVideo = carouselVideo(0); const lastCarouselVideo = carouselVideo(2);
+    elements.warmupList = elements.stretchPageList = { querySelectorAll: () => [] };
+    elements.stretchList = { querySelectorAll: () => [firstCarouselVideo, lastCarouselVideo] };
+    elements.stretchModal = { hidden: true, classList: { contains: () => false } };
+    syncStretchVideoPlayback();`);
+  assert.equal(run("firstCarouselVideo.src"), undefined);
+  run("elements.stretchModal.hidden = false; syncStretchVideoPlayback()");
+  assert.equal(run("firstCarouselVideo.paused"), false);
+  assert.equal(run("lastCarouselVideo.src"), undefined);
+  run("stretchSlideIndex = 2; syncStretchVideoPlayback()");
+  assert.equal(run("firstCarouselVideo.paused"), true);
+  assert.equal(run("lastCarouselVideo.paused"), false);
+  run("reduceCarouselMotion = true; syncStretchVideoPlayback()");
+  assert.equal(run("lastCarouselVideo.paused"), true);
+  assert.equal(run("lastCarouselVideo.poster"), "poster.jpg");
+  run("reduceCarouselMotion = false; document.hidden = true; syncStretchVideoPlayback()");
+  assert.equal(run("lastCarouselVideo.paused"), true);
+});
+
+test("stretch carousel keeps text and mnemonics with media disabled and details initially collapsed", () => {
+  const { run } = loadPageLogic({ StretchGuide });
+  const html = run('renderStretchCards(window.StretchGuide.getWorkoutStretches({ key: "legs" }), { carousel: true })');
+  assert.match(html, /扶椅握踝，膝朝下，腰不顶/);
+  assert.match(html, /髋关节置换术后不做/);
+  assert.equal((html.match(/class="stretch-slide"/g) || []).length, 3);
+  assert.equal((html.match(/每侧 30 秒/g) || []).length, 3);
+  assert.doesNotMatch(html, /<video|<img|<details[^>]*\sopen/);
+  assert.match(html, /inert aria-hidden="true"/);
+});
+
+test("page carousels keep independent positions, keyboard bounds, focus and expanded heights", () => {
+  const { run } = loadPageLogic();
+  run(`function makePageCarousel(count) {
+      const details = Array.from({ length: count }, () => ({ open: false }));
+      const slides = details.map((detail, index) => ({ offsetLeft: index * 416, offsetHeight: 300 + index * 20,
+        attributes: {}, setAttribute(key, value) { this.attributes[key] = value; },
+        contains: node => node === detail, querySelectorAll: () => [detail] }));
+      const previous = {}; const next = {}; const position = {};
+      const navigation = { querySelector: selector => selector === "[data-carousel-previous]" ? previous : selector === "[data-carousel-next]" ? next : position };
+      const list = { scrollLeft: 0, clientWidth: 400, style: {},
+        querySelectorAll: selector => selector === "[data-carousel-slide]" ? slides : [],
+        focus() { document.activeElement = this; },
+        scrollTo(options) { this.scrollOptions = options; this.scrollLeft = options.left; this.onscroll?.(); } };
+      setupGuideCarousel(list, navigation);
+      return { list, slides, details, navigation, previous, next, position };
+    }
+    const warmupCarousel = makePageCarousel(2); const postCarousel = makePageCarousel(3);`);
+  assert.equal(run("warmupCarousel.previous.disabled"), true);
+  assert.equal(run("warmupCarousel.list.style.height"), "300px");
+  run("document.activeElement = warmupCarousel.details[0]; warmupCarousel.details[0].open = true; warmupCarousel.next.onclick()");
+  assert.equal(run("warmupCarousel.position.textContent"), "2 / 2");
+  assert.equal(run("warmupCarousel.next.disabled"), true);
+  assert.equal(run("warmupCarousel.details[0].open"), false);
+  assert.equal(run("warmupCarousel.slides[0].inert"), true);
+  assert.equal(run("document.activeElement === warmupCarousel.list"), true);
+  assert.equal(run("postCarousel.position.textContent"), "1 / 3");
+  assert.equal(run("warmupCarousel.list.style.height"), "320px");
+  run('postCarousel.list.onkeydown({ key: "End", preventDefault() {} })');
+  assert.equal(run("postCarousel.position.textContent"), "3 / 3");
+  run('postCarousel.list.onkeydown({ key: "ArrowRight", preventDefault() {} })');
+  assert.equal(run("postCarousel.position.textContent"), "3 / 3");
+  run('postCarousel.list.onkeydown({ key: "Home", preventDefault() {} })');
+  assert.equal(run("postCarousel.position.textContent"), "1 / 3");
+  run("window.matchMedia = () => ({ matches: true }); goToGuideSlide(postCarousel.list, 1)");
+  assert.equal(run("postCarousel.list.scrollOptions.behavior"), "instant");
+  run("postCarousel.slides[1].offsetHeight = 600; syncGuideCarouselHeight(guideCarousels.get(postCarousel.list))");
+  assert.equal(run("postCarousel.list.style.height"), "600px");
+  run("syncGuideCarouselLayouts()");
+  assert.equal(run("warmupCarousel.position.textContent"), "2 / 2");
+  assert.equal(run("postCarousel.position.textContent"), "2 / 3");
+  run("postCarousel.list.querySelectorAll = () => []; setupGuideCarousel(postCarousel.list, postCarousel.navigation)");
+  assert.equal(run("postCarousel.navigation.hidden"), true);
+  assert.equal(run("postCarousel.list.onkeydown"), null);
+  assert.equal(run("postCarousel.list.onscroll"), null);
+});
+
+test("warmup and post-workout page videos use their own carousel position and pause under the popup", () => {
+  const { run } = loadPageLogic();
+  run(`function pageVideo(index) {
+      return { dataset: { src: "demo.mp4" }, paused: true,
+        closest: selector => selector === "[data-stretch-slide]" ? { dataset: { stretchSlide: String(index) } } : null,
+        getAttribute(key) { return this[key] || null; },
+        play() { this.paused = false; return Promise.resolve(); }, pause() { this.paused = true; } };
+    }
+    const warmupFirstVideo = pageVideo(0); const warmupSecondVideo = pageVideo(1);
+    const postFirstVideo = pageVideo(0); const postSecondVideo = pageVideo(1);
+    elements.warmupList = { querySelectorAll: () => [warmupFirstVideo, warmupSecondVideo] };
+    elements.stretchPageList = { querySelectorAll: () => [postFirstVideo, postSecondVideo] };
+    elements.stretchList = { querySelectorAll: () => [] };
+    elements.stretchModal = { hidden: true, classList: { contains: () => false } };
+    guideCarousels.set(elements.warmupList, { index: 1 }); guideCarousels.set(elements.stretchPageList, { index: 0 });
+    activeModule = "stretch"; syncStretchVideoPlayback();`);
+  assert.equal(run("warmupFirstVideo.src"), undefined);
+  assert.equal(run("warmupSecondVideo.paused"), false);
+  assert.equal(run("postFirstVideo.paused"), false);
+  assert.equal(run("postSecondVideo.src"), undefined);
+  run("elements.stretchModal.hidden = false; syncStretchVideoPlayback()");
+  assert.equal(run("warmupSecondVideo.paused"), true);
+  assert.equal(run("postFirstVideo.paused"), true);
+  run('elements.stretchModal.hidden = true; activeModule = "equipment"; syncStretchVideoPlayback()');
+  assert.equal(run("warmupSecondVideo.paused"), true);
+  assert.equal(run("postFirstVideo.paused"), true);
 });
 
 test("failed stretch GIF hides only the picture and retains text instruction fallback", () => {
@@ -277,7 +440,7 @@ test("failed stretch video retains text fallback and cannot resume after later p
   run(`let onStretchVideoError; const videoFallback = { hidden: true };
     const failedVideo = { hidden: false, pause() {}, play() { throw new Error("failed video resumed"); },
       addEventListener: (event, callback) => { onStretchVideoError = callback; },
-      closest: () => ({ querySelector: () => videoFallback, open: true }) };
+      closest: selector => selector === "[data-stretch-slide]" ? null : { querySelector: () => videoFallback, open: true } };
     const failedVideoScope = { querySelectorAll: selector => selector === "[data-stretch-video]" ? [failedVideo] : [] };
     bindStretchMedia(failedVideoScope); onStretchVideoError();
     elements.stretchPageList = failedVideoScope; activeModule = "stretch"; syncStretchVideoPlayback();`);

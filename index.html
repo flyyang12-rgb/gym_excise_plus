@@ -7,13 +7,13 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>健身小助手</title>
   <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
-  <link rel="stylesheet" href="style.css?v=20261018-warmup-v3">
+  <link rel="stylesheet" href="style.css?v=20261021-guide-slides-v2">
 </head>
 <body>
   <div class="app-shell">
     <section class="app-module app-module-training is-active" data-module="training" aria-label="训练模块">
       <header class="hero">
-        <span id="versionBadge" class="version-badge" title="当前版本">v2026.10.18.13</span>
+        <span id="versionBadge" class="version-badge" title="当前版本">v2026.10.21.2</span>
         <div class="hero-main">
           <div class="hero-copy">
             <p class="eyebrow" id="heroGoalLabel">晚间训练 · 增肌</p>
@@ -157,13 +157,16 @@
       <section class="equipment-panel secondary-section">
         <div class="section-head module-page-head">
           <div>
-            <p class="panel-tag">器械说明</p>
-            <h2>认识训练器械</h2>
-            <p class="section-description">查看用途和操作要点，也可从动作卡直接跳转</p>
+            <h2>训练器械</h2>
           </div>
           <button id="aiObserveButton" class="module-action-button" type="button"><span>AI</span>AI 问答</button>
         </div>
-        <div id="equipmentGrid" class="equipment-grid"></div>
+        <div id="equipmentGrid" class="equipment-grid guide-carousel" role="region" aria-roledescription="轮播" aria-label="器械卡片，可左右切换" tabindex="0"></div>
+        <div id="equipmentNavigation" class="guide-carousel-controls" hidden>
+          <span data-carousel-position role="status" aria-live="polite" aria-atomic="true"></span>
+          <button type="button" data-carousel-previous aria-label="上一器械" aria-controls="equipmentGrid">←</button>
+          <button type="button" data-carousel-next aria-label="下一器械" aria-controls="equipmentGrid">→</button>
+        </div>
       </section>
     </section>
 
@@ -171,7 +174,6 @@
       <section class="stretch-page secondary-section" aria-labelledby="stretchPageTitle">
         <header class="section-head module-page-head stretch-page-head">
           <div>
-            <p class="panel-tag">训练前后</p>
             <h2 id="stretchPageTitle">热身与拉伸</h2>
           </div>
           <button id="stretchChangeDay" class="soft-button" type="button">换训练日</button>
@@ -184,8 +186,13 @@
             <h3 id="warmupTitle">练前热身</h3>
             <span id="warmupSummary" class="stretch-summary"></span>
           </div>
-          <p class="stretch-safety">先快走或轻松踏步约 6 分钟，再做下面的动态活动，不练到累。</p>
-          <div id="warmupList" class="stretch-list"></div>
+          <p class="stretch-safety">先快走或踏步约 6 分钟，再做动态活动，不练到累。</p>
+          <div id="warmupList" class="stretch-list guide-carousel" role="region" aria-roledescription="轮播" aria-label="练前热身，可左右切换" tabindex="0"></div>
+          <div id="warmupNavigation" class="guide-carousel-controls" hidden>
+            <span data-carousel-position role="status" aria-live="polite" aria-atomic="true"></span>
+            <button type="button" data-carousel-previous aria-label="上一热身动作" aria-controls="warmupList">←</button>
+            <button type="button" data-carousel-next aria-label="下一热身动作" aria-controls="warmupList">→</button>
+          </div>
         </section>
         <hr id="stretchDayDivider" class="stretch-day-divider">
         <section class="post-workout-stretch" aria-labelledby="postWorkoutStretchTitle">
@@ -193,8 +200,13 @@
             <h3 id="postWorkoutStretchTitle">练后拉伸</h3>
             <span id="stretchPageSummary" class="stretch-summary" role="status"></span>
           </div>
-          <p id="stretchPageSafety" class="stretch-safety">练完再拉伸，先做 1 轮。正常呼吸，不弹震；只到轻微牵拉感，疼痛或麻木就停止。</p>
-          <div id="stretchPageList" class="stretch-list"></div>
+          <p id="stretchPageSafety" class="stretch-safety">自然呼吸，保持不弹震；疼痛或麻木就停。</p>
+          <div id="stretchPageList" class="stretch-list guide-carousel" role="region" aria-roledescription="轮播" aria-label="练后拉伸，可左右切换" tabindex="0"></div>
+          <div id="stretchPageNavigation" class="guide-carousel-controls" hidden>
+            <span data-carousel-position role="status" aria-live="polite" aria-atomic="true"></span>
+            <button type="button" data-carousel-previous aria-label="上一拉伸动作" aria-controls="stretchPageList">←</button>
+            <button type="button" data-carousel-next aria-label="下一拉伸动作" aria-controls="stretchPageList">→</button>
+          </div>
         </section>
       </section>
     </section>
@@ -279,18 +291,26 @@
     <div id="stretchModalBackdrop" class="bmi-modal-backdrop"></div>
     <section class="bmi-modal-panel stretch-modal-panel" role="dialog" aria-modal="true" aria-labelledby="stretchTitle" aria-describedby="stretchSafety">
       <header class="bmi-modal-head stretch-modal-head">
-        <div>
-          <p class="panel-tag" id="stretchContext">练后放松</p>
+        <div class="stretch-heading">
+          <div class="stretch-heading-meta">
+            <p class="panel-tag" id="stretchContext">练后放松</p>
+            <p id="stretchSummary" class="stretch-summary"></p>
+          </div>
           <h2 id="stretchTitle">练后拉伸</h2>
-          <p id="stretchSummary" class="stretch-summary"></p>
         </div>
         <button id="stretchModalClose" class="bmi-modal-close" type="button" aria-label="关闭拉伸安排">关闭</button>
       </header>
       <div class="stretch-modal-scroll">
-        <p id="stretchSafety" class="stretch-safety">先做 1 轮，正常呼吸、不弹震；轻微牵拉即可，疼痛或麻木就停止。</p>
-        <div id="stretchList" class="stretch-list"></div>
+        <p id="stretchSafety" class="stretch-safety">自然呼吸，保持不弹震；疼痛或麻木就停。</p>
+        <div id="stretchList" class="stretch-list stretch-carousel" role="region" aria-label="拉伸动作，可左右切换" aria-roledescription="轮播" tabindex="0"></div>
       </div>
       <footer class="stretch-modal-footer">
+        <div id="stretchNavigation" class="stretch-navigation">
+          <div id="stretchDots" class="stretch-dots" aria-label="选择拉伸动作"></div>
+          <span id="stretchPosition" class="stretch-position" role="status" aria-live="polite" aria-atomic="true"></span>
+        </div>
+        <button id="stretchPrevious" class="soft-button" type="button" aria-controls="stretchList">上一项</button>
+        <button id="stretchNext" class="primary-button" type="button" aria-controls="stretchList">下一项</button>
         <button id="stretchModalDone" class="primary-button" type="button">知道了</button>
       </footer>
     </section>
@@ -364,7 +384,7 @@
   </div>
 
   <script src="exercise-guides.js?v=20261018-stretch-v1"></script>
-  <script src="stretch-guide.js?v=20261018-no-mat-v1"></script>
-  <script src="script.js?v=20261018-no-mat-v1"></script>
+  <script src="stretch-guide.js?v=20261021-warmup-cues-v2"></script>
+  <script src="script.js?v=20261021-guide-slides-v2"></script>
 </body>
 </html>

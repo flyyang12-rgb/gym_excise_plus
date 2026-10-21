@@ -1,7 +1,7 @@
 const STORAGE_KEY = "fitness_helper_progress_v2";
 const TRAINING_NOTES_KEY = "fitness_helper_training_notes_v1";
 const AI_REQUEST_TIMEOUT_MS = 10000;
-const APP_VERSION = "2026.10.18.13";
+const APP_VERSION = "2026.10.21.2";
 const MODAL_EXIT_DURATION_MS = 180;
 const modalCloseTimers = new WeakMap();
 const modalPreviousFocus = new WeakMap();
@@ -548,6 +548,9 @@ const EXERCISE_MEDIA_ENABLED = [
 let activeModule = "training";
 let returnScrollY = null;
 let stretchWorkout = null;
+let stretchSlideIndex = 0;
+let stretchSlideCount = 0;
+const guideCarousels = new Map();
 const stretchPromptedWorkouts = new Set();
 
 const elements = {
@@ -582,12 +585,18 @@ const elements = {
   checkinButton: document.querySelector("#checkinButton"),
   todayProgress: document.querySelector("#todayProgress"),
   equipmentGrid: document.querySelector("#equipmentGrid"),
+  equipmentNavigation: document.querySelector("#equipmentNavigation"),
   versionBadge: document.querySelector("#versionBadge"),
   stretchOpenButton: document.querySelector("#stretchOpenButton"),
   stretchModal: document.querySelector("#stretchModal"),
   stretchModalBackdrop: document.querySelector("#stretchModalBackdrop"),
   stretchModalClose: document.querySelector("#stretchModalClose"),
   stretchModalDone: document.querySelector("#stretchModalDone"),
+  stretchPrevious: document.querySelector("#stretchPrevious"),
+  stretchNext: document.querySelector("#stretchNext"),
+  stretchNavigation: document.querySelector("#stretchNavigation"),
+  stretchDots: document.querySelector("#stretchDots"),
+  stretchPosition: document.querySelector("#stretchPosition"),
   stretchContext: document.querySelector("#stretchContext"),
   stretchTitle: document.querySelector("#stretchTitle"),
   stretchSummary: document.querySelector("#stretchSummary"),
@@ -600,6 +609,8 @@ const elements = {
   warmupList: document.querySelector("#warmupList"),
   warmupSection: document.querySelector("#warmupSection"),
   warmupSummary: document.querySelector("#warmupSummary"),
+  warmupNavigation: document.querySelector("#warmupNavigation"),
+  stretchPageNavigation: document.querySelector("#stretchPageNavigation"),
   stretchDayDivider: document.querySelector("#stretchDayDivider"),
   postWorkoutStretchHead: document.querySelector("#postWorkoutStretchHead"),
   stretchChangeDay: document.querySelector("#stretchChangeDay"),
@@ -1463,7 +1474,44 @@ function getStretchSummary(items) {
     : "暂未匹配到拉伸，请按今天练到的部位选择。";
 }
 
-function renderStretchCards(items, { warmup = false } = {}) {
+function renderStretchMedia(item, { warmup = false, compact = false } = {}) {
+  if (!item.media) return "";
+  return `
+    <figure class="stretch-media" data-stretch-figure>
+      ${item.media.type === "video" ? `
+        <video data-stretch-video data-src="${escapeHtml(item.media.src)}" data-poster="${escapeHtml(item.media.poster)}" aria-label="${escapeHtml(item.media.alt)}" muted loop playsinline preload="none"></video>
+      ` : `<picture>
+        <source media="(prefers-reduced-motion: reduce)" srcset="${escapeHtml(item.media.poster)}">
+        <img src="${escapeHtml(item.media.src)}" alt="${escapeHtml(item.media.alt)}" width="180" height="180" loading="lazy" decoding="async" data-stretch-media>
+      </picture>`}
+      <div class="stretch-media-fallback" hidden>示范暂时无法加载，请按文字步骤做。</div>
+      <figcaption>
+        <a href="${escapeHtml(item.media.attributionUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.media.attribution)}</a>
+        ${item.media.approximate ? `<small>近似示范：${escapeHtml(item.media.note)}</small>` : ""}
+        ${compact ? "" : `<small>${warmup ? "动态热身，慢速重复，不用长时间停住。" : `看清姿势后保持约 ${item.seconds} 秒，不用跟着反复做。`}</small>`}
+      </figcaption>
+    </figure>`;
+}
+
+function renderStretchCards(items, { warmup = false, carousel = false } = {}) {
+  if (carousel) return items.map((item, index) => `
+    <article class="stretch-slide" data-stretch-slide="${index}" data-carousel-slide role="group" aria-roledescription="幻灯片" aria-label="${index + 1} / ${items.length} · ${escapeHtml(item.title)}" ${index ? 'inert aria-hidden="true"' : 'aria-hidden="false"'}>
+      <header class="stretch-slide-head">
+        <span class="stretch-number" aria-hidden="true">${String(index + 1).padStart(2, "0")}</span>
+        <div class="stretch-item-heading"><h3>${escapeHtml(item.title)}</h3><small>${escapeHtml(item.area)}</small></div>
+        <span class="stretch-hold">${warmup ? escapeHtml(item.repetitions) : `${item.sides === 2 ? "每侧 " : ""}${item.seconds} 秒`}</span>
+      </header>
+      ${renderStretchMedia(item, { warmup, compact: true })}
+      <div class="stretch-memory-cue"><span>口诀</span><strong>${escapeHtml(item.memoryCue || item.cue)}</strong></div>
+      <p class="stretch-slide-note">${escapeHtml(item.safetyNote || item.avoid)}</p>
+      <details class="stretch-slide-details">
+        <summary>动作细节</summary>
+        <p class="stretch-cue">${escapeHtml(item.cue)}</p>
+        <ol>${item.steps.map((step) => `<li>${escapeHtml(step)}</li>`).join("")}</ol>
+        <p class="stretch-avoid">${escapeHtml(item.avoid)}</p>
+      </details>
+    </article>
+  `).join("");
   return items.map((item, index) => `
     <details class="stretch-item" ${index === 0 ? "open" : ""}>
       <summary>
@@ -1472,22 +1520,7 @@ function renderStretchCards(items, { warmup = false } = {}) {
         <span class="stretch-time">${warmup ? escapeHtml(item.repetitions) : `${item.sides === 2 ? "每侧 " : ""}${item.seconds} 秒`}</span>
       </summary>
       <div class="stretch-item-content">
-        ${item.media ? `
-          <figure class="stretch-media" data-stretch-figure>
-            ${item.media.type === "video" ? `
-              <video data-stretch-video data-src="${escapeHtml(item.media.src)}" data-poster="${escapeHtml(item.media.poster)}" aria-label="${escapeHtml(item.media.alt)}" muted loop playsinline preload="none"></video>
-            ` : `<picture>
-              <source media="(prefers-reduced-motion: reduce)" srcset="${escapeHtml(item.media.poster)}">
-              <img src="${escapeHtml(item.media.src)}" alt="${escapeHtml(item.media.alt)}" width="180" height="180" loading="lazy" decoding="async" data-stretch-media>
-            </picture>`}
-            <div class="stretch-media-fallback" hidden>示范暂时无法加载，请按文字步骤做。</div>
-            <figcaption>
-              <a href="${escapeHtml(item.media.attributionUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.media.attribution)}</a>
-              ${item.media.approximate ? `<small>近似示范：${escapeHtml(item.media.note)}</small>` : ""}
-              <small>${warmup ? "动态热身，慢速重复，不用长时间停住。" : `看清姿势后保持约 ${item.seconds} 秒，不用跟着反复做。`}</small>
-            </figcaption>
-          </figure>
-        ` : ""}
+        ${renderStretchMedia(item, { warmup })}
         <div class="stretch-instructions">
           <p class="stretch-cue">${escapeHtml(item.cue)}</p>
           <ol>${item.steps.map((step) => `<li>${escapeHtml(step)}</li>`).join("")}</ol>
@@ -1508,7 +1541,10 @@ function syncStretchVideoPlayback() {
   ];
   scopes.forEach(({ list, visible }) => list?.querySelectorAll("[data-stretch-video]").forEach((video) => {
     const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-    const isOpen = visible && !document.hidden && !video.hidden && video.closest("details").open;
+    const slide = video.closest("[data-stretch-slide]");
+    const selectedIndex = list === elements.stretchList ? stretchSlideIndex : (guideCarousels.get(list)?.index || 0);
+    const cardVisible = slide ? Number(slide.dataset.stretchSlide) === selectedIndex : video.closest("details")?.open;
+    const isOpen = visible && !document.hidden && !video.hidden && cardVisible;
     if (isOpen && video.dataset.poster && !video.getAttribute("poster")) video.poster = video.dataset.poster;
     if (isOpen && !reduceMotion) {
       if (!video.getAttribute("src")) video.src = video.dataset.src;
@@ -1521,8 +1557,82 @@ function renderWarmupGuide(workout = getActiveWorkout()) {
   if (!workout || !elements.warmupList || !window.StretchGuide) return;
   const items = window.StretchGuide.getWorkoutWarmups(workout, { mediaEnabled: EXERCISE_MEDIA_ENABLED });
   elements.warmupSummary.textContent = items.length ? `${items.length} 项 · 动态活动` : "";
-  elements.warmupList.innerHTML = renderStretchCards(items, { warmup: true });
+  elements.warmupList.querySelectorAll("[data-stretch-video]").forEach((video) => video.pause());
+  elements.warmupList.innerHTML = renderStretchCards(items, { warmup: true, carousel: true });
   bindStretchMedia(elements.warmupList);
+  setupGuideCarousel(elements.warmupList, elements.warmupNavigation);
+}
+
+// 页面上的器械、热身和拉伸共用同一套滑动与键盘交互，各自维护位置。
+function setupGuideCarousel(list, navigation) {
+  list.onscroll = null;
+  list.onkeydown = null;
+  if (list.style) list.style.height = "";
+  const slides = [...list.querySelectorAll("[data-carousel-slide]")];
+  const carousel = {
+    list, navigation, slides, index: 0,
+    previous: navigation.querySelector("[data-carousel-previous]"),
+    next: navigation.querySelector("[data-carousel-next]"),
+    position: navigation.querySelector("[data-carousel-position]"),
+  };
+  guideCarousels.set(list, carousel);
+  navigation.hidden = !slides.length;
+  list.scrollLeft = 0;
+  if (!slides.length) return;
+  updateGuideCarousel(carousel, 0);
+  list.querySelectorAll("details").forEach((details) => details.addEventListener("toggle", () => syncGuideCarouselHeight(carousel)));
+  carousel.previous.onclick = () => goToGuideSlide(list, carousel.index - 1);
+  carousel.next.onclick = () => goToGuideSlide(list, carousel.index + 1);
+  list.onscroll = () => {
+    const origin = slides[0].offsetLeft;
+    const nearest = slides.reduce((best, slide, index) =>
+      Math.abs(slide.offsetLeft - origin - list.scrollLeft) < Math.abs(slides[best].offsetLeft - origin - list.scrollLeft) ? index : best, 0);
+    if (nearest !== carousel.index) updateGuideCarousel(carousel, nearest);
+  };
+  list.onkeydown = (event) => {
+    if (event.altKey || event.ctrlKey || event.metaKey) return;
+    const index = { ArrowLeft: carousel.index - 1, ArrowRight: carousel.index + 1, Home: 0, End: slides.length - 1 }[event.key];
+    if (index === undefined) return;
+    event.preventDefault();
+    goToGuideSlide(list, index);
+  };
+}
+
+function updateGuideCarousel(carousel, index) {
+  const { list, slides, previous, next, position } = carousel;
+  carousel.index = index;
+  if (slides.some((slide, i) => i !== index && slide.contains(document.activeElement))) list.focus({ preventScroll: true });
+  slides.forEach((slide, i) => {
+    slide.inert = i !== index;
+    slide.setAttribute("aria-hidden", String(i !== index));
+    if (i !== index) slide.querySelectorAll("details").forEach((details) => { details.open = false; });
+  });
+  previous.disabled = index === 0;
+  next.disabled = index === slides.length - 1;
+  position.textContent = `${index + 1} / ${slides.length}`;
+  if ([previous, next].some((control) => control.disabled && control === document.activeElement)) list.focus({ preventScroll: true });
+  syncGuideCarouselHeight(carousel);
+  syncStretchVideoPlayback();
+}
+
+function syncGuideCarouselHeight({ list, slides, index }) {
+  const height = slides[index]?.offsetHeight;
+  if (height && list.style) list.style.height = `${height}px`;
+}
+
+function goToGuideSlide(list, index, { instant = false } = {}) {
+  const carousel = guideCarousels.get(list);
+  if (!carousel?.slides.length) return;
+  const nextIndex = Math.max(0, Math.min(carousel.slides.length - 1, index));
+  const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+  if (instant || reduceMotion) updateGuideCarousel(carousel, nextIndex);
+  list.scrollTo({ left: carousel.slides[nextIndex].offsetLeft - carousel.slides[0].offsetLeft, behavior: instant || reduceMotion ? "instant" : "smooth" });
+}
+
+function syncGuideCarouselLayouts() {
+  guideCarousels.forEach(({ list, index }) => {
+    if (list.clientWidth) goToGuideSlide(list, index, { instant: true });
+  });
 }
 
 function bindStretchMedia(scope) {
@@ -1543,7 +1653,7 @@ function bindStretchMedia(scope) {
   });
 }
 
-function renderStretchContent(workout, { summary, safety, list }) {
+function renderStretchContent(workout, { summary, safety, list, carousel = false }) {
   const isRecovery = workout.type === "recovery";
   const items = window.StretchGuide.getWorkoutStretches(workout, {
     mediaEnabled: EXERCISE_MEDIA_ENABLED,
@@ -1551,16 +1661,98 @@ function renderStretchContent(workout, { summary, safety, list }) {
   summary.hidden = isRecovery;
   safety.hidden = isRecovery;
   summary.textContent = isRecovery ? "" : getStretchSummary(items);
+  list.querySelectorAll("[data-stretch-video]").forEach((video) => video.pause());
   list.innerHTML = isRecovery
     ? '<p class="stretch-rest-message">休息是为了更好的下一次全神贯注</p>'
-    : renderStretchCards(items);
+    : renderStretchCards(items, { carousel });
   bindStretchMedia(list);
+  return items;
 }
 
 function renderStretchList() {
   if (!stretchWorkout || !window.StretchGuide) return;
-  renderStretchContent(stretchWorkout, {
+  const items = renderStretchContent(stretchWorkout, {
     summary: elements.stretchSummary, safety: elements.stretchSafety, list: elements.stretchList,
+    carousel: true,
+  });
+  stretchSlideIndex = 0;
+  stretchSlideCount = items.length;
+  elements.stretchDots.innerHTML = items.map((item, index) => `<button type="button" class="stretch-dot" data-stretch-dot="${index}" aria-label="第 ${index + 1} 项：${escapeHtml(item.title)}" aria-controls="stretchList"></button>`).join("");
+  updateStretchNavigation();
+}
+
+function updateStretchNavigation() {
+  const focusedControl = document.activeElement;
+  const hasSlides = stretchSlideCount > 0;
+  const isLast = stretchSlideIndex >= stretchSlideCount - 1;
+  elements.stretchNavigation.hidden = !hasSlides;
+  elements.stretchPrevious.hidden = !hasSlides;
+  elements.stretchPrevious.disabled = stretchSlideIndex === 0;
+  elements.stretchNext.hidden = !hasSlides || isLast;
+  elements.stretchModalDone.hidden = hasSlides && !isLast;
+  elements.stretchPosition.textContent = hasSlides ? `${stretchSlideIndex + 1} / ${stretchSlideCount}` : "";
+  if (focusedControl === elements.stretchNext && elements.stretchNext.hidden) elements.stretchModalDone.focus({ preventScroll: true });
+  if (focusedControl === elements.stretchPrevious && elements.stretchPrevious.disabled) {
+    (elements.stretchNext.hidden ? elements.stretchModalDone : elements.stretchNext).focus({ preventScroll: true });
+  }
+  elements.stretchList.querySelectorAll("[data-stretch-slide]").forEach((slide, index) => {
+    const active = index === stretchSlideIndex;
+    slide.inert = !active;
+    slide.setAttribute("aria-hidden", String(!active));
+    if (!active) slide.querySelectorAll("details").forEach((details) => { details.open = false; });
+  });
+  elements.stretchDots.querySelectorAll("[data-stretch-dot]").forEach((dot, index) => {
+    if (index === stretchSlideIndex) dot.setAttribute("aria-current", "step");
+    else dot.removeAttribute("aria-current");
+  });
+}
+
+function goToStretchSlide(index, { scroll = true } = {}) {
+  const slides = [...elements.stretchList.querySelectorAll("[data-stretch-slide]")];
+  if (!slides.length) return;
+  const nextIndex = Math.max(0, Math.min(slides.length - 1, index));
+  if (scroll) {
+    const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+    elements.stretchList.scrollTo({ left: slides[nextIndex].offsetLeft - slides[0].offsetLeft, behavior: reduceMotion ? "instant" : "smooth" });
+    elements.stretchModal.querySelector(".stretch-modal-scroll").scrollTop = 0;
+    return;
+  }
+  stretchSlideIndex = nextIndex;
+  // 滑走的卡片不再进入 Tab 顺序；原焦点在卡片内时移回轮播。
+  if (slides.some((slide, i) => i !== stretchSlideIndex && slide.contains(document.activeElement))) {
+    elements.stretchList.focus({ preventScroll: true });
+  }
+  updateStretchNavigation();
+  syncStretchVideoPlayback();
+}
+
+function syncStretchSlideFromScroll() {
+  const slides = [...elements.stretchList.querySelectorAll("[data-stretch-slide]")];
+  if (!slides.length) return;
+  const left = elements.stretchList.scrollLeft;
+  const nearest = slides.reduce((best, slide, index) => Math.abs(slide.offsetLeft - slides[0].offsetLeft - left) < Math.abs(slides[best].offsetLeft - slides[0].offsetLeft - left) ? index : best, 0);
+  if (nearest !== stretchSlideIndex) goToStretchSlide(nearest, { scroll: false });
+}
+
+function bindStretchCarousel() {
+  elements.stretchPrevious?.addEventListener("click", () => goToStretchSlide(stretchSlideIndex - 1));
+  elements.stretchNext?.addEventListener("click", () => goToStretchSlide(stretchSlideIndex + 1));
+  elements.stretchDots?.addEventListener("click", (event) => {
+    const dot = event.target.closest("[data-stretch-dot]");
+    if (dot) goToStretchSlide(Number(dot.dataset.stretchDot));
+  });
+  elements.stretchList?.addEventListener("scroll", syncStretchSlideFromScroll, { passive: true });
+  elements.stretchList?.addEventListener("keydown", (event) => {
+    if (event.altKey || event.ctrlKey || event.metaKey) return;
+    const index = { ArrowLeft: stretchSlideIndex - 1, ArrowRight: stretchSlideIndex + 1, Home: 0, End: stretchSlideCount - 1 }[event.key];
+    if (index === undefined) return;
+    event.preventDefault();
+    goToStretchSlide(index);
+  });
+  window.addEventListener("resize", () => {
+    if (elements.stretchModal.hidden) return;
+    const slides = [...elements.stretchList.querySelectorAll("[data-stretch-slide]")];
+    if (slides.length) elements.stretchList.scrollTo({ left: slides[stretchSlideIndex].offsetLeft - slides[0].offsetLeft, behavior: "instant" });
   });
 }
 
@@ -1576,7 +1768,9 @@ function renderStretchPage() {
   renderWarmupGuide(workout);
   renderStretchContent(workout, {
     summary: elements.stretchPageSummary, safety: elements.stretchPageSafety, list: elements.stretchPageList,
+    carousel: true,
   });
+  setupGuideCarousel(elements.stretchPageList, elements.stretchPageNavigation);
   syncStretchVideoPlayback();
 }
 
@@ -1589,6 +1783,7 @@ function openStretchModal(workout = getActiveWorkout(), { automatic = false } = 
   renderStretchList();
   elements.stretchModal.querySelector(".stretch-modal-scroll").scrollTop = 0;
   showModal(elements.stretchModal);
+  elements.stretchList.scrollLeft = 0;
   syncStretchVideoPlayback();
   // 动作卡会重渲染；用常驻入口接回焦点，避免返回已移除的复选框。
   modalPreviousFocus.set(elements.stretchModal, elements.stretchOpenButton);
@@ -1671,7 +1866,7 @@ function keepFocusInsideModal(event) {
   if (!modal) return;
   const focusable = Array.from(modal.querySelectorAll(
     'button:not([disabled]):not([hidden]), a[href]:not([hidden]), input:not([disabled]), textarea:not([disabled]), summary, [tabindex]:not([tabindex="-1"])',
-  )).filter((item) => item.getClientRects().length > 0);
+  )).filter((item) => item.getClientRects().length > 0 && !item.closest("[inert]"));
   if (!focusable.length) return;
   const first = focusable[0];
   const last = focusable[focusable.length - 1];
@@ -2325,31 +2520,30 @@ function renderEquipmentGuide() {
   const order = state.goal === "fatLoss"
     ? ["treadmill", "bike", "cable", "dumbbell"]
     : ["treadmill", "elliptical", "bike", "cable", "smith", "bench", "dumbbell"];
-  elements.equipmentGrid.innerHTML = order.map((key) => {
+  elements.equipmentGrid.innerHTML = order.map((key, index) => {
     const item = equipmentLibrary[key];
     return `
-      <article class="equipment-card" id="equipment-${key}">
-        <img class="equipment-image" src="${item.image}" alt="${item.name}">
+      <article class="equipment-card" id="equipment-${key}" data-carousel-slide role="group" aria-roledescription="幻灯片" aria-label="${index + 1} / ${order.length} · ${item.name}">
+        <header class="equipment-head">
+          <h3>${item.name}</h3>
+          <span class="stretch-number" aria-hidden="true">${String(index + 1).padStart(2, "0")}</span>
+        </header>
+        <img class="equipment-image" src="${item.image}" alt="${item.name}" loading="lazy" decoding="async">
         <div class="equipment-content">
-          <div class="equipment-head">
-            <h3>${item.name}</h3>
-            <span class="pill">${item.useFor[0]}</span>
-          </div>
-          <p>${item.simple}</p>
-          <div class="equipment-meta">
-            <span>这台器械常用来做</span>
+          <p class="equipment-purpose">${item.useFor.slice(0, 2).join(" · ")}</p>
+          <div class="stretch-memory-cue"><span>要点</span><strong>${item.standard}</strong></div>
+          <details class="stretch-slide-details">
+            <summary>使用说明</summary>
+            <p>${item.simple}</p>
             <div class="equipment-tags">
               ${item.useFor.map((entry) => `<span class="pill">${entry}</span>`).join("")}
             </div>
-          </div>
-          <div class="equipment-meta">
-            <span>大白话标准</span>
-            <strong>${item.standard}</strong>
-          </div>
+          </details>
         </div>
       </article>
     `;
   }).join("");
+  setupGuideCarousel(elements.equipmentGrid, elements.equipmentNavigation);
 }
 
 function bindEquipmentJumpButtons(scope = document) {
@@ -2359,11 +2553,14 @@ function bindEquipmentJumpButtons(scope = document) {
       if (!target) return;
       returnScrollY = window.scrollY;
       setActiveModule("equipment", { scrollToTop: false });
+      const carousel = guideCarousels.get(elements.equipmentGrid);
+      const index = carousel?.slides.indexOf(target) ?? -1;
+      if (index >= 0) goToGuideSlide(elements.equipmentGrid, index, { instant: true });
       updateBackToWorkoutButton();
       document.querySelectorAll(".equipment-card").forEach((card) => card.classList.remove("is-highlighted"));
       target.classList.add("is-highlighted");
       window.setTimeout(() => {
-        target.scrollIntoView({ behavior: "smooth", block: "center" });
+        target.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
       }, 80);
       setTimeout(() => target.classList.remove("is-highlighted"), 2200);
     });
@@ -2397,6 +2594,7 @@ function setActiveModule(moduleName, options = {}) {
     }
   });
 
+  syncGuideCarouselLayouts();
   syncStretchVideoPlayback();
   updateBackToTopButton();
   if (options.scrollToTop !== false) {
@@ -2511,6 +2709,8 @@ function attachEvents() {
   elements.stretchModalBackdrop?.addEventListener("click", closeStretchModal);
   elements.stretchModalClose?.addEventListener("click", closeStretchModal);
   elements.stretchModalDone?.addEventListener("click", closeStretchModal);
+  bindStretchCarousel();
+  window.addEventListener("resize", syncGuideCarouselLayouts);
   window.matchMedia?.("(prefers-reduced-motion: reduce)")?.addEventListener?.("change", syncStretchVideoPlayback);
   document.addEventListener("visibilitychange", syncStretchVideoPlayback);
   elements.stretchChangeDay?.addEventListener("click", () => setActiveModule("training"));
