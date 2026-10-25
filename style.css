@@ -3490,8 +3490,8 @@ p {
   min-width: 46px;
   padding: 5px 7px;
   border-radius: 999px;
-  background: var(--green-soft);
-  color: var(--green);
+  background: var(--surface-soft);
+  color: var(--muted);
   font-size: 0.76rem;
   font-weight: 900;
 }
@@ -6186,10 +6186,10 @@ body.has-modal-open {
 }
 .step-nav-button-primary { box-shadow: none; }
 .stepper-footer > span { color: var(--muted); font-size: 13px; }
-.training-reminder { display: flex; align-items: baseline; gap: 14px; padding: 0 8px; font-size: 14px; }
+.training-reminder { display: flex; align-items: baseline; gap: 12px; padding: 14px 18px; border: 1px solid var(--line); border-left: 3px solid var(--accent-deep); border-radius: var(--radius-md); background: var(--surface); font-size: 14px; }
 .training-reminder > span { flex-shrink: 0; color: var(--accent-deep); font-weight: 700; }
 .training-reminder p { margin: 0; color: var(--muted); line-height: 1.7; }
-.training-notes-panel { padding: 20px 24px; background: var(--surface); box-shadow: none; }
+.training-notes-panel { margin-top: 0; padding: 20px 24px; border: 1px solid var(--line); border-radius: var(--radius-lg); background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(250, 251, 252, 0.96)), #fff; box-shadow: var(--shadow-soft); }
 .training-notes-head { align-items: center; }
 .note-add-button { display: flex; align-items: center; justify-content: center; gap: 6px; width: auto; height: auto; min-height: 44px; padding: 8px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--text); font: inherit; font-size: 14px; box-shadow: none; }
 .note-add-button span { width: auto; height: auto; color: var(--accent-deep); font-size: 22px; line-height: 1; }
@@ -6295,8 +6295,7 @@ body.has-modal-open {
   .workout-panel .stepper-footer { grid-template-columns: 1fr 1fr; gap: 10px; }
   .workout-panel .stepper-footer > span { display: none; }
   .workout-panel .stepper-footer .step-nav-button { display: block; position: static; width: 100%; max-width: none; min-height: 44px; padding: 10px; box-shadow: none; }
-  .training-reminder { display: block; padding: 0 8px; }
-  .training-reminder > span { display: block; margin-bottom: 4px; }
+  .training-reminder { padding: 12px 16px; }
   .training-notes-head { flex-direction: row; }
   .note-add-button { flex-shrink: 0; }
   .app-module-page .recovery-grid { grid-template-columns: 1fr; }
@@ -6396,6 +6395,7 @@ body.has-modal-open {
 
 .training-tools { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line); }
 .training-tools .module-action-button { flex: 1; min-height: 44px; }
+.training-tools .module-action-button-light { border: 0; background: var(--surface-soft); box-shadow: none; color: var(--text); font-weight: 700; }
 .equipment-panel .module-page-head .module-action-button { min-height: 44px; flex-shrink: 0; }
 .stretch-page { min-width: 0; padding: 28px; border: 1px solid var(--line); border-radius: 20px; background: var(--surface); box-shadow: var(--shadow-soft); }
 .stretch-page-head { gap: 18px; align-items: flex-start; margin-bottom: 20px; }

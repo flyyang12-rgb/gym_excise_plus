@@ -7,13 +7,13 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>健身小助手</title>
   <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
-  <link rel="stylesheet" href="style.css?v=20261021-guide-slides-v2">
+  <link rel="stylesheet" href="style.css?v=20261025-equipment-notes-v1">
 </head>
 <body>
   <div class="app-shell">
     <section class="app-module app-module-training is-active" data-module="training" aria-label="训练模块">
       <header class="hero">
-        <span id="versionBadge" class="version-badge" title="当前版本">v2026.10.21.2</span>
+        <span id="versionBadge" class="version-badge" title="当前版本">v2026.10.25.1</span>
         <div class="hero-main">
           <div class="hero-copy">
             <p class="eyebrow" id="heroGoalLabel">晚间训练 · 增肌</p>
@@ -122,34 +122,6 @@
           </div>
         </section>
 
-        <aside class="training-reminder" aria-label="训练提示">
-          <span>训练提示</span>
-          <p>每组做稳，组间按需休息。</p>
-        </aside>
-        <section class="training-notes-panel training-notes-merged" aria-labelledby="trainingNotesTitle">
-          <div class="training-notes-head">
-            <div>
-              <p class="panel-tag">训练记录</p>
-              <h3 id="trainingNotesTitle">近 5 天小记</h3>
-            </div>
-            <button id="noteAddButton" class="note-add-button" type="button" aria-expanded="false" aria-controls="noteForm">
-              <span aria-hidden="true">+</span> 写小记
-            </button>
-          </div>
-          <form id="noteForm" class="note-form" hidden>
-            <label for="noteInput">今天的训练记录</label>
-            <textarea id="noteInput" rows="3" maxlength="120" placeholder="比如：深蹲用了多少重量，完成了几组。"></textarea>
-            <div class="note-form-actions">
-              <button id="noteCancelButton" class="note-ghost-button" type="button">取消</button>
-              <button class="note-save-button" type="submit">保存</button>
-            </div>
-          </form>
-          <div id="noteList" class="note-list" aria-live="polite"></div>
-          <div class="training-tools" aria-label="训练工具">
-            <button id="bmiOpenButton" class="module-action-button module-action-button-light" type="button"><span>BM</span>BMI 数据</button>
-          </div>
-        </section>
-
       </main>
     </section>
 
@@ -159,7 +131,7 @@
           <div>
             <h2>训练器械</h2>
           </div>
-          <button id="aiObserveButton" class="module-action-button" type="button"><span>AI</span>AI 问答</button>
+          <button id="aiObserveButton" class="module-action-button" type="button">AI 问答</button>
         </div>
         <div id="equipmentGrid" class="equipment-grid guide-carousel" role="region" aria-roledescription="轮播" aria-label="器械卡片，可左右切换" tabindex="0"></div>
         <div id="equipmentNavigation" class="guide-carousel-controls" hidden>
@@ -168,6 +140,35 @@
           <button type="button" data-carousel-next aria-label="下一器械" aria-controls="equipmentGrid">→</button>
         </div>
       </section>
+
+      <aside class="training-reminder" aria-label="训练提示">
+        <span>训练提示</span>
+        <p>每组做稳，组间按需休息。</p>
+      </aside>
+      <section class="training-notes-panel training-notes-merged" aria-labelledby="trainingNotesTitle">
+        <div class="training-notes-head">
+          <div>
+            <p class="panel-tag">训练记录</p>
+            <h3 id="trainingNotesTitle">近 5 天小记</h3>
+          </div>
+          <button id="noteAddButton" class="note-add-button" type="button" aria-expanded="false" aria-controls="noteForm">
+            <span aria-hidden="true">+</span> 写小记
+          </button>
+        </div>
+        <form id="noteForm" class="note-form" hidden>
+          <label for="noteInput">今天的训练记录</label>
+          <textarea id="noteInput" rows="3" maxlength="120" placeholder="比如：深蹲用了多少重量，完成了几组。"></textarea>
+          <div class="note-form-actions">
+            <button id="noteCancelButton" class="note-ghost-button" type="button">取消</button>
+            <button class="note-save-button" type="submit">保存</button>
+          </div>
+        </form>
+        <div id="noteList" class="note-list" aria-live="polite"></div>
+        <div class="training-tools" aria-label="训练工具">
+          <button id="bmiOpenButton" class="module-action-button module-action-button-light" type="button">BMI 数据</button>
+        </div>
+      </section>
+
     </section>
 
     <section class="app-module app-module-page" data-module="stretch" aria-label="拉伸模块" hidden>
@@ -385,6 +386,6 @@
 
   <script src="exercise-guides.js?v=20261018-stretch-v1"></script>
   <script src="stretch-guide.js?v=20261021-warmup-cues-v2"></script>
-  <script src="script.js?v=20261021-guide-slides-v2"></script>
+  <script src="script.js?v=20261025-equipment-notes-v1"></script>
 </body>
 </html>

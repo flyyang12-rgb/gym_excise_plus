@@ -1,7 +1,7 @@
 const STORAGE_KEY = "fitness_helper_progress_v2";
 const TRAINING_NOTES_KEY = "fitness_helper_training_notes_v1";
 const AI_REQUEST_TIMEOUT_MS = 10000;
-const APP_VERSION = "2026.10.21.2";
+const APP_VERSION = "2026.10.25.1";
 const MODAL_EXIT_DURATION_MS = 180;
 const modalCloseTimers = new WeakMap();
 const modalPreviousFocus = new WeakMap();
@@ -2021,7 +2021,7 @@ function renderTrainingNotes() {
     .slice(0, 5);
 
   if (!recentNotes.length) {
-    elements.noteList.innerHTML = `<p class="note-empty">还没有训练小记。可以记录今天的重量、组数或感受。</p>`;
+    elements.noteList.innerHTML = `<p class="note-empty">还没有小记，记一下今天的重量、组数或感受。</p>`;
     return;
   }
 
