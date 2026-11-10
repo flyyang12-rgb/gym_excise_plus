@@ -88,13 +88,13 @@ test("warmups and post-workout stretches cover every training day with two or th
         if (day.type === "recovery") assert.equal(warmups.length, 0);
         else {
           assert.ok(warmups.length >= 2 && warmups.length <= 3, `${goal}/${frequency}/${day.title} warmup: ${warmups.length}`);
-          assert.ok(warmups.every(item => item.media?.src && item.media.poster));
+          assert.ok(warmups.every(item => item.media?.src.startsWith("exercise-media/") && item.media.src.endsWith(".gif") && item.media.poster.endsWith(".jpg")));
           assert.equal(warmups.length, new Set(warmups.map(item => item.id)).size);
         }
         if (day.type === "recovery") assert.equal(items.length, 0, `${goal}/${frequency}/recovery`);
         else {
           assert.ok(items.length >= 2 && items.length <= 3, `${goal}/${frequency}/${day.title}: ${items.length}`);
-          assert.ok(items.every(item => item.media?.src.endsWith(item.media.type === "video" ? ".mp4" : ".gif") && item.media.poster.endsWith(".jpg")));
+          assert.ok(items.every(item => item.media?.src.startsWith("exercise-media/") && item.media.src.endsWith(".gif") && item.media.poster.endsWith(".jpg")));
         }
         assert.equal(items.length, new Set(items.map((item) => item.id)).size);
         assert.equal(JSON.stringify(day), original);
@@ -124,9 +124,9 @@ test("warmup and post-workout blocks show together and both follow the selected 
     elements.warmupSection = {}; elements.warmupSummary = {}; elements.stretchDayDivider = {}; elements.postWorkoutStretchHead = {};
     elements.stretchPageContext = {}; elements.stretchPageSummary = {}; elements.stretchPageSafety = {};`);
   for (const [id, expected] of [
-    ["周一-push-0", ["动态扩胸", "招财猫（空手）"]],
-    ["周二-pull-1", ["屈臂肩部绕环", "招财猫（空手）"]],
-    ["周四-legs-2", ["徒手小幅蹲起", "站姿提踵", "扶稳踝绕环"]],
+    ["周一-push-0", ["动态扩胸", "轻哑铃肩外旋", "手腕绕环"]],
+    ["周二-pull-1", ["站姿弓箭转体", "轻哑铃肩外旋", "手腕绕环"]],
+    ["周四-legs-2", ["徒手小幅蹲起", "站姿单腿屈膝", "扶稳踝绕环"]],
   ]) {
     run(`activeDayId = "${id}"; renderStretchPage()`);
     const titles = JSON.parse(run('JSON.stringify([...elements.warmupList.innerHTML.matchAll(/<h3>([^<]+)/g)].map(match => match[1]))'));
@@ -139,9 +139,12 @@ test("warmup and post-workout blocks show together and both follow the selected 
     assert.doesNotMatch(html, /保持约|<video[^>]*\ssrc=/);
     assert.equal((html.match(/<details[^>]*\sopen/g) || []).length, 0);
     assert.equal((html.match(/data-carousel-slide/g) || []).length, expected.length);
-    assert.doesNotMatch(run("elements.stretchPageList.innerHTML"), /动态扩胸|招财猫|徒手小幅蹲起|站姿提踵|扶稳踝绕环|屈臂肩部绕环/);
+    assert.equal((html.match(/class="stretch-quick-fact"/g) || []).length, expected.length * 2);
+    assert.match(html, /热身节奏与呼吸/);
+    assert.doesNotMatch(run("elements.stretchPageList.innerHTML"), /动态扩胸|轻哑铃肩外旋|徒手小幅蹲起|站姿提踵|扶稳踝绕环|站姿弓箭转体|手腕绕环|站姿单腿屈膝|交替浅弓步|站姿骨盆前后倾/);
   }
   assert.match(run("elements.warmupList.innerHTML"), /每侧顺逆各 5 圈/);
+  assert.match(run("elements.warmupList.innerHTML"), /每圈约 2–3 秒/);
   assert.match(run("elements.warmupList.innerHTML"), /近似示范：动图演示蹲起路线/);
 });
 
@@ -249,10 +252,10 @@ test("page and popup show the same two or three stretches for the selected train
     elements.stretchList = { innerHTML: "", querySelectorAll: () => [] };
     elements.stretchPageContext = {}; elements.stretchPageSummary = {}; elements.stretchSummary = {};`);
   for (const [dayId, expected] of [
-    ["周一-push-0", ["扶凳开胸拉伸", "横抱臂拉伸", "头顶屈肘拉伸"]],
-    ["周二-pull-1", ["站姿前伸拉背", "横抱臂拉伸"]],
-    ["周四-legs-2", ["扶椅腿前侧拉伸", "坐姿腿后侧拉伸", "坐姿搭腿拉臀"]],
-    ["周六-shoulder-3", ["横抱臂拉伸", "头顶屈肘拉伸"]],
+    ["周一-push-0", ["扶凳开胸拉伸", "头顶屈肘拉伸", "侧向屈腕拉伸"]],
+    ["周二-pull-1", ["站姿前伸拉背", "站姿侧腰拉伸", "侧向屈腕拉伸"]],
+    ["周四-legs-2", ["毛巾辅助腿前侧拉伸", "坐姿腿后侧拉伸", "站姿弓步髋前拉伸"]],
+    ["周六-shoulder-3", ["横抱臂拉伸", "头顶屈肘拉伸", "胸前交臂拉伸"]],
   ]) {
     run(`activeDayId = "${dayId}"; renderStretchPage(); stretchWorkout = getActiveWorkout(); renderStretchList();`);
     const titles = JSON.parse(run('JSON.stringify([...elements.stretchList.innerHTML.matchAll(/<h3>([^<]+)/g)].map(match => match[1]))'));
@@ -341,8 +344,8 @@ test("stretch carousel pauses inactive videos and only loads the selected visibl
 test("stretch carousel keeps text and mnemonics with media disabled and details initially collapsed", () => {
   const { run } = loadPageLogic({ StretchGuide });
   const html = run('renderStretchCards(window.StretchGuide.getWorkoutStretches({ key: "legs" }), { carousel: true })');
-  assert.match(html, /扶椅握踝，膝朝下，腰不顶/);
-  assert.match(html, /髋关节置换术后不做/);
+  assert.match(html, /扶稳套脚，膝朝下，腰不顶/);
+  assert.match(html, /不要跪地、弓步过深/);
   assert.equal((html.match(/class="stretch-slide"/g) || []).length, 3);
   assert.equal((html.match(/每侧 30 秒/g) || []).length, 3);
   assert.doesNotMatch(html, /<video|<img|<details[^>]*\sopen/);

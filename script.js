@@ -1,7 +1,7 @@
 const STORAGE_KEY = "fitness_helper_progress_v2";
 const TRAINING_NOTES_KEY = "fitness_helper_training_notes_v1";
 const AI_REQUEST_TIMEOUT_MS = 10000;
-const APP_VERSION = "2026.10.25.1";
+const APP_VERSION = "2026.11.10.2";
 const MODAL_EXIT_DURATION_MS = 180;
 const modalCloseTimers = new WeakMap();
 const modalPreviousFocus = new WeakMap();
@@ -1493,9 +1493,20 @@ function renderStretchMedia(item, { warmup = false, compact = false } = {}) {
     </figure>`;
 }
 
+function renderWarmupQuickFacts(item) {
+  const facts = [
+    { label: "节奏", value: item.tempo },
+    { label: "呼吸", value: item.breathing },
+  ].filter((fact) => fact.value);
+  if (!facts.length) return "";
+  return `<div class="stretch-quick-facts" role="group" aria-label="热身节奏与呼吸">${facts.map((fact) => `
+    <div class="stretch-quick-fact"><span>${fact.label}</span><strong>${escapeHtml(fact.value)}</strong></div>
+  `).join("")}</div>`;
+}
+
 function renderStretchCards(items, { warmup = false, carousel = false } = {}) {
   if (carousel) return items.map((item, index) => `
-    <article class="stretch-slide" data-stretch-slide="${index}" data-carousel-slide role="group" aria-roledescription="幻灯片" aria-label="${index + 1} / ${items.length} · ${escapeHtml(item.title)}" ${index ? 'inert aria-hidden="true"' : 'aria-hidden="false"'}>
+    <article class="stretch-slide${warmup ? " is-warmup" : ""}" data-stretch-slide="${index}" data-carousel-slide role="group" aria-roledescription="幻灯片" aria-label="${index + 1} / ${items.length} · ${escapeHtml(item.title)}" ${index ? 'inert aria-hidden="true"' : 'aria-hidden="false"'}>
       <header class="stretch-slide-head">
         <span class="stretch-number" aria-hidden="true">${String(index + 1).padStart(2, "0")}</span>
         <div class="stretch-item-heading"><h3>${escapeHtml(item.title)}</h3><small>${escapeHtml(item.area)}</small></div>
@@ -1503,6 +1514,7 @@ function renderStretchCards(items, { warmup = false, carousel = false } = {}) {
       </header>
       ${renderStretchMedia(item, { warmup, compact: true })}
       <div class="stretch-memory-cue"><span>口诀</span><strong>${escapeHtml(item.memoryCue || item.cue)}</strong></div>
+      ${warmup ? renderWarmupQuickFacts(item) : ""}
       <p class="stretch-slide-note">${escapeHtml(item.safetyNote || item.avoid)}</p>
       <details class="stretch-slide-details">
         <summary>动作细节</summary>
@@ -1522,6 +1534,7 @@ function renderStretchCards(items, { warmup = false, carousel = false } = {}) {
       <div class="stretch-item-content">
         ${renderStretchMedia(item, { warmup })}
         <div class="stretch-instructions">
+          ${warmup ? renderWarmupQuickFacts(item) : ""}
           <p class="stretch-cue">${escapeHtml(item.cue)}</p>
           <ol>${item.steps.map((step) => `<li>${escapeHtml(step)}</li>`).join("")}</ol>
           <p class="stretch-avoid">${escapeHtml(item.avoid)}</p>

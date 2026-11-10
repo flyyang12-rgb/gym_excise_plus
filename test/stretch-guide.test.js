@@ -8,20 +8,23 @@ const workout = (...names) => ({ exercises: names.map((name) => ({ name })) });
 
 test("general warmups label suitable training areas and keep their media and data separate from daily stretches", () => {
   const items = getWarmups({ mediaEnabled: true });
-  assert.deepEqual(items.map(item => item.title), ["动态扩胸", "招财猫（空手）", "徒手小幅蹲起", "站姿提踵", "扶稳踝绕环", "屈臂肩部绕环"]);
+  assert.deepEqual(items.map(item => item.title), ["动态扩胸", "轻哑铃肩外旋", "徒手小幅蹲起", "站姿提踵", "扶稳踝绕环", "站姿弓箭转体", "手腕绕环", "站姿单腿屈膝", "交替浅弓步", "站姿骨盆前后倾"]);
   assert.deepEqual(items[0].suitableFor, ["练胸前", "练肩前"]);
   assert.deepEqual(items[1].suitableFor, ["练胸前", "练背前", "练肩前"]);
-  for (const item of items.filter(item => item.media.type !== "video")) {
+  for (const item of items) {
     assert.match(fs.readFileSync(path.join(__dirname, "..", item.media.src)).subarray(0, 6).toString(), /^GIF8[79]a$/);
     assert.equal(fs.readFileSync(path.join(__dirname, "..", item.media.poster)).readUInt16BE(0), 0xffd8);
+    assert.match(item.media.attribution, /Gym visual/);
+    assert.match(item.media.sourceUrl, /MrZaKaRiA\/exercises-dataset\/blob\/main\/videos\//);
   }
   const legs = items.filter(item => item.suitableFor.includes("练腿前"));
-  assert.equal(legs.length, 3);
+  assert.equal(legs.length, 6);
   assert.ok(legs.every(item => item.repetitions && item.steps.length === 3 && item.avoid));
+  assert.ok(items.every(item => item.tempo && item.breathing));
   assert.equal(legs[0].media.approximate, true);
   assert.match(legs[0].media.note, /小幅/);
-  assert.equal(items[1].media.type, "video");
-  assert.match(items[1].media.src, /^https:\/\/static1\.keepcdn\.com\//);
+  assert.equal(items[1].media.type, undefined);
+  assert.match(items[1].media.src, /^exercise-media\/0864-x306lCW\.gif$/);
   assert.ok(getWarmups().every(item => item.media === null));
   assert.ok(getWorkoutStretches({ key: "push" }).every(item => !items.some(warmup => warmup.id === item.id)));
   items[0].suitableFor.push("changed"); items[0].steps[0] = "changed"; items[0].media.src = "changed";
@@ -31,9 +34,9 @@ test("general warmups label suitable training areas and keep their media and dat
 });
 
 test("warmups select the current day's regions, skip recovery and return independent data", () => {
-  assert.deepEqual(getWorkoutWarmups({ key: "push" }).map(item => item.id), ["chest-opening", "shoulder-rotation"]);
-  assert.deepEqual(getWorkoutWarmups({ key: "pull" }).map(item => item.id), ["shoulder-circles", "shoulder-rotation"]);
-  assert.deepEqual(getWorkoutWarmups({ key: "legs" }).map(item => item.id), ["leg-squat", "calf-raise", "ankle-circles"]);
+  assert.deepEqual(getWorkoutWarmups({ key: "push" }).map(item => item.id), ["chest-opening", "shoulder-rotation", "wrist-circles"]);
+  assert.deepEqual(getWorkoutWarmups({ key: "pull" }).map(item => item.id), ["standing-archer", "shoulder-rotation", "wrist-circles"]);
+  assert.deepEqual(getWorkoutWarmups({ key: "legs" }).map(item => item.id), ["leg-squat", "leg-curl", "ankle-circles"]);
   assert.deepEqual(getWorkoutWarmups({ key: "legs", type: "recovery" }), []);
   assert.deepEqual(getWorkoutWarmups({ key: "toString" }), []);
   assert.deepEqual(getWorkoutWarmups(), []);
@@ -45,24 +48,17 @@ test("warmups select the current day's regions, skip recovery and return indepen
 
 test("full-body days select three upper and lower body stretches without accumulating every region", () => {
   const items = getWorkoutStretches({ key: "fullbody", ...workout("标准俯卧撑", "哑铃卧推", "单臂哑铃划船", "高脚杯深蹲", "动感单车匀速骑行") });
-  assert.deepEqual(items.map((item) => item.id), ["chest", "back", "quads"]);
-  assert.equal(getHoldSeconds(items), 120);
+  assert.deepEqual(items.map((item) => item.id), ["chestFront", "lats", "quads"]);
+  assert.equal(getHoldSeconds(items), 150);
   assert.ok(items.every((item) => item.seconds === 30 && item.steps.length === 3 && item.avoid));
 });
 
-test("all eight stretches have distinct demonstrations, reduced-motion posters and source credits", () => {
+test("all twelve stretches have distinct local demonstrations, reduced-motion posters and source credits", () => {
   const items = getAllStretches({ mediaEnabled: true });
-  assert.equal(items.length, 8);
-  assert.equal(new Set(items.map((item) => item.media.src)).size, 8);
+  assert.equal(items.length, 12);
+  assert.equal(new Set(items.map((item) => item.media.src)).size, 12);
   for (const item of items) {
-    if (item.media.type === "video") {
-      assert.equal(item.id, "quads");
-      assert.match(item.media.src, /^https:\/\/static1\.keepcdn\.com\//);
-      assert.match(item.media.poster, /^https:\/\/static1\.gotokeep\.com\//);
-      assert.match(item.media.sourceUrl, /calorietech.com\/exercises\//);
-      assert.match(item.media.attribution, /Keep/);
-      continue;
-    }
+    assert.match(item.media.src, /^exercise-media\/.+\.gif$/);
     const gif = fs.readFileSync(path.join(__dirname, "..", item.media.src));
     const poster = fs.readFileSync(path.join(__dirname, "..", item.media.poster));
     assert.match(gif.subarray(0, 6).toString(), /^GIF8[79]a$/);
@@ -80,7 +76,7 @@ test("stretches need no floor or mat and retain the two seated chair stretches",
   assert.match(back.steps[0], /站稳/);
   assert.equal(back.media.src, "exercise-media/1365-GSDioYu.gif");
   assert.match(quads.steps[0], /椅背/);
-  assert.match(quads.media.sourceUrl, /55cc42d20f11ec78824999d9/);
+  assert.match(quads.media.sourceUrl, /1564-tFGKm99/);
   assert.ok(items.every(item => !/1346-f38OEuO|0613-BWnJR72/.test(item.media.src)));
   assert.deepEqual(items.filter(item => ["hamstrings", "glutes"].includes(item.id)).map(item => item.title), ["坐姿腿后侧拉伸", "坐姿搭腿拉臀"]);
 });
@@ -113,10 +109,10 @@ test("planned movements match their own regions while recovery days have no stre
 
 test("new arm and glute stretches have bilateral holds and unknown plans still return at most three matches", () => {
   const push = getWorkoutStretches({ key: "push" });
-  assert.deepEqual(push.map((item) => item.id), ["chest", "shoulder", "triceps"]);
+  assert.deepEqual(push.map((item) => item.id), ["chest", "triceps", "forearm"]);
   assert.equal(getHoldSeconds(push), 150);
   const legs = getWorkoutStretches({ key: "legs" });
-  assert.deepEqual(legs.map((item) => item.id), ["quads", "hamstrings", "glutes"]);
+  assert.deepEqual(legs.map((item) => item.id), ["quads", "hamstrings", "hipFlexor"]);
   assert.equal(getHoldSeconds(legs), 180);
   const fallback = getWorkoutStretches({ key: "new-plan", ...workout("卧推", "下拉", "绳索下压", "深蹲", "跑步机快走") });
   assert.equal(fallback.length, 3);
